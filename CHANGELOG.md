@@ -6,6 +6,23 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.229.0 — 2026-09-21 01:22: Batch 443 — The joke vehicles land: BICYCLE, FISH, COUCH
+
+The three the box system has been waiting on, all `boxOnly: true`. That one flag is the entire wiring — it already excludes a car from NPC traffic, from `canAffordCar()` at any coin total, and from the "own every car" check that gates Extra Boxes. **No other system needed changing**; the mystery tile, the LOCKED marker, the "BOX EXCLUSIVE — NOT FOR SALE" hover line, duplicate compensation and COLLECTOR's amethyst tier all switched back on by themselves. Verified: COLLECTOR now reads diamond 52 (every buyable car) / amethyst 55 (those plus all three exclusives).
+
+**They are legendary, and that does not put a fish in traffic.** The spawn table is built by a loop that skips `boxOnly` outright, so `rarity` on these three only does two things: groups them in the Garage's legendary section, and sets what a duplicate roll refunds — the top rate, correct for the only prizes a box can still give. Confirmed none of the three appears in `GARAGE_NPC_RARITY`. No `unlock` price either: `buildCarTile()` shows LOCKED instead of a price for box-exclusives and the price sort already pushes them last, so a number would never have been displayed.
+
+**Sizes, and what they do to the multiplier:** BICYCLE `h20/w8` → ×0.90, FISH `h22/w12` → ×0.97, COUCH `h18/w20` → ×1.00. All three sit inside the existing ×0.83–×1.79 spread from Batch 440, so none is a stealth upgrade — a joke car is a joke, not a reward for winning one.
+
+**The sprites are hand-drawn, not shells.** `bodyShell53`/`bodyShellW53` draw a *car* — headlights, taillights, a windscreen — and inheriting a windscreen is exactly what would make a fish read as broken rather than funny. All three use `sil53()` for the same black outline every other vehicle gets and nothing else. Two were redrawn after looking at them:
+
+- **The couch** came out as a striped box. The arms were only shaded -.12 against the cushions, and a couch from above is read almost entirely through contrast between solid mass and the lit hollow between it. Arms and back went to -.38 with a lit crown; now the three cushions and the rear backrest are legible.
+- **The bicycle** was a dark smudge — a 2px frame tube left almost no painted surface, so the player's chosen paint barely appeared. The frame is 4 wide through the middle now.
+
+**A real bug this exposed, and it was mine.** `extraBoxCanStillGive()` (Batch 440) asked `boxExclusiveCars().length > 0` — "do box-exclusive cars exist". That was only ever correct while the list was empty. The joke cars made it permanently true, so boxes would have stayed on sale forever, including to a player owning all 55 cars and every gift paint: the exact guaranteed-loss the function was written to prevent, relocated to the endgame. It now asks whether a box can give something you do not already **have**.
+
+Verified across four states: all 52 buyable cars owned → boxes available; only the fish missing → available; literally everything owned → hidden; ordinary save → available.
+
 ## 2.228.2 — 2026-09-21 00:34: Batch 442 — Menu tabs reordered; a hook that mutes the game before testing
 
 **Tab order, by direct request:** GARAGE / SCORES / STATS on the top row, GIFT / AWARDS / MISSIONS on the second. Only the six buttons in the main grid moved; SETTINGS and TUTORIAL keep their own row underneath.
