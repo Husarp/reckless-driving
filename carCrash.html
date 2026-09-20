@@ -1775,7 +1775,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.229.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.230.0</span></div>
                 </div>
             </div>
         </div>
@@ -3828,13 +3828,16 @@
             return '#2ee6b0';
         }
         // player level ring, same cell-by-cell arc-plot + exact radii (8.2/11.2 at a native 24px canvas) as the design doc's own paintRing(), CSS-scaled to 48px display so it stays crisp pixel art rather than a smoothed circle — matches the doc's own 24→48 ratio.
-        function paintLevelBadgeAt(ringCanvas, numEl, xpEl, rankEl, level, xp) {
+        // `ringPct` (Batch 444) overrides ONLY the ring's fill fraction, for the click easter egg's
+        // spin. It deliberately does not touch the XP text: sweeping the ring by feeding this a fake
+        // `xp` would have made the readout count up to a number the player does not actually have.
+        function paintLevelBadgeAt(ringCanvas, numEl, xpEl, rankEl, level, xp, ringPct) {
             const S = 24;
             ringCanvas.width = S; ringCanvas.height = S;
             const c = ringCanvas.getContext('2d');
             c.clearRect(0, 0, S, S);
             const req = levelReq(level);
-            const pct = Math.max(0, Math.min(1, xp / req));
+            const pct = ringPct !== undefined ? ringPct : Math.max(0, Math.min(1, xp / req));
             const color = levelTier(level).color;
             const cx = S / 2, cy = S / 2;
             for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
@@ -3865,7 +3868,45 @@
         function markLevelAnimStart() {
             if (!levelBadgeAnimFrom) levelBadgeAnimFrom = { level: allTimeStats.playerLevel, xp: allTimeStats.playerXP };
         }
+        // Batch 444, user's own idea: "click on the players level : animation : progress bar goes like
+        // up (does whole circle and comes to its place)". The fill sweeps forward from where it really
+        // is, all the way round, and lands back on its real value - `(real + eased) % 1` ends at
+        // exactly `real` when eased hits 1, so it can never settle on a wrong-looking fill.
+        //
+        // No cursor:pointer anywhere near the badge, and no hover hint: this is a secret achievement,
+        // so anything that advertises the badge as clickable would give it away.
+        let levelSpinBusy = false;
+        function spinLevelBadge(badgeEl) {
+            // Two different markups: Garage and Stats use .level-badge-*, but the main menu's own
+            // circle (kept deliberately when the menu was rebuilt from the design doc) uses .mm-level-*.
+            // Matching both is what makes all 3 instances work rather than only the two older ones.
+            const ring = badgeEl.querySelector('canvas');
+            const num = badgeEl.querySelector('.level-badge-num, .mm-level-num');
+            const xpEl = badgeEl.querySelector('.level-badge-xp, .mm-level-xp');
+            const rankEl = badgeEl.querySelector('.level-badge-rank, .mm-level-rank');
+            if (!ring || !num || !xpEl || !rankEl || levelSpinBusy) return;
+            unlockAchievement('full_circle');
+            const level = allTimeStats.playerLevel, xp = allTimeStats.playerXP;
+            const real = Math.max(0, Math.min(1, xp / levelReq(level)));
+            const t0 = performance.now(), DUR = 900;
+            levelSpinBusy = true;
+            (function frame(now) {
+                const k = Math.min(1, (now - t0) / DUR);
+                const eased = 1 - Math.pow(1 - k, 3);
+                paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp, (real + eased) % 1);
+                if (k < 1) { requestAnimationFrame(frame); return; }
+                levelSpinBusy = false;
+                paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp);
+            })(t0);
+        }
+        // Delegated, so all 3 badge instances (Menu/Garage/Stats) are covered by one listener - and a
+        // 4th would be too, without anyone having to remember to wire it up.
+        document.addEventListener('click', (e) => {
+            const badge = e.target.closest('.level-badge, .mm-level');
+            if (badge) spinLevelBadge(badge);
+        });
         function paintLevelBadge(ringCanvas, numEl, xpEl, rankEl) {
+            if (levelSpinBusy) return; // a click-spin is mid-flight; refreshMenuSummary() must not stomp it
             if (levelBadgeAnimFrom && (levelBadgeAnimFrom.level !== allTimeStats.playerLevel || levelBadgeAnimFrom.xp !== allTimeStats.playerXP)) {
                 const from = levelBadgeAnimFrom;
                 levelBadgeAnimFrom = null; // consumed — only the first badge to render plays it
@@ -7456,6 +7497,12 @@
                 // the main roster — each keeps its OLD one-time tier as the new ceiling (3 of these
                 // were 'gold', so 3 tiers; HIGH ROLLER was 'diamond', so 4), scaled down from there.
                 { id: 'full_palette', icon: 'star', name: 'FULL PALETTE', desc: 'Own paint colors.', v: allTimeStats.ownedColors.length, unit: 'COLORS', tiers: [['bronze', 3], ['silver', 7], ['gold', GARAGE_COLORS.length]] },
+                // Batch 444 - the completionist layer over FULL PALETTE, which only ever counted paints.
+                // "Every cosmetic" means every paint AND every booster right now; the plan logged this as
+                // blocked on the effects system existing, but nothing about it needs to wait: when effects
+                // land, they get their own `every()` clause here and the achievement widens by one line.
+                // isFlameUnlocked() covers both gates a booster can have - the level one and the bought one.
+                { id: 'full_wardrobe', icon: 'star', name: 'FULL WARDROBE', desc: 'Own every paint colour and every booster in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
                 { id: 'car_fanatic', icon: 'car', name: 'CAR FANATIC', desc: 'Take a run in this many different cars.', v: Object.keys(allTimeStats.carStats).filter(k => allTimeStats.carStats[k].runs >= 1).length, unit: 'CARS DRIVEN', tiers: [['bronze', 15], ['silver', 35], ['gold', 52]] },
                 { id: 'i_am_speed', icon: 'road', name: 'I AM SPEED', desc: 'Reach a top speed, like Sonic himself.', v: allTimeStats.bestTopSpeedKmh, unit: 'KM/H', tiers: [['bronze', 150], ['silver', 200], ['gold', 250]] },
                 { id: 'high_roller', icon: 'star', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 3], ['silver', 4.5], ['gold', 6], ['diamond', 7.5]] },
@@ -7505,6 +7552,8 @@
 
         function ACH_SECRETS() {
             return [
+            { id: 'full_circle', icon: 'clock', name: 'FULL CIRCLE', desc: 'Click your level badge and watch the ring go all the way round.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
+            { id: 'act_of_god', icon: 'car', name: 'ACT OF GOD', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.act_of_god },
             { id: 'pull_up_pull_up', icon: 'car', name: 'PULL UP! PULL UP!', desc: 'Land a mistimed jump and crash right into the car below you.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.pull_up_pull_up },
             { id: 'no_school_today', icon: 'bus', name: 'NO SCHOOL TODAY', desc: 'Crash into the school bus.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.no_school_today },
             { id: 'eye_catching', icon: 'car', name: 'EYE CATCHING', desc: 'Crash into a legendary-rarity car on the road.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.eye_catching },
@@ -10438,8 +10487,58 @@
                 { x: MENU_LANE_X[0], y: (t * 0.05 + 90) % 340 - 40, color: '#3d7bd6' },
                 { x: MENU_LANE_X[2], y: (t * 0.06 + 200) % 340 - 40, color: '#f5b32a' }
             ];
-            demoCars.forEach(c => drawScaledVehicle(menuCtx, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT, () => drawPixelCar(menuCtx, 0, 0, c.color, false, 0)));
+            // Batch 444 easter egg: remember where each demo car was actually drawn, so the click
+            // hit-test below matches what the player can see rather than recomputing positions from
+            // `t` and drifting a frame out of step. A car that was just blown up is skipped until its
+            // timer runs out; it comes back on its own as its y wraps around.
+            menuDemoRects = demoCars.map(c => ({ x: c.x, y: c.y, w: PLAYER_WIDTH, h: PLAYER_HEIGHT }));
+            demoCars.forEach((c, i) => {
+                if (t < (menuCarHiddenUntil[i] || 0)) return;
+                drawScaledVehicle(menuCtx, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT, () => drawPixelCar(menuCtx, 0, 0, c.color, false, 0));
+            });
+            drawMenuBooms(t);
         }
+        // --- Easter egg: click a car in the menu's background traffic and it goes up ---
+        let menuDemoRects = [];
+        const menuCarHiddenUntil = [0, 0, 0];
+        let menuBooms = [];
+        const MENU_BOOM_MS = 620;
+        function drawMenuBooms(t) {
+            menuBooms = menuBooms.filter(b => t - b.t0 < MENU_BOOM_MS);
+            menuBooms.forEach(b => {
+                const k = (t - b.t0) / MENU_BOOM_MS;
+                if (k < .45) {
+                    menuCtx.fillStyle = 'rgba(255,224,138,' + (.85 - k) + ')';
+                    menuCtx.fillRect(b.x - 5, b.y - 5, 10, 10);
+                }
+                const r = 2 + k * 17;
+                menuCtx.fillStyle = k < .3 ? '#ffeaa7' : k < .62 ? '#ff7a2f' : '#6b6f78';
+                for (let i = 0; i < 12; i++) {
+                    const a = (i / 12) * Math.PI * 2 + b.seed;
+                    menuCtx.fillRect(Math.round(b.x + Math.cos(a) * r), Math.round(b.y + Math.sin(a) * r * .8), 2, 2);
+                }
+            });
+        }
+        // Listening on the document rather than on #menuCanvas: the canvas sits UNDER #menuBackdrop and
+        // #menuOverlay, so a click on a background car never reaches the canvas itself. Clicks on real
+        // controls are handed back untouched - a demo car drifting behind a button must not swallow it.
+        document.addEventListener('click', (e) => {
+            if (!menuView.classList.contains('active')) return;
+            if (e.target.closest('button, a, input, select, label, .mm-tab, .dev-menu-trigger')) return;
+            const r = menuCanvas.getBoundingClientRect();
+            if (!r.width || !r.height) return;
+            const cx = (e.clientX - r.left) * (menuCanvas.width / r.width);
+            const cy = (e.clientY - r.top) * (menuCanvas.height / r.height);
+            const t = performance.now();
+            const hit = menuDemoRects.findIndex((d, i) => t >= (menuCarHiddenUntil[i] || 0)
+                && cx >= d.x && cx <= d.x + d.w && cy >= d.y && cy <= d.y + d.h);
+            if (hit < 0) return;
+            const d = menuDemoRects[hit];
+            menuCarHiddenUntil[hit] = t + 2600;
+            menuBooms.push({ x: d.x + d.w / 2, y: d.y + d.h / 2, t0: t, seed: Math.random() * 6.28 });
+            playSound('crash');
+            unlockAchievement('act_of_god');
+        });
 
         // Transition: Menu Screen to Game Screen
         function launchGame() {
@@ -12658,7 +12757,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.229.0';
+        const GAME_VERSION = '2.230.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
