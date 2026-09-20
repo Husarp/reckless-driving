@@ -6,6 +6,25 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.230.0 — 2026-09-21 02:05: Batch 444 — Three achievements: FULL WARDROBE, FULL CIRCLE, ACT OF GOD
+
+**FULL WARDROBE** (amethyst, one-time) — own every paint colour *and* every booster. The completionist layer over FULL PALETTE, which only ever counted paints. `isFlameUnlocked()` covers both gates a booster can have, the level one and the bought one, so the check is one expression rather than a special case per booster.
+
+PLAN.md had this logged as blocked on the effects system existing, on the grounds that "every cosmetic" is undefined until then. It is not blocked: every cosmetic that exists today is a paint or a booster, and when effects land they get one more `every()` clause and the achievement widens by a line. Verified across four states — everything owned passes; missing Rocket Pods, too low a level for Underglow, or one unowned paint each fail.
+
+**FULL CIRCLE** (secret) — click your level badge and the ring sweeps forward from where it really is, all the way round, and lands back on its real value. `(real + eased) % 1` ends at exactly `real` when the easing hits 1, so it can never settle on a wrong-looking fill.
+
+Two things this needed that were not obvious:
+
+- `paintLevelBadgeAt()` takes an optional `ringPct` that drives **only** the ring. Sweeping it by feeding the function a fake `xp` instead would have made the XP readout count up to a number the player does not actually have.
+- The three badges do not share markup. Garage and Stats use `.level-badge-*`, but the main menu's own circle — kept deliberately when the menu was rebuilt from the design doc — uses `.mm-level-*`. The first version only worked on two of the three. The handler now matches both, and `paintLevelBadge()` bails while a spin is running so an unrelated `refreshMenuSummary()` cannot paint over it mid-animation.
+
+**ACT OF GOD** (secret) — click one of the cars driving past in the menu background and it blows up: a flash, an expanding ring of debris that cools from yellow through orange to grey, and the car stays gone for a few seconds before its position wraps around and it returns on its own.
+
+**The cursor never changes over them**, which was part of the original ask — nothing may advertise the cars as clickable. Confirmed `auto` at the hit point.
+
+The listener is on the document, not on `#menuCanvas`. The canvas sits *under* `#menuBackdrop` and `#menuOverlay`, so a click aimed at a background car never reaches the canvas at all — in testing it landed on `.mm-gap`. Hit-testing therefore maps the click into canvas coordinates itself, against the rects the last drawn frame actually used rather than positions recomputed from `t` (which would drift a frame out of step). Clicks on real controls are handed straight back: a demo car drifting behind a button must not swallow the button. Verified — clicking GARAGE while a car sat underneath opened the Garage and left the car intact.
+
 ## 2.229.0 — 2026-09-21 01:22: Batch 443 — The joke vehicles land: BICYCLE, FISH, COUCH
 
 The three the box system has been waiting on, all `boxOnly: true`. That one flag is the entire wiring — it already excludes a car from NPC traffic, from `canAffordCar()` at any coin total, and from the "own every car" check that gates Extra Boxes. **No other system needed changing**; the mystery tile, the LOCKED marker, the "BOX EXCLUSIVE — NOT FOR SALE" hover line, duplicate compensation and COLLECTOR's amethyst tier all switched back on by themselves. Verified: COLLECTOR now reads diamond 52 (every buyable car) / amethyst 55 (those plus all three exclusives).
