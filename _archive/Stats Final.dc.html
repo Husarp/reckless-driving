@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #12161f; }
+  a { color: #f5b32a; text-decoration: none; }
+  a:hover { color: #ffd873; }
+</style>
+</helmet>
+<div style="min-height:100%;background:#12161f;color:#e8e6df;font-family:'DotGothic16',monospace;padding:48px 56px 88px;box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:26px">
+
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:700px">
+    <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:3px;color:#e63946">RECKLESS DRIVING — STATS</div>
+    <div style="font-size:15px;line-height:1.6;color:#9aa3b2;text-wrap:pretty">Pick a chart from the dropdown, then its range on the row underneath — how many recent runs, how big the average block, which period, how far back the performance curve goes.</div>
+  </div>
+
+  <div style="width:700px;background:#171c27;border:2px solid #232b3b;box-shadow:0 0 0 4px #12161f,0 18px 40px rgba(0,0,0,.5)">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:2px solid #232b3b">
+      <div style="font-family:'Silkscreen',monospace;font-size:16px;letter-spacing:1px;color:#fff">Stats</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span style="font-family:'VT323',monospace;font-size:13px;letter-spacing:1px;line-height:1.1;color:{{ d.tierColor }}">{{ d.rank }}</span>
+          <span style="font-family:'VT323',monospace;font-size:15px;line-height:1.1;color:#6d7789">{{ d.xpText }}</span>
+        </div>
+        <div style="position:relative;width:48px;height:48px;flex:none">
+          <svg viewBox="0 0 48 48" style="width:48px;height:48px;display:block;transform:rotate(-90deg)">
+            <circle cx="24" cy="24" r="19.4" fill="none" stroke="#2b3446" stroke-width="6"></circle>
+            <circle cx="24" cy="24" r="19.4" fill="none" stroke="{{ d.tierColor }}" stroke-width="6" stroke-linecap="butt" stroke-dasharray="{{ d.xpDash }}"></circle>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:15px;text-shadow:1px 1px 0 #000;color:{{ d.tierColor }}">{{ d.level }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:18px 22px 6px">
+      <div style="background:#0c1118;border:2px solid #2b3446;padding:14px 16px 12px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px">
+          <div style="position:relative;flex:none">
+            <div onClick="{{ toggleMenu }}" style="display:flex;align-items:center;gap:12px;padding:9px 13px;background:#1b2130;border:2px solid #47506a;cursor:pointer;user-select:none;min-width:210px;justify-content:space-between" style-hover="border-color:#e8e6df">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df">{{ chart.label }}</span>
+              <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789">{{ menuCaret }}</span>
+            </div>
+            <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;z-index:20;min-width:250px;background:#1b2130;border:2px solid #47506a;box-shadow:0 12px 28px rgba(0,0,0,.7)">
+                <sc-for list="{{ chartOptions }}" as="o" hint-placeholder-count="5">
+                  <div onClick="{{ o.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 13px;cursor:pointer;user-select:none;background:{{ o.bg }}" style-hover="background:#e63946">
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:{{ o.fg }}">{{ o.text }}</span>
+                    <span style="font-family:'DotGothic16',monospace;font-size:12px;color:#8f99ab">{{ o.hint }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#6d7789">{{ chart.readLabel }}</span>
+            <span style="font-family:'VT323',monospace;font-size:24px;line-height:.9;color:{{ chart.color }}">{{ chart.readValue }}</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ chart.hasParams }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#6d7789">{{ chart.paramLabel }}</span>
+            <div style="display:flex;border:2px solid #2b3446">
+              <sc-for list="{{ chart.params }}" as="p" hint-placeholder-count="5">
+                <div onClick="{{ p.onClick }}" style="padding:6px 11px;font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;user-select:none;background:{{ p.bg }};color:{{ p.fg }}" style-hover="color:#fff">{{ p.text }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:10px">
+          <div style="width:52px;flex:none;height:180px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end">
+            <sc-for list="{{ chart.axis }}" as="a" hint-placeholder-count="5">
+              <span style="font-family:'VT323',monospace;font-size:15px;line-height:1;color:#6d7789">{{ a }}</span>
+            </sc-for>
+          </div>
+          <div onPointerMove="{{ chart.onMove }}" onPointerLeave="{{ chart.onLeave }}" style="position:relative;flex:1;height:180px;border-left:2px solid #2b3446;border-bottom:2px solid #2b3446;cursor:crosshair">
+            <svg viewBox="0 0 600 180" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+              <sc-for list="{{ chart.grid }}" as="g" hint-placeholder-count="3">
+                <line x1="0" y1="{{ g }}" x2="600" y2="{{ g }}" stroke="#1b2130" stroke-width="2"></line>
+              </sc-for>
+              <polyline points="{{ chart.area }}" fill="{{ chart.fill }}" stroke="none"></polyline>
+              <polyline points="{{ chart.points }}" fill="none" stroke="{{ chart.color }}" stroke-width="3" vector-effect="non-scaling-stroke"></polyline>
+              <circle cx="{{ chart.peakX }}" cy="{{ chart.peakY }}" r="5" fill="#f5b32a"></circle>
+            </svg>
+            <sc-if value="{{ chart.hovering }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:0;bottom:0;width:2px;background:#e8e6df;opacity:.55;pointer-events:none;left:{{ chart.hoverLeft }}"></div>
+            </sc-if>
+            <sc-if value="{{ chart.hovering }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;background:#e8e6df;box-shadow:0 0 0 2px #0c1118;pointer-events:none;left:{{ chart.hoverLeft }};top:{{ chart.hoverTop }}"></div>
+            </sc-if>
+            <sc-if value="{{ chart.hovering }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:6px;z-index:5;padding:7px 10px;background:#1b2130;border:2px solid #47506a;pointer-events:none;white-space:nowrap;display:flex;flex-direction:column;gap:2px;transform:translateX(-50%);left:{{ chart.tipLeft }}">
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#8f99ab">{{ chart.tipKey }}</span>
+                <span style="font-family:'VT323',monospace;font-size:20px;line-height:.9;color:{{ chart.color }}">{{ chart.tipValue }}</span>
+                <span style="font-family:'DotGothic16',monospace;font-size:11px;line-height:1.2;color:#6d7789">{{ chart.tipDate }}</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin:8px 0 0 62px">
+          <sc-for list="{{ chart.ticks }}" as="t" hint-placeholder-count="5">
+            <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">{{ t }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 22px 6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="15">
+        <div style="background:#1b2130;border:2px solid {{ t.bd }};padding:12px 13px;display:flex;flex-direction:column;gap:5px">
+          <span style="font-family:'VT323',monospace;font-size:{{ t.size }};line-height:.85;color:{{ t.c }}">{{ t.v }}</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">{{ t.k }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="padding:10px 22px 6px">
+      <div style="background:#1b2130;border:2px solid #232b3b;padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">DAY STREAK</span>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-family:'VT323',monospace;font-size:32px;line-height:.85;color:#e63946">{{ d.streak }}</span>
+            <span style="font-family:'Silkscreen',monospace;font-size:10px;color:#e8e6df">DAYS IN A ROW</span>
+          </div>
+          <span style="font-family:'DotGothic16',monospace;font-size:13px;line-height:1.4;color:#6d7789;max-width:250px;text-wrap:pretty">Days you played at least one run, without missing a day. Best ever {{ d.bestStreak }} days.</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#6d7789">LAST 14 DAYS</span>
+          <div style="display:flex;gap:4px">
+            <sc-for list="{{ streakTicks }}" as="s" hint-placeholder-count="14">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="width:16px;height:16px;border:2px solid {{ s.bd }};background:{{ s.bg }};box-sizing:border-box"></div>
+                <span style="font-family:'VT323',monospace;font-size:12px;line-height:1;color:{{ s.numColor }}">{{ s.num }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-family:'DotGothic16',monospace;font-size:12px;color:#6d7789">{{ d.streakRange }} · played {{ d.streak }} of 14</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:10px 22px 20px">
+      <div style="background:#1b2130;border:2px solid #232b3b;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">COLLECTION</span>
+          <span style="font-family:'DotGothic16',monospace;font-size:14px;color:#e8e6df">{{ d.colFound }} / {{ d.colTotal }} cars spotted · <span style="color:#f5b32a">{{ d.colPct }}</span></span>
+        </div>
+        <sc-for list="{{ rarities }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:84px;flex:none;font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:{{ r.c }}">{{ r.name }}</span>
+            <div style="flex:1;display:grid;grid-template-columns:repeat({{ r.total }}, 1fr);gap:4px">
+              <sc-for list="{{ r.pips }}" as="p" hint-placeholder-count="12">
+                <div style="height:18px;border:2px solid {{ p.bd }};background:{{ p.bg }};box-shadow:inset 0 0 0 2px #0c1118;box-sizing:border-box"></div>
+              </sc-for>
+            </div>
+            <span style="width:50px;flex:none;text-align:right;font-family:'VT323',monospace;font-size:18px;line-height:.9;color:#e8e6df">{{ r.ratio }}</span>
+            <span style="width:42px;flex:none;text-align:right;font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789">{{ r.pct }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;padding:15px 22px;border-top:2px solid #232b3b;background:#1b2130">
+      <div style="flex:1;text-align:center;padding:13px 22px;border:2px solid #47506a;color:#9aa3b2;font-family:'Silkscreen',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;user-select:none" style-hover="border-color:#e8e6df;color:#e8e6df">BACK</div>
+      <div style="flex:1;text-align:center;padding:13px 22px;border:2px solid #2ee6b0;color:#2ee6b0;font-family:'Silkscreen',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;user-select:none" style-hover="background:#2ee6b0;color:#0c1118">SCORES</div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:820,&quot;height&quot;:1320}}">
+class Component extends DCLogic {
+  state = {
+    chart: 'ALL', menu: false, hover: null,
+    lastN: 50, avgN: 5, period: 'DAY', perfRange: 'ALL'
+  };
+
+  // Level tiers, ring geometry and rank naming follow the game: LEVEL_TIERS (10 per tier),
+  // levelReq(), rankName() and paintLevelBadge()'s 48px wrap / ~6px ring.
+  LEVEL_TIERS = [
+    { name: 'Rust', color: '#8a93a3' }, { name: 'Bronze', color: '#cd7f32' },
+    { name: 'Silver', color: '#cbd2d9' }, { name: 'Gold', color: '#f5b32a' },
+    { name: 'Emerald', color: '#2ee6b0' }, { name: 'Sapphire', color: '#4f6ef7' },
+    { name: 'Ruby', color: '#ff4757' }, { name: 'Amethyst', color: '#9b59b6' },
+    { name: 'Platinum', color: '#cfe3f0' }, { name: 'Diamond', color: '#7ff5ff' }
+  ];
+  ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+  MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  TODAY = new Date(2026, 8, 1, 21, 40);
+
+  d = {
+    level: 27, xp: 1480,
+    runs: 1847, totalScore: 4182650, avg: 2265, avg50: 3140,
+    best: 18420, perf: 46900, coins: 38412,
+    playTime: '14h 22m', longest: '3:41', avgRun: '0:28',
+    closeCalls: 9264, ccBest: 31, dodged: 187003,
+    streak: 12, bestStreak: 31, runsToday: 9, days: 430
+  };
+
+  // Deterministic stand-in history: one entry per run, spread over `days` days,
+  // each carrying a real timestamp so the axis and tooltip can show dates.
+  history() {
+    if (this._h) return this._h;
+    const d = this.d, out = [];
+    let seed = 20260901;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    const start = new Date(this.TODAY);
+    start.setDate(start.getDate() - (d.days - 1));
+    start.setHours(0, 0, 0, 0);
+    for (let i = 0; i < d.runs; i++) {
+      const t = i / (d.runs - 1);
+      const dayIdx = Math.min(d.days - 1, Math.floor(t * d.days));
+      const date = new Date(start);
+      date.setDate(start.getDate() + dayIdx);
+      date.setHours(16 + Math.floor(rnd() * 6), Math.floor(rnd() * 60));
+      let score = Math.round((900 + t * 2600) * (0.35 + rnd() * 1.5));
+      if (i === d.runs - 46) score = d.best;
+      out.push({ n: i + 1, score, date });
+    }
+    this._h = out;
+    return out;
+  }
+
+  fmtDay(dt) { return this.MONTHS[dt.getMonth()] + ' ' + dt.getDate(); }
+  fmtFull(dt) {
+    const hh = String(dt.getHours()).padStart(2, '0'), mm = String(dt.getMinutes()).padStart(2, '0');
+    return this.fmtDay(dt) + ', ' + dt.getFullYear() + ' · ' + hh + ':' + mm;
+  }
+
+  // Tick labels sized to the span: years, months, days or hours.
+  ticksFor(pts, count, mode) {
+    if (!pts.length) return [];
+    const spanDays = (pts[pts.length - 1].date - pts[0].date) / 86400000;
+    const idx = Array.from({ length: count }, (_, i) => Math.round(i * (pts.length - 1) / (count - 1)));
+    const uniq = [...new Set(idx)];
+    let lastYear = null, lastMonth = null;
+    return uniq.map(i => {
+      const dt = pts[i].date;
+      if (mode === 'YEAR' || spanDays > 500) return String(dt.getFullYear());
+      if (mode === 'MONTH' || spanDays > 70) {
+        const label = this.MONTHS[dt.getMonth()] + (dt.getFullYear() !== lastYear ? " '" + String(dt.getFullYear()).slice(2) : '');
+        lastYear = dt.getFullYear();
+        return label;
+      }
+      if (spanDays > 2) {
+        const label = (dt.getMonth() !== lastMonth ? this.MONTHS[dt.getMonth()] + ' ' : '') + dt.getDate();
+        lastMonth = dt.getMonth();
+        return label;
+      }
+      return this.fmtDay(dt) + ' ' + String(dt.getHours()).padStart(2, '0') + ':00';
+    });
+  }
+
+  periodKey(dt, period) {
+    if (period === 'YEAR') return String(dt.getFullYear());
+    if (period === 'MONTH') return dt.getFullYear() + '-' + dt.getMonth();
+    if (period === 'WEEK') {
+      const t = new Date(dt); t.setHours(0, 0, 0, 0);
+      t.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+      return t.toISOString().slice(0, 10);
+    }
+    return dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate();
+  }
+
+  periodLabel(dt, period) {
+    if (period === 'YEAR') return String(dt.getFullYear());
+    if (period === 'MONTH') return this.MONTHS[dt.getMonth()] + ' ' + dt.getFullYear();
+    if (period === 'WEEK') return 'WEEK OF ' + this.fmtDay(dt);
+    return this.fmtDay(dt) + ', ' + dt.getFullYear();
+  }
+
+  // Bucketed downsample that keeps each bucket's highest run, so records never vanish.
+  bucketMax(rows, target) {
+    if (rows.length <= target) return rows.map(r => ({ v: r.score, key: 'RUN #' + r.n, date: r.date }));
+    const step = Math.ceil(rows.length / target), out = [];
+    for (let i = 0; i < rows.length; i += step) {
+      const g = rows.slice(i, i + step);
+      const top = g.reduce((a, r) => (r.score > a.score ? r : a), g[0]);
+      out.push({ v: top.score, key: 'RUN #' + top.n, date: top.date });
+    }
+    return out;
+  }
+
+  series() {
+    const h = this.history(), d = this.d, st = this.state;
+    const n = x => x.toLocaleString('en-US');
+
+    if (st.chart === 'ALL') {
+      const pts = this.bucketMax(h, 400);
+      return { pts, color: '#2ee6b0', read: 'AVERAGE', readVal: n(d.avg), mode: 'AUTO' };
+    }
+    if (st.chart === 'LAST') {
+      const rows = h.slice(-st.lastN);
+      const pts = this.bucketMax(rows, 400);
+      const avg = Math.round(rows.reduce((a, r) => a + r.score, 0) / rows.length);
+      return { pts, color: '#2ee6b0', read: 'AVERAGE', readVal: n(avg), mode: 'AUTO' };
+    }
+    if (st.chart === 'AVG') {
+      const size = st.avgN, pts = [];
+      for (let i = 0; i + size <= h.length; i += size) {
+        const g = h.slice(i, i + size);
+        pts.push({
+          v: Math.round(g.reduce((a, r) => a + r.score, 0) / size),
+          key: 'RUNS ' + g[0].n + '–' + g[size - 1].n,
+          date: g[size - 1].date
+        });
+      }
+      const bestBlock = Math.max(...pts.map(p => p.v));
+      return { pts, color: '#4d9fff', read: 'BEST BLOCK', readVal: n(bestBlock), mode: 'AUTO' };
+    }
+    if (st.chart === 'PERIOD') {
+      const groups = new Map();
+      h.forEach(r => {
+        const k = this.periodKey(r.date, st.period);
+        if (!groups.has(k)) groups.set(k, { sum: 0, count: 0, date: r.date });
+        const g = groups.get(k);
+        g.sum += r.score; g.count++;
+      });
+      const pts = [...groups.values()].map(g => ({
+        v: Math.round(g.sum / g.count),
+        key: this.periodLabel(g.date, st.period) + ' · ' + g.count + ' runs',
+        date: g.date
+      }));
+      const bestPeriod = Math.max(...pts.map(p => p.v));
+      return { pts, color: '#f5b32a', read: 'BEST ' + st.period, readVal: n(bestPeriod), mode: st.period };
+    }
+    // Cumulative performance score — only ever climbs. A range zooms into the tail,
+    // where the curve is flattest, without resetting the total.
+    const scale = d.perf / h.reduce((a, r) => a + r.score, 0);
+    const cutDays = { '7D': 7, '30D': 30, '3M': 90, '12M': 365 }[st.perfRange];
+    const cut = cutDays ? new Date(this.TODAY.getTime() - cutDays * 86400000) : null;
+    let acc = 0, windowStart = null;
+    const raw = h.map(r => {
+      acc += r.score * scale;
+      return { v: Math.round(acc), key: 'AFTER RUN #' + r.n, date: r.date };
+    });
+    const rows = cut ? raw.filter(p => p.date >= cut) : raw;
+    if (cut && rows.length) windowStart = rows[0].v;
+    const step = Math.ceil(rows.length / 400);
+    const pts = rows.filter((_, i) => i % step === 0 || i === rows.length - 1);
+    return {
+      pts, color: '#f5b32a',
+      read: cut ? 'GAINED' : 'TOTAL',
+      readVal: cut ? '+' + n(Math.round(rows[rows.length - 1].v - windowStart)) : n(d.perf),
+      mode: 'AUTO', floor: cut ? windowStart : 0
+    };
+  }
+
+  renderVals() {
+    const d = this.d, st = this.state;
+    const n = x => x.toLocaleString('en-US');
+    const shortN = x => x >= 100000 ? Math.round(x / 1000) + 'k' : (x >= 10000 ? (x / 1000).toFixed(1) + 'k' : n(x));
+
+    const kinds = [
+      { k: 'ALL', text: 'ALL RUNS', hint: n(d.runs) + ' runs' },
+      { k: 'LAST', text: 'LAST ' + st.lastN + ' RUNS', hint: 'every run' },
+      { k: 'AVG', text: 'AVERAGE OF ' + st.avgN, hint: 'smoothed' },
+      { k: 'PERIOD', text: 'BY ' + st.period, hint: 'grouped' },
+      { k: 'PERF', text: 'PERFORMANCE SCORE', hint: 'cumulative' }
+    ];
+    const paramSets = {
+      LAST: { label: 'RUNS', key: 'lastN', options: [10, 25, 50, 100, 250, 500] },
+      AVG: { label: 'BLOCK', key: 'avgN', options: [5, 10, 25, 50] },
+      PERIOD: { label: 'GROUP BY', key: 'period', options: ['DAY', 'WEEK', 'MONTH', 'YEAR'] },
+      PERF: { label: 'RANGE', key: 'perfRange', options: ['7D', '30D', '3M', '12M', 'ALL'] }
+    };
+    const pSet = paramSets[st.chart];
+
+    const s = this.series();
+    const vals = s.pts.map(p => p.v);
+    const rawMax = Math.max(...vals);
+    const floor = s.floor && s.floor > 0 ? Math.floor(s.floor / 1000) * 1000 : 0;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawMax - floor || 1)));
+    const niceMax = floor + Math.ceil((rawMax - floor) / (mag / 2)) * (mag / 2);
+    const H = 180, W = 600;
+    const xy = s.pts.map((p, i) => [
+      s.pts.length === 1 ? 0 : (i / (s.pts.length - 1)) * W,
+      H - ((p.v - floor) / (niceMax - floor)) * (H - 8)
+    ]);
+    const peakI = vals.indexOf(rawMax);
+    const hv = this.state.hover;
+    const hi = hv === null ? null : Math.min(s.pts.length - 1, Math.max(0, hv));
+
+    const rarityDefs = [
+      { name: 'COMMON', have: 11, total: 12, c: '#9aa4b5' },
+      { name: 'RARE', have: 9, total: 15, c: '#4d9fff' },
+      { name: 'EPIC', have: 4, total: 12, c: '#c060ff' },
+      { name: 'LEGENDARY', have: 2, total: 12, c: '#ffb020' }
+    ];
+    const colFound = rarityDefs.reduce((a, r) => a + r.have, 1); // +1 = Stock, always owned
+    const colTotal = rarityDefs.reduce((a, r) => a + r.total, 1);
+
+    const streakTicks = Array.from({ length: 14 }, (_, i) => {
+      const dt = new Date(this.TODAY);
+      dt.setDate(dt.getDate() - (13 - i));
+      const played = i >= 14 - d.streak;
+      const today = i === 13;
+      return {
+        num: dt.getDate(),
+        bg: played ? '#e63946' : 'transparent',
+        bd: today ? '#f5b32a' : (played ? '#e63946' : '#2b3446'),
+        numColor: today ? '#f5b32a' : (played ? '#9aa3b2' : '#4d5670')
+      };
+    });
+    const rangeStart = new Date(this.TODAY);
+    rangeStart.setDate(rangeStart.getDate() - 13);
+
+    const tier = this.LEVEL_TIERS[Math.min(9, Math.floor((d.level - 1) / 10))];
+    const xpReq = 1000 + (d.level - 1) * 50;          // levelReq()
+    const RING_C = 2 * Math.PI * 19.4;
+    const hexA = (hex, a) => 'rgba(' + parseInt(hex.slice(1, 3), 16) + ',' +
+      parseInt(hex.slice(3, 5), 16) + ',' + parseInt(hex.slice(5, 7), 16) + ',' + a + ')';
+
+    const onMove = e => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const t = (e.clientX - r.left) / r.width;
+      this.setState({ hover: Math.round(t * (s.pts.length - 1)) });
+    };
+
+    return {
+      d: { ...d,
+        rank: (tier.name + ' ' + this.ROMAN[(d.level - 1) % 10]).toUpperCase(),
+        tierColor: tier.color,
+        xpText: n(d.xp) + '/' + n(xpReq),
+        xpDash: ((d.xp / xpReq) * RING_C).toFixed(1) + ' ' + RING_C.toFixed(2),
+        colFound, colTotal, colPct: Math.round((colFound / colTotal) * 100) + '%',
+        streakRange: this.fmtDay(rangeStart) + ' – ' + this.fmtDay(this.TODAY)
+      },
+      menuOpen: st.menu,
+      menuCaret: st.menu ? '^' : 'v',
+      toggleMenu: () => this.setState(s2 => ({ menu: !s2.menu })),
+      chartOptions: kinds.map(o => ({
+        text: o.text, hint: o.hint,
+        bg: st.chart === o.k ? '#243046' : 'transparent',
+        fg: st.chart === o.k ? '#fff' : '#e8e6df',
+        onClick: () => this.setState({ chart: o.k, menu: false, hover: null })
+      })),
+      chart: {
+        label: kinds.find(o => o.k === st.chart).text,
+        color: s.color,
+        fill: hexA(s.color, .08),
+        readLabel: s.read,
+        readValue: s.readVal,
+        hasParams: !!pSet,
+        paramLabel: pSet ? pSet.label : '',
+        params: pSet ? pSet.options.map(o => ({
+          text: String(o),
+          bg: st[pSet.key] === o ? s.color : 'transparent',
+          fg: st[pSet.key] === o ? '#0c1118' : '#8f99ab',
+          onClick: () => this.setState({ [pSet.key]: o, hover: null })
+        })) : [],
+        axis: [4, 3, 2, 1, 0].map(i => shortN(Math.round(floor + (niceMax - floor) * i / 4))),
+        grid: [1, 2, 3].map(i => (H * i / 4).toFixed(0)),
+        ticks: this.ticksFor(s.pts, 5, s.mode),
+        points: xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '),
+        area: '0,' + H + ' ' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' ' + W + ',' + H,
+        peakX: xy[peakI][0].toFixed(1), peakY: xy[peakI][1].toFixed(1),
+        onMove, onLeave: () => this.setState({ hover: null }),
+        hovering: hi !== null,
+        hoverLeft: hi === null ? '0%' : (xy[hi][0] / W * 100).toFixed(2) + '%',
+        hoverTop: hi === null ? '0%' : (xy[hi][1] / H * 100).toFixed(2) + '%',
+        tipLeft: hi === null ? '0%' : Math.min(86, Math.max(14, xy[hi][0] / W * 100)).toFixed(2) + '%',
+        tipKey: hi === null ? '' : s.pts[hi].key,
+        tipValue: hi === null ? '' : n(s.pts[hi].v),
+        tipDate: hi === null ? '' : this.fmtFull(s.pts[hi].date)
+      },
+      tiles: [
+        { k: 'BEST SCORE', v: n(d.best), c: '#2ee6b0', bd: '#2ee6b0', size: '30px' },
+        { k: 'PERFORMANCE SCORE', v: n(d.perf), c: '#f5b32a', bd: '#f5b32a', size: '30px' },
+        { k: 'RUNS PLAYED', v: n(d.runs), c: '#e8e6df', bd: '#232b3b', size: '30px' },
+        { k: 'TOTAL SCORE', v: n(d.totalScore), c: '#e8e6df', bd: '#232b3b', size: '24px' },
+        { k: 'AVG SCORE', v: n(d.avg), c: '#e8e6df', bd: '#232b3b', size: '24px' },
+        { k: 'AVG (LAST 50)', v: n(d.avg50), c: '#2ee6b0', bd: '#232b3b', size: '24px' },
+        { k: 'CLOSE CALLS', v: n(d.closeCalls), c: '#e63946', bd: '#232b3b', size: '24px' },
+        { k: 'BEST CLOSE CALLS (RUN)', v: d.ccBest, c: '#e63946', bd: '#232b3b', size: '24px' },
+        { k: 'VEHICLES DODGED', v: n(d.dodged), c: '#e8e6df', bd: '#232b3b', size: '24px' },
+        { k: 'TOTAL COINS', v: n(d.coins), c: '#f5b32a', bd: '#232b3b', size: '24px' },
+        { k: 'TOTAL PLAY TIME', v: d.playTime, c: '#e8e6df', bd: '#232b3b', size: '24px' },
+        { k: 'LONGEST SURVIVAL', v: d.longest, c: '#2ee6b0', bd: '#232b3b', size: '24px' },
+        { k: 'AVG RUN', v: d.avgRun, c: '#9aa3b2', bd: '#232b3b', size: '24px' },
+        { k: 'RUNS TODAY', v: d.runsToday, c: '#e8e6df', bd: '#232b3b', size: '24px' },
+        { k: 'DAYS PLAYED', v: d.days, c: '#e8e6df', bd: '#232b3b', size: '24px' }
+      ],
+      streakTicks,
+      rarities: rarityDefs.map(r => ({
+        name: r.name, c: r.c, total: r.total,
+        ratio: r.have + '/' + r.total,
+        pct: Math.round((r.have / r.total) * 100) + '%',
+        pips: Array.from({ length: r.total }, (_, i) => ({
+          bg: i < r.have ? r.c : 'transparent',
+          bd: i < r.have ? r.c : '#2b3446'
+        }))
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

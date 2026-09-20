@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+html,body { margin:0; padding:0; background:#0d1017; }
+a { color:#f5b32a; text-decoration:none; }
+a:hover { color:#ffd166; }
+@keyframes prismScroll { from { background-position: 0 0; } to { background-position: 120px 0; } }
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#12161f"/><rect x="18" y="24" width="64" height="14" fill="#c08149"/><rect x="18" y="43" width="64" height="14" fill="#c9d2dd"/><rect x="18" y="62" width="40" height="14" fill="#f5b32a"/></svg></template>
+
+<div style="background:#0d1017;color:#e8e6df;font-family:'DotGothic16','Courier New',monospace;min-height:100vh;box-sizing:border-box;padding:22px 20px 60px">
+  <div style="max-width:1160px;margin:0 auto;display:flex;flex-direction:column;gap:18px">
+
+    <div style="display:flex;flex-direction:column;gap:12px;border:2px solid #232b3b;background:#12161f;padding:18px;box-sizing:border-box">
+      <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+        <span style="font-family:'Silkscreen',monospace;font-size:21px;letter-spacing:1px;color:#fff;text-shadow:2px 2px 0 #e63946;flex:1;min-width:180px">ACHIEVEMENTS</span>
+        <div style="display:flex;align-items:baseline;gap:5px">
+          <span style="font-family:'VT323',monospace;font-size:42px;line-height:.8;color:#f5b32a">{{ doneCount }}</span>
+          <span style="font-family:'VT323',monospace;font-size:27px;line-height:.9;color:#4d5670">/{{ totalCount }}</span>
+        </div>
+      </div>
+      <div style="height:12px;background:#0a0c11;border:2px solid #232b3b;box-sizing:border-box;display:flex">
+        <sc-for list="{{ headerSegments }}" as="s" hint-placeholder-count="3">
+          <div style="{{ s.style }}"></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:1px;color:#8b95a8">
+        <span>BRONZE <span style="color:#c08149">{{ tierCounts.bronze }}</span></span>
+        <span>SILVER <span style="color:#c9d2dd">{{ tierCounts.silver }}</span></span>
+        <span>GOLD <span style="color:#f5b32a">{{ tierCounts.gold }}</span></span>
+        <span>DIAMOND <span style="color:#7fd8f5">{{ tierCounts.diamond }}</span></span>
+        <span>AMETHYST <span style="color:#b06ef5">{{ tierCounts.amethyst }}</span></span>
+        <span style="flex:1"></span>
+        <span style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:2px;color:#f5b32a">{{ donePct }}%</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+          <button type="button" onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }} <span style="{{ t.countStyle }}">{{ t.count }}</span></button>
+        </sc-for>
+      </div>
+      <span style="flex:1"></span>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#4d5670">SORT</span>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <sc-for list="{{ sorts }}" as="s" hint-placeholder-count="3">
+            <button type="button" onClick="{{ s.onClick }}" style="{{ s.style }}">{{ s.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ g.hasLabel }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="{{ g.labelStyle }}">{{ g.label }}</span>
+            <span style="{{ g.ruleStyle }}"></span>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#6d7789">{{ g.meta }}</span>
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;align-items:start">
+          <sc-for list="{{ g.cards }}" as="c" hint-placeholder-count="4">
+            <div style="{{ c.outerStyle }}">
+            <div onClick="{{ c.onClick }}" style="{{ c.wrapStyle }}">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="{{ c.iconBoxStyle }}">
+                  <svg width="17" height="17" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                    <sc-for list="{{ c.iconRects }}" as="r" hint-placeholder-count="4">
+                      <rect x="{{ r.x }}" y="{{ r.y }}" width="{{ r.w }}" height="{{ r.h }}" fill="{{ r.f }}"></rect>
+                    </sc-for>
+                  </svg>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">
+                  <span style="{{ c.nameStyle }}">{{ c.name }}</span>
+                  <span style="font-size:11px;line-height:1.5;color:#6d7789;text-wrap:pretty">{{ c.desc }}</span>
+                </div>
+                <sc-if value="{{ c.hasTag }}">
+                  <span style="{{ c.tagStyle }}">{{ c.tierLabel }}</span>
+                </sc-if>
+                <span style="{{ c.chevStyle }}">{{ c.chev }}</span>
+                <span style="{{ c.tickStyle }}">{{ c.tick }}</span>
+              </div>
+
+              <sc-if value="{{ c.hasPips }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:5px;align-items:center;height:16px">
+                  <sc-for list="{{ c.pips }}" as="p" hint-placeholder-count="4">
+                    <div style="{{ p.style }}"></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ c.hasBar }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="{{ c.trackStyle }}">
+                    <div style="{{ c.fillStyle }}"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+                    <span style="{{ c.numStyle }}">{{ c.numMain }}<span style="color:#4d5670">{{ c.numSub }}</span></span>
+                    <span style="{{ c.tierBadgeStyle }}">{{ c.tierLabel }}</span>
+                  </div>
+                </div>
+              </sc-if>
+
+            </div>
+              <sc-if value="{{ c.expanded }}">
+                <div onClick="{{ c.onClick }}" style="{{ c.ladderWrapStyle }}">
+                  <sc-for list="{{ c.ladder }}" as="t" hint-placeholder-count="4">
+                    <div style="{{ t.colStyle }}">
+                      <div style="{{ t.goalStyle }}">{{ t.goal }}</div>
+                      <div style="{{ t.trackStyle }}"><div style="{{ t.fillStyle }}"></div></div>
+                      <div style="{{ t.nameStyle }}">{{ t.tierName }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="font-family:'Silkscreen',monospace;font-size:9px;line-height:1.9;letter-spacing:1px;color:#3a4356;border-top:2px solid #1d2432;padding-top:12px">NOTE &mdash; UI SCALE LIVES IN SETTINGS, NOT HERE. THIS TAB INHERITS IT.</div>
+
+    <sc-if value="{{ showRunSummary }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:22px;border-top:2px dashed #232b3b;padding-top:22px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#4d5670">SEPARATE SCREEN &mdash; RESULT SCREEN PANEL</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:1px;color:#e8e6df">Run summary</span>
+        </div>
+        <div style="width:380px;max-width:100%;border:2px solid #232b3b;background:#12161f;padding:13px;box-sizing:border-box;display:flex;flex-direction:column;gap:13px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#2ee6b0">UNLOCKED</span>
+              <span style="flex:1;height:2px;background:#193a31"></span>
+              <span style="font-family:'VT323',monospace;font-size:19px;line-height:1;color:#2ee6b0">{{ runUnlockedCount }}</span>
+            </div>
+            <sc-for list="{{ runUnlocked }}" as="r" hint-placeholder-count="2">
+              <div style="{{ r.rowStyle }}">
+                <div style="{{ r.iconBoxStyle }}">
+                  <svg width="15" height="15" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                    <sc-for list="{{ r.iconRects }}" as="q" hint-placeholder-count="4">
+                      <rect x="{{ q.x }}" y="{{ q.y }}" width="{{ q.w }}" height="{{ q.h }}" fill="{{ q.f }}"></rect>
+                    </sc-for>
+                  </svg>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+                  <span style="{{ r.nameStyle }}">{{ r.name }}</span>
+                  <span style="font-size:10px;line-height:1.4;color:#6d7789">{{ r.desc }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0">
+                  <span style="{{ r.tierStyle }}">{{ r.tierName }}</span>
+                  <span style="{{ r.countStyle }}">{{ r.count }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#6d7789">PROGRESS</span>
+              <span style="flex:1;height:2px;background:#1d2432"></span>
+            </div>
+            <sc-for list="{{ runProgress }}" as="r" hint-placeholder-count="2">
+              <div style="{{ r.rowStyle }}">
+                <div style="{{ r.iconBoxStyle }}">
+                  <svg width="15" height="15" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                    <sc-for list="{{ r.iconRects }}" as="q" hint-placeholder-count="4">
+                      <rect x="{{ q.x }}" y="{{ q.y }}" width="{{ q.w }}" height="{{ q.h }}" fill="{{ q.f }}"></rect>
+                    </sc-for>
+                  </svg>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
+                  <div style="display:flex;align-items:baseline;gap:8px">
+                    <span style="{{ r.nameStyle }}">{{ r.name }}</span>
+                    <span style="flex:1"></span>
+                    <span style="{{ r.subStyle }}">{{ r.sub }}</span>
+                  </div>
+                  <div style="height:7px;background:#0a0c11;border:2px solid #2b3446;box-sizing:border-box;display:flex">
+                    <div style="{{ r.fillStyle }}"></div>
+                    <div style="{{ r.deltaStyle }}"></div>
+                  </div>
+                </div>
+                <div style="width:84px;flex-shrink:0;display:flex;align-items:center;justify-content:center;align-self:stretch;border-left:2px solid #232b3b">
+                  <span style="{{ r.countStyle }}">{{ r.count }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showRunSummary&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+const T = {
+  bronze:  { n:'BRONZE',   c:'#c08149' },
+  silver:  { n:'SILVER',   c:'#c9d2dd' },
+  gold:    { n:'GOLD',     c:'#f5b32a' },
+  diamond: { n:'DIAMOND',  c:'#7fd8f5' },
+  amethyst:{ n:'AMETHYST', c:'#b06ef5' }
+};
+const ORDER = ['bronze','silver','gold','diamond','amethyst'];
+const DARK = { bronze:'#e3c0a0', silver:'#f0f4f9', gold:'#ffdc95', diamond:'#c8eefb', amethyst:'#dcbcfb' };
+const PURPLE_LIGHT = '#d7b0fb';
+const GREY = '#39435a', GREYT = '#7a849a', GREYBG = '#232b3b', DONE = '#2ee6b0', PURPLE = '#a855f7';
+
+const ICONS = {
+  car:   [[2,9,6,2],[12,9,6,2],[9,4,2,3],[9,13,2,3],[5,5,2,2],[13,13,2,2]],
+  jump:  [[3,12,3,2],[6,9,3,2],[9,6,3,2],[12,9,3,2],[15,12,3,2]],
+  bus:   [[2,6,16,8],[4,8,3,3,1],[9,8,3,3,1],[4,15,3,2],[13,15,3,2]],
+  star:  [[9,2,2,4],[9,14,2,4],[2,9,4,2],[14,9,4,2],[7,7,6,6],[9,9,2,2,1]],
+  clock: [[7,2,6,2],[7,16,6,2],[2,7,2,6],[16,7,2,6],[9,6,2,5],[11,10,3,2]],
+  coin:  [[6,3,8,2],[4,5,2,10],[14,5,2,10],[6,15,8,2],[9,6,2,8]],
+  lock:  [[6,9,8,8],[7,5,6,2],[5,7,2,2],[13,7,2,2],[9,11,2,4,1]],
+  road:  [[9,2,2,4],[9,8,2,4],[9,14,2,4],[3,4,2,12],[15,4,2,12]]
+};
+
+const DATA = [
+  { id:'ram',   icon:'car',   name:'RAM X CARS',        desc:'Cars destroyed, lifetime',         v:340,   tiers:[['bronze',50],['silver',200],['gold',500],['diamond',2000]] },
+  { id:'jump',  icon:'jump',  name:'JUMP OVER X CARS',  desc:'In one single jump',               v:9,     tiers:[['bronze',3],['silver',6],['gold',10],['diamond',16]] },
+  { id:'score', icon:'star',  name:'TOTAL SCORE',       desc:'Score banked across every run',    v:62400, tiers:[['bronze',1000],['silver',10000],['gold',50000],['diamond',250000],['amethyst',1000000]] },
+  { id:'pass',  icon:'road',  name:'PASS X CARS',       desc:'Cars overtaken without a scratch', v:8400,  tiers:[['bronze',100],['silver',1000],['gold',5000],['diamond',25000],['amethyst',100000]] },
+  { id:'air',   icon:'clock', name:'AIRTIME',           desc:'Seconds airborne in one jump',     v:10,    tiers:[['bronze',2],['silver',4],['gold',7]] },
+  { id:'alive', icon:'clock', name:'SURVIVE X MINUTES', desc:'Longest single run',               v:4,     tiers:[['bronze',1],['silver',3],['gold',5],['diamond',10],['amethyst',20]] },
+  { id:'cash',  icon:'coin',  name:'COLLECT X CASH',    desc:'Cash picked up, lifetime',         v:1250,  tiers:[['bronze',500],['silver',2500],['gold',10000],['diamond',50000],['amethyst',250000]] },
+  { id:'bus',   icon:'bus',   name:'NO SCHOOL TODAY',   desc:'Crash into the school bus',        once:true, tier:'gold',    done:true },
+  { id:'amb',   icon:'bus',   name:'AMBULANCE CHASER',  desc:'Jump clean over an ambulance',     once:true, tier:'silver',  done:false },
+  { id:'near',  icon:'road',  name:'NEAR MISS',         desc:'Pass a truck within a hair',       once:true, tier:'bronze',  done:true },
+  { id:'derby', icon:'car',   name:'DEMOLITION DERBY',  desc:'Ram five cars in three seconds',   once:true, tier:'diamond', done:false }
+];
+
+const SECRETS = [
+  { id:'s1', icon:'lock', v:3, goal:15 },
+  { id:'s2', icon:'lock', once:true, done:false },
+  { id:'s3', icon:'bus',  once:true, done:true, name:'CHICKEN CROSSED', desc:'Let a chicken cross the road unharmed' }
+];
+
+const SORTS = [
+  { k:'type',     label:'TYPE' },
+  { k:'progress', label:'PROGRESS' },
+  { k:'tier',     label:'TIER' }
+];
+const TABS = [
+  { k:'all',  label:'ALL' },
+  { k:'wip',  label:'IN PROGRESS' },
+  { k:'done', label:'COMPLETED' }
+];
+
+class Component extends DCLogic {
+  state = { tab:'all', sort:'type', open:null };
+
+  componentDidMount() {
+    this._away = () => { if (this.state.open) this.setState({ open: null }); };
+    document.addEventListener('click', this._away);
+    try {
+      const s = localStorage.getItem('ach.sort');
+      const t = localStorage.getItem('ach.tab');
+      const next = {};
+      if (s && SORTS.some(x => x.k === s)) next.sort = s;
+      if (t && TABS.some(x => x.k === t)) next.tab = t;
+      if (Object.keys(next).length) this.setState(next);
+    } catch (e) {}
+  }
+
+  componentWillUnmount() { document.removeEventListener('click', this._away); }
+
+  persist(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+
+  toggle(id) { this.setState(s => ({ open: s.open === id ? null : id })); }
+
+  icon(name, color) {
+    return (ICONS[name] || ICONS.car).map(r => ({ x:r[0], y:r[1], w:r[2], h:r[3], f: r[4] ? '#12161f' : color }));
+  }
+
+  fmt(n) {
+    if (n >= 1000000) return (Math.round(n / 100000) / 10) + 'M';
+    if (n >= 10000) return Math.round(n / 1000) + 'K';
+    return n.toLocaleString('en-US');
+  }
+
+  model(a, secret) {
+    const open = this.state.open === a.id;
+    const revealed = secret ? !!a.done : true;
+    const veil = secret && !revealed;
+
+    let accent, dark, complete, pct, numMain, numSub, tierLabel, cleared = -1, ladder = [], pips = [];
+
+    if (a.once) {
+      complete = !!a.done;
+      accent = secret ? PURPLE : T[a.tier].c;
+      pct = complete ? 100 : 0;
+      numMain = '';
+      numSub = '';
+      tierLabel = secret ? 'SECRET' : T[a.tier].n;
+    } else if (a.goal) {
+      complete = a.v >= a.goal;
+      accent = PURPLE;
+      dark = PURPLE_LIGHT;
+      pct = complete ? 100 : Math.max(3, Math.round((a.v / a.goal) * 100));
+      numMain = this.fmt(a.v);
+      numSub = '/' + this.fmt(a.goal);
+      tierLabel = 'SECRET';
+    } else {
+      const tiers = a.tiers;
+      const idx = tiers.findIndex(t => a.v < t[1]);
+      complete = idx === -1;
+      cleared = complete ? tiers.length - 1 : idx - 1;
+      const key = complete ? tiers[tiers.length - 1][0] : tiers[idx][0];
+      accent = veil ? PURPLE : T[key].c;
+      dark = veil ? PURPLE_LIGHT : DARK[key];
+      const prev = complete ? 0 : (idx > 0 ? tiers[idx - 1][1] : 0);
+      const goal = complete ? tiers[tiers.length - 1][1] : tiers[idx][1];
+      pct = complete ? 100 : Math.max(3, Math.round(((a.v - prev) / (goal - prev)) * 100));
+      numMain = this.fmt(a.v);
+      numSub = '/' + this.fmt(goal);
+      tierLabel = veil ? 'SECRET' : (complete ? 'ALL CLEARED' : T[key].n);
+
+      pips = tiers.map((t, i) => {
+        const tc = veil ? PURPLE : T[t[0]].c;
+        const lt = veil ? PURPLE_LIGHT : DARK[t[0]];
+        let st = 'box-sizing:border-box;flex-shrink:0;';
+        if (i <= cleared) st += 'width:11px;height:11px;background:' + tc + ';border:2px solid ' + lt + ';';
+        else if (i === cleared + 1 && !complete) st += 'width:15px;height:15px;border:3px solid ' + lt + ';background:' + GREYBG + ';';
+        else st += 'width:11px;height:11px;border:2px solid ' + GREY + ';background:#151a24;';
+        return { style: st };
+      });
+
+      ladder = tiers.map((t, i) => {
+        const tc = veil ? PURPLE : T[t[0]].c;
+        const live = !complete && i === cleared + 1;
+        const doneT = i <= cleared;
+        const col = doneT || live ? tc : GREYT;
+        return {
+          goal: this.fmt(t[1]) + (doneT ? ' \u2713' : ''),
+          tierName: (doneT || live) ? (veil ? '???' : T[t[0]].n) : '\u00a0',
+          colStyle: 'flex:' + (live ? '1.3' : '1') + ';display:flex;flex-direction:column;gap:4px;min-width:0',
+          goalStyle: "font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:" + col + ';white-space:nowrap;overflow:hidden',
+          trackStyle: live
+            ? 'height:22px;background:' + GREYBG + ';border:3px solid ' + (veil ? PURPLE_LIGHT : DARK[t[0]]) + ';box-sizing:border-box;display:flex'
+            : (doneT
+              ? 'height:17px;background:' + tc + ';border:3px solid ' + (veil ? PURPLE_LIGHT : DARK[t[0]]) + ';box-sizing:border-box'
+              : 'height:17px;background:' + GREYBG + ';border:3px solid ' + GREY + ';box-sizing:border-box'),
+          fillStyle: live ? 'width:' + pct + '%;background:' + tc : 'width:0',
+          nameStyle: "font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:" + (doneT || live ? col : '#4a5468')
+        };
+      });
+    }
+
+    return {
+      id: a.id,
+      name: veil ? '???' : a.name,
+      desc: veil ? 'Unknown objective' : a.desc,
+      onClick: (a.tiers ? (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.toggle(a.id); } : null),
+      expanded: open && !!a.tiers,
+      hasPips: !!a.tiers,
+      hasBar: !a.once,
+      hasTag: !!a.once,
+      tagStyle: "font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;flex-shrink:0;align-self:center;color:" + accent,
+      pips, ladder, complete, cleared,
+      rank: a.tiers
+        ? (cleared >= 0 ? ORDER.indexOf(a.tiers[cleared][0]) : -1)
+        : (a.once && a.done && a.tier ? ORDER.indexOf(a.tier) : -1),
+      pctVal: complete ? 100 : pct,
+      iconRects: this.icon(a.icon, accent),
+      wrapStyle: 'background:' + (complete ? (secret ? '#1a1030' : '#141b19') : '#171c27')
+        + ';border:2px solid ' + (open ? accent : (complete ? (secret ? '#3b2560' : '#1f3a30') : '#232b3b'))
+        + ';padding:13px;box-sizing:border-box;display:flex;flex-direction:column;gap:11px;'
+        + (open ? 'border-bottom:none;' : '')
+        + (a.tiers ? 'cursor:pointer;' : ''),
+      iconBoxStyle: 'width:32px;height:32px;border:2px solid ' + (complete || open ? accent : GREY)
+        + ';background:#12161f;display:flex;align-items:center;justify-content:center;flex-shrink:0',
+      nameStyle: "font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;line-height:1.4;color:"
+        + (veil ? PURPLE : (complete ? '#fff' : '#e8e6df')),
+      chev: a.tiers ? (open ? '\u25b2' : '\u25bc') : '',
+      chevStyle: "font-family:'Silkscreen',monospace;font-size:10px;flex-shrink:0;align-self:center;color:"
+        + (open ? accent : '#5b6579'),
+      tick: (!a.tiers && complete) ? '\u2713' : '',
+      tickStyle: "font-family:'Silkscreen',monospace;font-size:12px;flex-shrink:0;align-self:center;color:" + DONE,
+      outerStyle: 'position:relative;' + (open ? 'z-index:5;' : ''),
+      ladderWrapStyle: 'position:absolute;left:0;right:0;top:100%;'
+        + 'display:flex;gap:5px;align-items:flex-end;cursor:pointer;'
+        + 'background:' + (complete ? '#141b19' : '#171c27')
+        + ';border:2px solid ' + accent + ';border-top:none;padding:13px;box-sizing:border-box',
+      trackStyle: 'position:relative;height:13px;background:' + GREYBG + ';border:3px solid '
+        + (dark || DARK[a.tier] || PURPLE_LIGHT) + ';box-sizing:border-box',
+      fillStyle: 'position:absolute;top:0;left:0;bottom:0;width:' + pct + '%;background:' + accent,
+      numStyle: "font-family:'VT323',monospace;font-size:21px;line-height:1;color:" + accent,
+      numMain, numSub,
+      tierLabel,
+      tierBadgeStyle: "font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:" + accent
+    };
+  }
+
+  renderVals() {
+    const sortKey = this.state.sort, tab = this.state.tab;
+    const tiered = DATA.filter(a => !a.once).map(a => this.model(a, false));
+    const onces  = DATA.filter(a => a.once).map(a => this.model(a, false));
+    const secrets = SECRETS.map(a => this.model(a, true));
+
+    const keep = c => tab === 'all' || (tab === 'done' ? c.complete : !c.complete);
+    const byProgress = (a, b) => (a.complete - b.complete) || (b.pctVal - a.pctVal);
+    const byTier = (a, b) => (b.rank - a.rank) || (b.pctVal - a.pctVal);
+
+    const arrange = list => {
+      const l = list.filter(keep);
+      if (sortKey === 'progress') l.sort(byProgress);
+      else if (sortKey === 'tier') l.sort(byTier);
+      return l;
+    };
+
+    let groups;
+    if (sortKey === 'type') {
+      groups = [
+        { key:'tiered', label:'TIERED',       color:'#f5b32a', rule:'#3a2f13', cards: arrange(tiered) },
+        { key:'once',   label:'ONE-TIME',     color:'#c9d2dd', rule:'#2d333b', cards: arrange(onces) },
+        { key:'secret', label:'SECRET MISSIONS', color:PURPLE,  rule:'#2a1a3d', cards: arrange(secrets) }
+      ];
+    } else {
+      groups = [
+        { key:'main',   label:'',                color:'#f5b32a', rule:'#3a2f13', cards: arrange(tiered.concat(onces)) },
+        { key:'secret', label:'SECRET MISSIONS', color:PURPLE,    rule:'#2a1a3d', cards: arrange(secrets) }
+      ];
+    }
+
+    let earnedRungs = 0, totalRungs = 0;
+    const tierCounts = { bronze:0, silver:0, gold:0, diamond:0, amethyst:0 };
+    DATA.forEach(a => {
+      if (a.once) {
+        totalRungs += 1;
+        if (a.done) { earnedRungs += 1; tierCounts[a.tier]++; }
+        return;
+      }
+      totalRungs += a.tiers.length;
+      const idx = a.tiers.findIndex(t => a.v < t[1]);
+      const upto = idx === -1 ? a.tiers.length : idx;
+      earnedRungs += upto;
+      for (let i = 0; i < upto; i++) tierCounts[a.tiers[i][0]]++;
+    });
+    const pct = Math.round((earnedRungs / totalRungs) * 100);
+
+    const btn = (on, accent) => "font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;padding:9px 12px;cursor:pointer;background:"
+      + (on ? accent : '#171c27') + ';color:' + (on ? '#0d1017' : '#9aa3b2')
+      + ';border:2px solid ' + (on ? accent : '#232b3b');
+    const smallBtn = on => "font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;padding:8px 10px;cursor:pointer;background:"
+      + (on ? '#232b3b' : 'transparent') + ';color:' + (on ? '#e8e6df' : '#7a849a')
+      + ';border:2px solid ' + (on ? '#3a4560' : '#1d2432');
+
+    const allCards = tiered.concat(onces, secrets);
+
+    const runRow = c => ({
+      rowStyle: 'display:flex;gap:9px;align-items:center;background:#171c27;border-left:4px solid ' + c + ';padding:9px 10px',
+      iconBoxStyle: 'width:26px;height:26px;border:2px solid ' + c + ';background:#12161f;display:flex;align-items:center;justify-content:center;flex-shrink:0'
+    });
+
+    return {
+      doneCount: earnedRungs, totalCount: totalRungs, donePct: pct, tierCounts,
+      headerSegments: ORDER.map(k => ({ k, n: tierCounts[k] }))
+        .filter(s => s.n > 0)
+        .sort((a, b) => b.n - a.n)
+        .map(s => ({ style: 'width:' + (s.n / totalRungs) * 100 + '%;background:' + T[s.k].c })),
+      tabs: TABS.map(t => {
+        const n = t.k === 'all' ? allCards.length : allCards.filter(c => t.k === 'done' ? c.complete : !c.complete).length;
+        const on = tab === t.k;
+        return {
+          label: t.label, count: n, style: btn(on, '#f5b32a'),
+          countStyle: 'color:' + (on ? 'rgba(13,16,23,.55)' : '#5b6579'),
+          onClick: () => { this.setState({ tab: t.k, open: null }); this.persist('ach.tab', t.k); }
+        };
+      }),
+      sorts: SORTS.map(s => ({
+        label: s.label, style: smallBtn(sortKey === s.k),
+        onClick: () => { this.setState({ sort: s.k, open: null }); this.persist('ach.sort', s.k); }
+      })),
+      groups: groups.filter(g => g.cards.length).map(g => ({
+        cards: g.cards,
+        hasLabel: !!g.label,
+        label: g.label,
+        meta: g.cards.length + (g.key === 'secret' ? ' MISSIONS' : ' ACHIEVEMENTS'),
+        labelStyle: "font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:2px;color:" + g.color,
+        ruleStyle: 'flex:1;height:2px;background:' + g.rule
+      })),
+      showRunSummary: this.props.showRunSummary ?? true,
+      runUnlockedCount: 2,
+      runUnlocked: [
+        { icon:'clock', name:'AIRTIME',          desc:'Seconds airborne in one jump', tier:'gold',   best:10, need:7 },
+        { icon:'bus',   name:'NO SCHOOL TODAY',  desc:'Crash into the school bus',    tier:'gold', once:true }
+      ].map(r => {
+        const c = T[r.tier].c;
+        const base = runRow(c);
+        return Object.assign(base, {
+          name: r.name, desc: r.desc, tierName: T[r.tier].n,
+          count: r.once ? 'COMPLETE' : r.best + '/' + r.need,
+          iconRects: this.icon(r.icon, c),
+          nameStyle: "font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#fff",
+          tierStyle: "font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:" + c,
+          countStyle: "font-family:'" + (r.once ? 'Silkscreen' : 'VT323') + "',monospace;font-size:" + (r.once ? '9px;letter-spacing:1px' : '22px') + ";line-height:1;color:" + DONE
+        });
+      }),
+      runProgress: [
+        { icon:'car',  name:'RAM X CARS',   gained:42,   v:340,   need:500,  tier:'gold' },
+        { icon:'road', name:'PASS X CARS',  gained:1800, v:8400,  need:25000, tier:'diamond' },
+        { icon:'coin', name:'COLLECT X CASH', gained:340, v:1250, need:2500, tier:'silver' }
+      ].map(r => {
+        const c = T[r.tier].c;
+        const base = runRow('#2b3446');
+        return Object.assign(base, {
+          name: r.name,
+          count: '+' + this.fmt(r.gained),
+          sub: this.fmt(r.v) + '/' + this.fmt(r.need),
+          iconRects: this.icon(r.icon, c),
+          iconBoxStyle: 'width:26px;height:26px;border:2px solid ' + c + ';background:#12161f;display:flex;align-items:center;justify-content:center;flex-shrink:0',
+          nameStyle: "font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#c8cfdb",
+          fillStyle: 'width:' + Math.max(2, Math.round(((r.v - r.gained) / r.need) * 100)) + '%;background:' + c,
+          deltaStyle: 'width:' + Math.max(2, Math.round((r.gained / r.need) * 100)) + '%;'
+            + 'background-image:linear-gradient(90deg,'
+            + 'hsl(0 90% 62%),hsl(45 95% 58%),hsl(90 80% 52%),hsl(150 85% 50%),hsl(190 90% 58%),'
+            + 'hsl(235 85% 65%),hsl(280 85% 66%),hsl(320 90% 64%),hsl(0 90% 62%));'
+            + 'background-size:120px 100%;animation:prismScroll 1.6s linear infinite',
+          countStyle: "font-family:'VT323',monospace;font-size:27px;line-height:1;white-space:nowrap;color:" + c,
+          subStyle: "font-family:'VT323',monospace;font-size:17px;line-height:1;color:#8b95a8;flex-shrink:0"
+        });
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

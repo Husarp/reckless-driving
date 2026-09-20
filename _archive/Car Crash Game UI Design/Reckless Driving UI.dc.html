@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #12161f; }
+  a { color: #f5b32a; text-decoration: none; }
+  a:hover { color: #ffd873; }
+  @keyframes readyPulse { 0%,100% { box-shadow: 0 0 0 2px #2ee6b0; } 50% { box-shadow: 0 0 0 2px rgba(46,230,176,.25); } }
+  @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: .15; } }
+</style>
+</helmet>
+<div style="min-height:100%;background:#12161f;color:#e8e6df;font-family:'Pixelify Sans',monospace;padding:56px 64px 96px;box-sizing:border-box">
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:900px;margin-bottom:44px">
+    <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:3px;color:#e63946">RECKLESS DRIVING — UI &amp; ART PASS</div>
+    <div style="font-family:'Silkscreen',monospace;font-size:34px;line-height:1.25;color:#fff">Menus, road art, energy&nbsp;bar</div>
+    <div style="font-size:17px;line-height:1.55;color:#9aa3b2;text-wrap:pretty">Everything below is drawn at the game's real 160×260 internal resolution and scaled up, so what you see is what the canvas can actually render. Road, verge and scenery are live-scrolling. Screens: main menu, road art before/after, in-game HUD, energy bar states, pause, leaderboard, run summary.</div>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+
+    <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+      <div id="1a" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1a</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">MAIN MENU</span>
+        </div>
+        <div style="position:relative;width:320px;height:520px;background:#000;box-shadow:0 0 0 4px #1c2230,0 18px 40px rgba(0,0,0,.5)">
+          <canvas ref="{{ refMenu }}" width="160" height="260" style="position:absolute;top:0;left:0;width:320px;height:520px;image-rendering:pixelated"></canvas>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 18px 18px;box-sizing:border-box">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:14px">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a">HIGHWAY 47</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:27px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f,0 0 0 2px #12161f">RECK<span style="color:#e63946;text-shadow:2px 2px 0 #12161f">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:15px;letter-spacing:7px;color:#fff;text-shadow:2px 2px 0 #1b2130">DRIVING</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:26px">
+              <div style="background:#e63946;border:2px solid #fff;box-shadow:4px 4px 0 #000;padding:10px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:13px;color:#fff;letter-spacing:1px">START RUN</div>
+              <div style="display:flex;gap:7px">
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">SETUP</div>
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">SCORES</div>
+              </div>
+            </div>
+            <div style="margin-top:20px;border:2px solid #2b3446;background:rgba(13,17,25,.85);padding:10px 10px 11px">
+              <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#5f6b83;margin-bottom:9px">CURRENT SETUP</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span style="color:#8f99ab">LANES</span><span style="display:flex;gap:3px"><span style="background:#f5b32a;color:#12161f;padding:2px 6px;font-family:'Silkscreen',monospace;font-size:9px">3</span><span style="background:#232b3b;color:#6d7789;padding:2px 6px;font-family:'Silkscreen',monospace;font-size:9px">4</span><span style="background:#232b3b;color:#6d7789;padding:2px 6px;font-family:'Silkscreen',monospace;font-size:9px">5</span></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span style="color:#8f99ab">SPEED</span><span style="font-family:'Silkscreen',monospace;font-size:9px;color:#fff">ACCELERATING</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span style="color:#8f99ab">ABILITY</span><span style="font-family:'Silkscreen',monospace;font-size:9px;color:#2ee6b0">JUMP</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span style="color:#8f99ab">TRUCKS</span><span style="font-family:'Silkscreen',monospace;font-size:9px;color:#fff">ON</span></div>
+              </div>
+              <div style="margin-top:10px;border-top:2px dashed #2b3446;padding-top:8px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#5f6b83">MULTIPLIER</span>
+                <span style="font-family:'Silkscreen',monospace;font-size:15px;color:#f5b32a">1.4x</span>
+              </div>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670"><span style="color:#4d5670">BEST 18 420</span><span style="color:#4d5670">v1.38</span></div>
+          </div>
+        </div>
+        <div style="width:320px;font-size:14px;line-height:1.5;color:#8f99ab;text-wrap:pretty">Title sits over the live road so the menu never feels static. Setup is a read-only summary with the multiplier as the payoff line; the full pickers live behind SETUP.</div>
+      </div>
+
+      <div id="1b" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1b</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">ROAD &amp; VERGE — NOW vs PROPOSED</span>
+        </div>
+        <div style="display:flex;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;letter-spacing:2px">NOW</div>
+            <canvas ref="{{ refOld }}" width="160" height="260" style="width:240px;height:390px;image-rendering:pixelated;box-shadow:0 0 0 3px #1c2230"></canvas>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-family:'Silkscreen',monospace;font-size:9px;color:#2ee6b0;letter-spacing:2px">PROPOSED</div>
+            <canvas ref="{{ refNew }}" width="160" height="260" style="width:240px;height:390px;image-rendering:pixelated;box-shadow:0 0 0 3px #2ee6b0"></canvas>
+          </div>
+        </div>
+        <div style="width:516px;display:flex;gap:18px;font-size:14px;line-height:1.5;color:#8f99ab">
+          <div style="flex:1;text-wrap:pretty"><b style="color:#e8e6df">Asphalt:</b> five tones instead of one flat grey — base, darkened wheel paths, lane-seam lines, repair patches and grain speckle. Lane dashes get a 1px dark underside so they read as painted, not glowing.</div>
+          <div style="flex:1;text-wrap:pretty"><b style="color:#e8e6df">Verge:</b> mostly plain grass in two tones with a mown strip and a dirt shoulder. Bushes and trees appear roughly one slot in six; a house, fence run or sign shows up about once every twenty slots.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+      <div id="1c" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1c</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">IN-GAME HUD</span>
+        </div>
+        <div style="position:relative;width:320px;height:520px;background:#000;box-shadow:0 0 0 4px #1c2230,0 18px 40px rgba(0,0,0,.5)">
+          <canvas ref="{{ refHud }}" width="160" height="260" style="position:absolute;top:0;left:0;width:320px;height:520px;image-rendering:pixelated"></canvas>
+          <div style="position:absolute;top:0;left:0;right:0;padding:10px;display:flex;justify-content:space-between;align-items:flex-start;box-sizing:border-box">
+            <div style="width:26px;height:26px;background:rgba(9,12,18,.78);border:2px solid #47506a;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:10px;color:#c3cad8">II</div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <div style="background:rgba(9,12,18,.78);border:2px solid #2b3446;padding:3px 7px;font-family:'Silkscreen',monospace;font-size:14px;color:#fff;text-shadow:2px 2px 0 #000">12 480</div>
+              <div style="display:flex;gap:4px">
+                <div style="background:#f5b32a;color:#12161f;padding:2px 5px;font-family:'Silkscreen',monospace;font-size:9px">1.4x</div>
+                <div style="background:rgba(9,12,18,.78);border:2px solid #2b3446;padding:2px 5px;font-family:'Silkscreen',monospace;font-size:9px;color:#9aa3b2">148 KM/H</div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;box-sizing:border-box">
+            <div style="align-self:stretch;display:flex;justify-content:space-between;background:rgba(9,12,18,.78);border:2px solid #2b3446;padding:3px 6px;font-family:'Silkscreen',monospace;font-size:8px;color:#c3cad8"><span>JUMP</span><span ref="{{ refPctLabel }}">—</span></div>
+            <canvas ref="{{ refBarLive }}" width="140" height="16" style="width:292px;height:33px;image-rendering:pixelated"></canvas>
+          </div>
+        </div>
+        <div style="width:320px;font-size:14px;line-height:1.5;color:#8f99ab;text-wrap:pretty">Score anchors the top-right, multiplier and speed sit under it as small chips. The energy bar owns the bottom edge, wide enough to be a tap target on phones.</div>
+      </div>
+
+      <div id="1d" style="display:flex;flex-direction:column;gap:14px;width:430px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1d</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">ENERGY BAR — STATES</span>
+        </div>
+        <div style="background:#171c27;border:2px solid #232b3b;padding:20px 22px;display:flex;flex-direction:column;gap:16px">
+          <sc-for list="{{ bars }}" as="bar" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#fff">{{ bar.label }}</span>
+                <span style="font-size:13px;color:#8f99ab">{{ bar.note }}</span>
+              </div>
+              <canvas ref="{{ bar.ref }}" width="140" height="16" style="width:386px;height:44px;image-rendering:pixelated"></canvas>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:14px;line-height:1.55;color:#8f99ab;text-wrap:pretty">Ten cells instead of a smooth fill, so a glance reads as a number. Recharge lights cells left to right with a bright leading cell that ticks; the 25% take-off threshold is a permanent notch in the frame. Draining runs right to left with a white flash on the cell being spent, and the frame flips to hazard stripes while airborne.</div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+      <div id="1e" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1e</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">PAUSE</span>
+        </div>
+        <div style="position:relative;width:320px;height:520px;background:#000;box-shadow:0 0 0 4px #1c2230,0 18px 40px rgba(0,0,0,.5)">
+          <canvas ref="{{ refPause }}" width="160" height="260" style="position:absolute;top:0;left:0;width:320px;height:520px;image-rendering:pixelated"></canvas>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(9,12,18,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;box-sizing:border-box">
+            <div style="font-family:'Silkscreen',monospace;font-size:22px;color:#fff;letter-spacing:3px;text-shadow:3px 3px 0 #e63946">PAUSED</div>
+            <div style="width:100%;border:2px solid #2b3446;background:rgba(13,17,25,.9);padding:11px 12px;display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">SCORE</span><span style="font-family:'Silkscreen',monospace;font-size:11px;color:#fff">12 480</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">TIME</span><span style="font-family:'Silkscreen',monospace;font-size:11px;color:#fff">1:24</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">DODGED</span><span style="font-family:'Silkscreen',monospace;font-size:11px;color:#fff">96</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">JUMPS</span><span style="font-family:'Silkscreen',monospace;font-size:11px;color:#2ee6b0">7</span></div>
+            </div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:7px">
+              <div style="background:#2ee6b0;border:2px solid #fff;box-shadow:4px 4px 0 #000;padding:9px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:12px;color:#0c2a22">RESUME</div>
+              <div style="display:flex;gap:7px">
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">RESTART</div>
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">QUIT</div>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#5f6b83">SPACE or P to resume</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="1f" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1f</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">LEADERBOARD</span>
+        </div>
+        <div style="width:320px;height:520px;background:#12161f;box-shadow:0 0 0 4px #1c2230,0 18px 40px rgba(0,0,0,.5);padding:18px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:2px 2px 0 #e63946">HIGH SCORES</div>
+            <div style="font-size:13px;color:#5f6b83">LOCAL · TOP 10</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <div style="background:#f5b32a;color:#12161f;padding:3px 7px;font-family:'Silkscreen',monospace;font-size:8px">ALL</div>
+            <div style="background:#1b2130;color:#6d7789;padding:3px 7px;font-family:'Silkscreen',monospace;font-size:8px">3 LANE</div>
+            <div style="background:#1b2130;color:#6d7789;padding:3px 7px;font-family:'Silkscreen',monospace;font-size:8px">NO ABILITY</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <sc-for list="{{ scores }}" as="row" hint-placeholder-count="7">
+              <div style="display:flex;align-items:center;gap:9px;background:{{ row.bg }};border-left:3px solid {{ row.edge }};padding:7px 9px">
+                <span style="font-family:'Silkscreen',monospace;font-size:11px;color:{{ row.rankColor }};width:22px">{{ row.rank }}</span>
+                <span style="display:flex;flex-direction:column;gap:2px;flex:1">
+                  <span style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff">{{ row.score }}</span>
+                  <span style="font-size:12px;color:#6d7789">{{ row.meta }}</span>
+                </span>
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#8f99ab">{{ row.time }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:auto;display:flex;gap:7px">
+            <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">BACK</div>
+            <div style="background:#2a1418;border:2px solid #e63946;box-shadow:3px 3px 0 #000;padding:8px 12px;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#e63946">CLEAR</div>
+          </div>
+        </div>
+        <div style="width:320px;font-size:14px;line-height:1.5;color:#8f99ab;text-wrap:pretty">Each row carries the setup it was scored under, so a 3-lane no-ability run isn't silently compared against a 5-lane one. Top three get gold, silver, bronze rank colour; the newest run is outlined.</div>
+      </div>
+
+      <div id="1g" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1g</span>
+          <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">RUN SUMMARY</span>
+        </div>
+        <div style="position:relative;width:320px;height:520px;background:#000;box-shadow:0 0 0 4px #1c2230,0 18px 40px rgba(0,0,0,.5)">
+          <canvas ref="{{ refOver }}" width="160" height="260" style="position:absolute;top:0;left:0;width:320px;height:520px;image-rendering:pixelated"></canvas>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(38,10,14,.86),rgba(9,12,18,.94));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;box-sizing:border-box">
+            <div style="font-family:'Silkscreen',monospace;font-size:24px;color:#e63946;letter-spacing:2px;text-shadow:3px 3px 0 #000">WRECKED</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-family:'Silkscreen',monospace;font-size:30px;color:#fff;text-shadow:3px 3px 0 #000">12 480</div>
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;color:#f5b32a">NEW PERSONAL BEST</div>
+            </div>
+            <div style="width:100%;border:2px solid #2b3446;background:rgba(13,17,25,.9);padding:11px 12px;display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">BASE</span><span style="font-family:'Silkscreen',monospace;font-size:10px;color:#fff">8 914</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">MULTIPLIER</span><span style="font-family:'Silkscreen',monospace;font-size:10px;color:#f5b32a">1.4x</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">SURVIVED</span><span style="font-family:'Silkscreen',monospace;font-size:10px;color:#fff">1:37</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#8f99ab">RANK</span><span style="font-family:'Silkscreen',monospace;font-size:10px;color:#2ee6b0">#1 OF 10</span></div>
+            </div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:7px">
+              <div style="background:#e63946;border:2px solid #fff;box-shadow:4px 4px 0 #000;padding:9px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:12px;color:#fff">RETRY</div>
+              <div style="display:flex;gap:7px">
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">SCORES</div>
+                <div style="flex:1;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 0;text-align:center;font-family:'Silkscreen',monospace;font-size:9px;color:#c3cad8">MENU</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;max-width:1100px">
+      <div style="flex:1;min-width:340px;background:#171c27;border:2px solid #232b3b;padding:20px 22px">
+        <div style="font-family:'Silkscreen',monospace;font-size:11px;color:#fff;margin-bottom:12px">SCENERY RULES</div>
+        <div style="font-size:15px;line-height:1.6;color:#9aa3b2;text-wrap:pretty">Verge is still 24px slots, but the slot table is 24 long instead of 14 and weighted: about 16 grass, 4 bush, 3 tree, 1 landmark. Grass slots are usually bare — a tuft only draws on roughly half of them, and never two tufts in adjacent slots. Landmarks (house, fence run, road sign) sit on one side only and never opposite each other, so the frame never feels walled in. Left and right use different tables so the two sides don't mirror.</div>
+      </div>
+      <div style="flex:1;min-width:340px;background:#171c27;border:2px solid #232b3b;padding:20px 22px">
+        <div style="font-family:'Silkscreen',monospace;font-size:11px;color:#fff;margin-bottom:12px">PALETTE</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ palette }}" as="sw" hint-placeholder-count="14">
+            <div style="display:flex;flex-direction:column;gap:5px;width:74px">
+              <div style="height:38px;background:{{ sw.hex }};border:2px solid #0d1119"></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:7px;color:#6d7789">{{ sw.name }}</div>
+              <div style="font-size:11px;color:#4d5670">{{ sw.hex }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  refMenu = React.createRef();
+  refOld = React.createRef();
+  refNew = React.createRef();
+  refHud = React.createRef();
+  refPause = React.createRef();
+  refOver = React.createRef();
+  refBarLive = React.createRef();
+  refPctLabel = React.createRef();
+
+  bars = [
+    { label: 'EMPTY / LOCKED', note: 'below 25% take-off threshold', ref: React.createRef(), mode: 'static', pct: 12 },
+    { label: 'CHARGING', note: 'leading cell ticks brighter', ref: React.createRef(), mode: 'static', pct: 48 },
+    { label: 'ALMOST FULL', note: 'amber to green crossover', ref: React.createRef(), mode: 'static', pct: 82 },
+    { label: 'READY', note: 'full green, outline marches', ref: React.createRef(), mode: 'static', pct: 100 },
+    { label: 'IN USE / DRAINING', note: 'hazard frame, white spend flash', ref: React.createRef(), mode: 'drain', pct: 64 }
+  ];
+
+  scores = [
+    { rank: '#1', score: '18 420', meta: '3L · ACCEL · NO ABILITY · 2.3x', time: '2:11', bg: '#241c0d', edge: '#f5b32a', rankColor: '#f5b32a' },
+    { rank: '#2', score: '15 980', meta: '3L · ACCEL · JUMP · 1.7x', time: '1:58', bg: '#1d2129', edge: '#c3cad8', rankColor: '#c3cad8' },
+    { rank: '#3', score: '12 480', meta: '4L · ACCEL · JUMP · 1.4x', time: '1:37', bg: '#231a14', edge: '#b07a4a', rankColor: '#b07a4a' },
+    { rank: '#4', score: '9 240', meta: '4L · CONST · RAM · 1.1x', time: '1:20', bg: '#171c27', edge: '#2b3446', rankColor: '#6d7789' },
+    { rank: '#5', score: '7 610', meta: '5L · ACCEL · JUMP · 1.0x', time: '1:12', bg: '#171c27', edge: '#2b3446', rankColor: '#6d7789' },
+    { rank: '#6', score: '5 330', meta: '5L · CONST · RAM · 0.8x', time: '0:58', bg: '#171c27', edge: '#2b3446', rankColor: '#6d7789' },
+    { rank: '#7', score: '3 190', meta: '3L · CONST · JUMP · 1.2x', time: '0:41', bg: '#171c27', edge: '#2b3446', rankColor: '#6d7789' }
+  ];
+
+  palette = [
+    { name: 'ASPHALT', hex: '#5a5f66' },
+    { name: 'WEAR', hex: '#4e535a' },
+    { name: 'SEAM', hex: '#44484f' },
+    { name: 'PATCH', hex: '#666b72' },
+    { name: 'PAINT', hex: '#ded9c8' },
+    { name: 'CURB', hex: '#a9a29b' },
+    { name: 'GRASS', hex: '#46853a' },
+    { name: 'GRASS DK', hex: '#37692e' },
+    { name: 'FOLIAGE', hex: '#1f5c22' },
+    { name: 'DIRT', hex: '#7d6b4a' },
+    { name: 'RED', hex: '#e63946' },
+    { name: 'AMBER', hex: '#f5b32a' },
+    { name: 'MINT', hex: '#2ee6b0' },
+    { name: 'NIGHT', hex: '#12161f' }
+  ];
+
+  renderVals() {
+    return {
+      refMenu: this.refMenu, refOld: this.refOld, refNew: this.refNew,
+      refHud: this.refHud, refPause: this.refPause, refOver: this.refOver,
+      refBarLive: this.refBarLive, refPctLabel: this.refPctLabel,
+      bars: this.bars, scores: this.scores, palette: this.palette
+    };
+  }
+
+  // ---------- helpers ----------
+  h(n) { const s = Math.sin(n * 127.1 + 3.7) * 43758.5453; return s - Math.floor(s); }
+
+  buf(w, h, fn) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    fn(c.getContext('2d'));
+    return c;
+  }
+
+  // ---------- verge (18px wide, 576px tall = 24 slots) ----------
+  sprGrass(g, x, y, s) {
+    const dk = '#2f6b2c', lt = '#5da44a';
+    g.fillStyle = dk;
+    g.fillRect(x + 3, y + 12, 1, 8);
+    g.fillRect(x + 7, y + 10, 1, 10);
+    g.fillStyle = lt;
+    g.fillRect(x + 5, y + 13, 1, 7);
+    if (s > .7) { g.fillStyle = dk; g.fillRect(x + 11, y + 14, 1, 6); g.fillStyle = lt; g.fillRect(x + 12, y + 16, 1, 4); }
+  }
+  sprBush(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(x + 3, y + 19, 11, 2);
+    g.fillStyle = '#1f5c22'; g.fillRect(x + 2, y + 12, 12, 8); g.fillRect(x + 4, y + 9, 8, 4);
+    g.fillStyle = '#2c7a2c'; g.fillRect(x + 3, y + 13, 7, 5); g.fillRect(x + 5, y + 10, 4, 3);
+    g.fillStyle = '#49a041'; g.fillRect(x + 4, y + 11, 3, 2); g.fillRect(x + 10, y + 15, 2, 2);
+  }
+  sprTree(g, x, y, v) {
+    g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + 2, y + 20, 13, 2);
+    g.fillStyle = '#4a3524'; g.fillRect(x + 7, y + 14, 3, 7);
+    g.fillStyle = '#5d4530'; g.fillRect(x + 7, y + 14, 1, 7);
+    if (v) { // conifer
+      g.fillStyle = '#16451c'; g.fillRect(x + 2, y + 11, 13, 5); g.fillRect(x + 4, y + 6, 9, 6); g.fillRect(x + 6, y + 2, 5, 5);
+      g.fillStyle = '#256b28'; g.fillRect(x + 3, y + 12, 6, 3); g.fillRect(x + 5, y + 7, 4, 4); g.fillRect(x + 7, y + 3, 2, 3);
+    } else { // broadleaf
+      g.fillStyle = '#1b5220'; g.fillRect(x + 2, y + 6, 13, 9); g.fillRect(x + 4, y + 3, 9, 4);
+      g.fillStyle = '#2c7a2c'; g.fillRect(x + 3, y + 7, 7, 6); g.fillRect(x + 5, y + 4, 5, 3);
+      g.fillStyle = '#49a041'; g.fillRect(x + 4, y + 5, 3, 3);
+    }
+  }
+  sprHouse(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x + 1, y + 20, 16, 2);
+    g.fillStyle = '#c9b394'; g.fillRect(x + 2, y + 10, 14, 10);
+    g.fillStyle = '#a9926f'; g.fillRect(x + 2, y + 17, 14, 3);
+    g.fillStyle = '#8c4139'; g.fillRect(x + 1, y + 6, 16, 5); g.fillRect(x + 4, y + 3, 10, 3);
+    g.fillStyle = '#a85449'; g.fillRect(x + 2, y + 7, 6, 2);
+    g.fillStyle = '#f5b32a'; g.fillRect(x + 4, y + 12, 3, 3); g.fillRect(x + 11, y + 12, 3, 3);
+    g.fillStyle = '#4a3524'; g.fillRect(x + 8, y + 14, 3, 6);
+  }
+  sprFence(g, x, y) {
+    g.fillStyle = '#8a7452';
+    for (let i = 0; i < 3; i++) g.fillRect(x + 3 + i * 5, y + 8, 2, 12);
+    g.fillStyle = '#a08a63'; g.fillRect(x + 2, y + 11, 14, 2); g.fillRect(x + 2, y + 16, 14, 2);
+  }
+  sprSign(g, x, y) {
+    g.fillStyle = '#6d7789'; g.fillRect(x + 8, y + 11, 2, 10);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 3, y + 4, 12, 8);
+    g.fillStyle = '#e63946'; g.fillRect(x + 4, y + 5, 10, 6);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 6, y + 7, 6, 2);
+  }
+  sprRock(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(x + 5, y + 19, 8, 2);
+    g.fillStyle = '#7b8089'; g.fillRect(x + 5, y + 14, 8, 5); g.fillRect(x + 7, y + 12, 5, 3);
+    g.fillStyle = '#989ea6'; g.fillRect(x + 6, y + 13, 3, 3);
+  }
+
+  makeVerge(side, style) {
+    const W = 18, H = 576, self = this;
+    const SL = style === 'old'
+      ? (side === 'L' ? ['g','b','g','g','t','g','b','g','g','t','g','b','g','g','b','g','t','g','b','g','g','t','g','b']
+                      : ['h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h'])
+      : (side === 'L' ? ['g','g','t','g','g','g','b','g','g','g','t','g','g','p','g','g','g','b','g','t','g','g','g','g']
+                      : ['g','g','g','b','g','g','t','g','g','H','g','g','g','g','b','g','t','g','g','F','g','g','g','b']);
+    return this.buf(W, H, g => {
+      if (style === 'old') {
+        g.fillStyle = '#55b65a'; g.fillRect(0, 0, W, H);
+      } else {
+        g.fillStyle = '#46853a'; g.fillRect(0, 0, W, H);
+        for (let y = 0; y < H; y += 3) for (let x = 0; x < W; x += 3) {
+          const r = self.h(y * 7 + x * 3.3);
+          if (r > .82) { g.fillStyle = '#37692e'; g.fillRect(x, y, 3, 2); }
+          else if (r < .1) { g.fillStyle = '#54974a'; g.fillRect(x, y, 2, 2); }
+        }
+        // mown strip + dirt shoulder next to the curb
+        const dx = side === 'L' ? 13 : 0;
+        g.fillStyle = '#54974a'; g.fillRect(side === 'L' ? 12 : 5, 0, 1, H);
+        g.fillStyle = '#7d6b4a'; g.fillRect(dx, 0, 5, H);
+        for (let y = 0; y < H; y += 2) {
+          const r = self.h(y * 2.7 + (side === 'L' ? 11 : 71));
+          g.fillStyle = r > .6 ? '#6b5a3d' : '#8b7854';
+          g.fillRect(dx + Math.floor(r * 4), y, 1, 1);
+        }
+      }
+      const sx = side === 'L' ? 0 : 4; // keep sprites off the shoulder
+      for (let i = 0; i < 24; i++) {
+        const y = i * 24, t = SL[i], r = self.h(i * 5.1 + (side === 'L' ? 0 : 40));
+        if (style === 'old') {
+          if (side === 'R') { // the current teal hedge wall
+            g.fillStyle = '#1e6f5c'; g.fillRect(4, y, 14, 24);
+            g.fillStyle = i % 2 ? '#1f5f49' : '#256b52'; g.fillRect(5, y + 5, 13, 16);
+            g.fillStyle = i % 2 ? '#2a7359' : '#2f8065'; g.fillRect(6, y + 8, 6, 8);
+          } else if (t === 't') { this.sprTree(g, sx, y, false); }
+          else if (t === 'b') { this.sprBush(g, sx, y); }
+          else { this.sprGrass(g, sx, y, .9); }
+          continue;
+        }
+        if (t === 't') this.sprTree(g, sx, y, r > .5);
+        else if (t === 'b') this.sprBush(g, sx, y);
+        else if (t === 'H') this.sprHouse(g, side === 'L' ? 0 : 0, y);
+        else if (t === 'F') { this.sprFence(g, sx - 2, y); this.sprFence(g, sx - 2, y - 24); }
+        else if (t === 'p') this.sprSign(g, sx, y);
+        else if (t === 'r') this.sprRock(g, sx, y);
+        else if (r > .5) this.sprGrass(g, sx, y, r); // most grass slots stay bare
+      }
+    });
+  }
+
+  makeAsphalt(style) {
+    const W = 124, H = 576, lanes = 4, lw = Math.floor(W / lanes), self = this;
+    return this.buf(W, H, g => {
+      if (style === 'old') { g.fillStyle = '#9ca3af'; g.fillRect(0, 0, W, H); return; }
+      g.fillStyle = '#5a5f66'; g.fillRect(0, 0, W, H);
+      // grain
+      for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 3) {
+        const r = self.h(y * 13.1 + x * 4.7);
+        if (r > .86) { g.fillStyle = '#63686f'; g.fillRect(x, y, 1, 1); }
+        else if (r < .09) { g.fillStyle = '#53585f'; g.fillRect(x, y, 1, 1); }
+      }
+      // polished wheel paths, two per lane
+      g.fillStyle = '#565b62';
+      for (let i = 0; i < lanes; i++) {
+        const c = i * lw + Math.floor(lw / 2);
+        g.fillRect(c - 7, 0, 3, H);
+        g.fillRect(c + 5, 0, 3, H);
+      }
+      // longitudinal construction seams under the lane lines
+      g.fillStyle = '#44484f';
+      for (let i = 1; i < lanes; i++) g.fillRect(i * lw, 0, 1, H);
+      // repair patches + cracks
+      for (let i = 0; i < 4; i++) {
+        const y = Math.floor(self.h(i * 3.3) * (H - 60)), x = Math.floor(self.h(i * 9.7) * (W - 34));
+        const w = 12 + Math.floor(self.h(i * 2.1) * 16), hh = 16 + Math.floor(self.h(i * 6.4) * 20);
+        g.fillStyle = '#54595f'; g.fillRect(x, y, w, hh);
+        for (let py = y; py < y + hh; py += 2) for (let px = x; px < x + w; px += 2) {
+          if (self.h(py * 5.7 + px * 2.9) > .75) { g.fillStyle = '#5b6067'; g.fillRect(px, py, 1, 1); }
+        }
+        g.fillStyle = '#494e55'; g.fillRect(x, y, w, 1); g.fillRect(x, y + hh - 1, w, 1);
+        g.fillRect(x, y, 1, hh); g.fillRect(x + w - 1, y, 1, hh);
+      }
+      g.fillStyle = '#4a4f56';
+      for (let i = 0; i < 7; i++) {
+        let x = Math.floor(self.h(i * 4.9) * W), y = Math.floor(self.h(i * 8.2) * H);
+        for (let k = 0; k < 16; k++) { g.fillRect(x, y + k, 1, 1); if (self.h(i + k * 1.7) > .6) x += self.h(k * 2.3) > .5 ? 1 : -1; }
+      }
+    });
+  }
+
+  ensureBufs() {
+    if (this.bufs && this.bufsV === 3) return;
+    this.bufsV = 3;
+    this.bufs = {
+      newL: this.makeVerge('L', 'new'), newR: this.makeVerge('R', 'new'), newA: this.makeAsphalt('new'),
+      oldL: this.makeVerge('L', 'old'), oldR: this.makeVerge('R', 'old'), oldA: this.makeAsphalt('old')
+    };
+  }
+
+  // ---------- scene ----------
+  drawScene(ctx, off, style, cars) {
+    const RL = 18, RR = 142, RW = 124, H = 260, b = this.bufs;
+    const o = ((off % 576) + 576) % 576;
+    const L = style === 'old' ? b.oldL : b.newL, R = style === 'old' ? b.oldR : b.newR, A = style === 'old' ? b.oldA : b.newA;
+    ctx.clearRect(0, 0, 160, H);
+    for (let k = -1; k <= 1; k++) {
+      const y = Math.floor(-o + k * 576);
+      if (y > H || y + 576 < 0) continue;
+      ctx.drawImage(L, 0, y); ctx.drawImage(R, RR, y); ctx.drawImage(A, RL, y);
+    }
+    // curbs
+    const th = 8, cs = Math.floor(o % (th * 2));
+    for (let y = -th + cs; y < H; y += th * 2) {
+      if (style === 'old') {
+        ctx.fillStyle = '#718093'; ctx.fillRect(RL - 2, y, 2, th); ctx.fillRect(RR, y, 2, th);
+        ctx.fillStyle = '#f1f2f6'; ctx.fillRect(RL - 2, y + th, 2, th); ctx.fillRect(RR, y + th, 2, th);
+      } else {
+        ctx.fillStyle = '#8d8781'; ctx.fillRect(RL - 3, y, 3, th); ctx.fillRect(RR, y, 3, th);
+        ctx.fillStyle = '#a9a29b'; ctx.fillRect(RL - 3, y + th, 3, th); ctx.fillRect(RR, y + th, 3, th);
+      }
+    }
+    if (style !== 'old') {
+      ctx.fillStyle = '#6f6a65'; ctx.fillRect(RL - 1, 0, 1, H); ctx.fillRect(RR, 0, 1, H);
+      ctx.fillStyle = '#cec9b8'; ctx.fillRect(RL + 2, 0, 1, H); ctx.fillRect(RR - 3, 0, 1, H);
+    }
+    // lane dashes
+    const lanes = 4, lw = Math.floor(RW / lanes), dh = 12, dp = 28, dOff = Math.floor(o % dp);
+    for (let i = 1; i < lanes; i++) {
+      const x = RL + i * lw;
+      for (let y = -dp + dOff; y < H; y += dp) {
+        if (style === 'old') { ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, dh); }
+        else {
+          ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(x, y + dh, 2, 1);
+          ctx.fillStyle = '#ded9c8'; ctx.fillRect(x, y, 2, dh);
+          ctx.fillStyle = '#b3ad9c'; ctx.fillRect(x + 1, y, 1, dh);
+        }
+      }
+    }
+    if (cars) cars.forEach(c => this.drawCar(ctx, c.x, c.y, c.color, c.dir, c.lift));
+  }
+
+  drawCar(ctx, x, y, color, dir, lift) {
+    const w = 18, h = 31, ly = Math.round(y - (lift || 0));
+    ctx.fillStyle = 'rgba(0,0,0,' + (lift ? .35 : .22) + ')';
+    ctx.fillRect(x + 1, y + 3, w, h - 2);
+    const dark = this.shade(color, -.35), light = this.shade(color, .22);
+    ctx.fillStyle = dark; ctx.fillRect(x, ly, w, h);
+    ctx.fillStyle = color; ctx.fillRect(x + 1, ly + 1, w - 2, h - 2);
+    ctx.fillStyle = light; ctx.fillRect(x + 1, ly + 1, 2, h - 2);
+    ctx.fillStyle = dark; ctx.fillRect(x + 2, ly + 9, w - 4, 13);
+    ctx.fillStyle = '#9fd3e8';
+    if (dir === 'down') { ctx.fillRect(x + 3, ly + 19, w - 6, 4); ctx.fillStyle = '#fff8d0'; ctx.fillRect(x + 2, ly + 28, 3, 2); ctx.fillRect(x + w - 5, ly + 28, 3, 2); }
+    else { ctx.fillRect(x + 3, ly + 6, w - 6, 4); ctx.fillStyle = '#ff4d4d'; ctx.fillRect(x + 2, ly + h - 3, 3, 2); ctx.fillRect(x + w - 5, ly + h - 3, 3, 2); }
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(x + 3, ly + 11, w - 6, 1);
+  }
+
+  shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = c => Math.max(0, Math.min(255, Math.round(c + (amt > 0 ? (255 - c) * amt : c * amt))));
+    return '#' + [f(n >> 16 & 255), f(n >> 8 & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ---------- energy bar ----------
+  cellColor(i, cells) {
+    const p = (i + 1) / cells;
+    if (p <= .34) return '#e63946';
+    if (p <= .7) return '#f5b32a';
+    return '#2ee6b0';
+  }
+
+  drawBar(ctx, pct, t, state) {
+    const W = 140, H = 16, cells = 10, cw = 11, gap = 2, x0 = 6, y0 = 4, ch = 8;
+    ctx.clearRect(0, 0, W, H);
+    // frame
+    ctx.fillStyle = '#0b0e14'; ctx.fillRect(0, 0, W, H);
+    if (state === 'drain') {
+      for (let x = 0; x < W; x += 6) { ctx.fillStyle = ((x / 6) | 0) % 2 ? '#f5b32a' : '#151a24'; ctx.fillRect(x, 0, 6, 2); ctx.fillRect(x + 3, H - 2, 6, 2); }
+    } else if (pct >= 100) {
+      const m = Math.floor(t / 90) % 4;
+      for (let x = 0; x < W; x += 4) { ctx.fillStyle = (Math.floor(x / 4) + m) % 2 ? '#2ee6b0' : '#0b0e14'; ctx.fillRect(x, 0, 4, 1); ctx.fillRect(x, H - 1, 4, 1); }
+      ctx.fillStyle = '#2ee6b0'; ctx.fillRect(0, 0, 1, H); ctx.fillRect(W - 1, 0, 1, H);
+    } else {
+      ctx.fillStyle = '#2b3446'; ctx.fillRect(0, 0, W, 1); ctx.fillRect(0, H - 1, W, 1); ctx.fillRect(0, 0, 1, H); ctx.fillRect(W - 1, 0, 1, H);
+    }
+    ctx.fillStyle = '#1a1f2a'; ctx.fillRect(3, 2, W - 6, H - 4);
+    const lit = pct / 100 * cells;
+    for (let i = 0; i < cells; i++) {
+      const x = x0 + i * (cw + gap);
+      ctx.fillStyle = '#23283400'; ctx.fillRect(x, y0, cw, ch);
+      ctx.fillStyle = '#242a36'; ctx.fillRect(x, y0, cw, ch);
+      if (i < Math.floor(lit)) {
+        const c = this.cellColor(i, cells);
+        ctx.fillStyle = c; ctx.fillRect(x, y0, cw, ch);
+        ctx.fillStyle = this.shade(c, .3); ctx.fillRect(x, y0, cw, 2);
+        ctx.fillStyle = this.shade(c, -.3); ctx.fillRect(x, y0 + ch - 2, cw, 2);
+      } else if (i === Math.floor(lit) && lit % 1 > .05) {
+        const c = this.cellColor(i, cells);
+        const pulse = state === 'drain' ? 1 : (Math.sin(t / 90) * .3 + .7);
+        const partial = Math.max(1, Math.round((lit % 1) * cw));
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = state === 'drain' ? '#ffffff' : c;
+        ctx.fillRect(x, y0, partial, ch);
+        ctx.globalAlpha = 1;
+      }
+    }
+    // 25% take-off notch
+    const nx = x0 + Math.round(2.5 * (cw + gap)) - 1;
+    ctx.fillStyle = pct >= 25 ? '#8f99ab' : '#e63946';
+    ctx.fillRect(nx, 2, 1, 2); ctx.fillRect(nx, H - 4, 1, 2);
+  }
+
+  componentDidMount() {
+    this.ensureBufs();
+    this.t0 = performance.now();
+    const tick = () => {
+      this.raf = requestAnimationFrame(tick);
+      this.ensureBufs();
+      const t = performance.now() - this.t0;
+      const scroll = t * 0.055;
+      const g = r => (r.current ? r.current.getContext('2d') : null);
+      const menu = g(this.refMenu);
+      if (menu) this.drawScene(menu, scroll, 'new', [
+        { x: 60, y: 150, color: '#e63946', dir: 'up' },
+        { x: 29, y: 40, color: '#3d7bd6', dir: 'down' },
+        { x: 91, y: 95, color: '#f5b32a', dir: 'down' }
+      ]);
+      const oc = g(this.refOld), nc = g(this.refNew);
+      if (oc) this.drawScene(oc, scroll, 'old', null);
+      if (nc) this.drawScene(nc, scroll, 'new', null);
+      const hud = g(this.refHud);
+      if (hud) this.drawScene(hud, scroll, 'new', [
+        { x: 60, y: 170, color: '#e63946', dir: 'up' },
+        { x: 29, y: 60, color: '#e6e2d6', dir: 'down' },
+        { x: 91, y: 20, color: '#3d7bd6', dir: 'down' },
+        { x: 122, y: 120, color: '#7c5cd6', dir: 'down' }
+      ]);
+      const pz = g(this.refPause);
+      if (pz) this.drawScene(pz, 240, 'new', [
+        { x: 60, y: 160, color: '#e63946', dir: 'up', lift: 8 },
+        { x: 29, y: 130, color: '#f5b32a', dir: 'down' },
+        { x: 91, y: 70, color: '#3d7bd6', dir: 'down' }
+      ]);
+      const ov = g(this.refOver);
+      if (ov) this.drawScene(ov, 400, 'new', [
+        { x: 60, y: 150, color: '#e63946', dir: 'up' },
+        { x: 62, y: 118, color: '#e6e2d6', dir: 'down' }
+      ]);
+
+      // state machine for the live bars: charge -> ready -> drain -> delay
+      const cyc = t % 7400;
+      let pct, state = 'charge';
+      if (cyc < 3600) pct = (cyc / 3600) * 100;
+      else if (cyc < 5000) { pct = 100; state = 'ready'; }
+      else if (cyc < 6100) { pct = 100 - ((cyc - 5000) / 1100) * 100; state = 'drain'; }
+      else { pct = 0; state = 'delay'; }
+      const live = g(this.refBarLive);
+      if (live) this.drawBar(live, pct, t, state);
+      if (this.refPctLabel.current) {
+        this.refPctLabel.current.textContent = state === 'drain' ? 'IN USE ' + Math.round(pct) + '%'
+          : state === 'ready' ? 'READY' : state === 'delay' ? 'RECHARGING…' : Math.round(pct) + '%';
+        this.refPctLabel.current.style.color = state === 'ready' ? '#2ee6b0' : state === 'drain' ? '#f5b32a' : '#c3cad8';
+      }
+      this.bars.forEach(b => {
+        const c = g(b.ref);
+        if (!c) return;
+        if (b.mode === 'drain') {
+          const d = 64 - ((t % 1600) / 1600) * 40;
+          this.drawBar(c, d, t, 'drain');
+        } else this.drawBar(c, b.pct, t, b.pct >= 100 ? 'ready' : 'charge');
+      });
+    };
+    tick();
+  }
+
+  componentWillUnmount() { cancelAnimationFrame(this.raf); }
+}
+</script>
+</body>
+</html>

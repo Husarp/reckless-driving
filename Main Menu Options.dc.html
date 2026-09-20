@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0b0e14; color: #e8e6df; }
+a { color: #f5b32a; } a:hover { color: #fff; }
+button { font-family: 'Silkscreen', monospace; }
+@keyframes startRunGlow {
+  0%, 86%, 100% { background-color: #e63946; box-shadow: 3px 3px 0 #000; }
+  91% { background-color: #ff6b3d; box-shadow: 3px 3px 0 #000, 0 0 16px rgba(255,107,61,.4); }
+  96% { background-color: #e63946; box-shadow: 3px 3px 0 #000; }
+}
+@keyframes startRunPulse {
+  0%, 100% { background-color: #e63946; box-shadow: 3px 3px 0 #000; transform: scale(1); }
+  50% { background-color: #ff7a2f; box-shadow: 3px 3px 0 #000, 0 0 20px rgba(255,122,47,.45); transform: scale(1.03); }
+}
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:40px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:3px;color:#f5b32a;">TURN 5 · LANE LABEL</div>
+    <div style="font-family:'VT323',monospace;font-size:20px;color:#9aa3b2;line-height:1.3;">3a with the track caption replaced by live numbers — traffic on the left, run multiplier on the right — so the lane box drops its multiplier line and gets narrower. Track now shows the click cursor on hover.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+<div id="3b" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">3b</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">LANE LABEL = TRAFFIC + MULT</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:8px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;">
+              <div style="width:76px;height:76px;border:5px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:28px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+              <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-family:'VT323',monospace;font-size:30px;line-height:1;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:18px;line-height:1;color:#9aa3b2;">2 340/4 000 XP</span></div>
+            </div>
+
+            <div style="margin-top:96px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;gap:8px;align-items:stretch;">
+                <div style="width:76px;height:76px;box-sizing:border-box;flex:none;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 0;">
+                  <span style="font-family:'VT323',monospace;font-size:46px;line-height:.9;color:#fff;">{{ lanes }}</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2;">LANES</span>
+                </div>
+                <div style="flex:1;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;height:76px;box-sizing:border-box;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;gap:6px;">
+                  <div onPointerDown="{{ laneTrackDown }}" onPointerMove="{{ laneTrackMove }}" onPointerUp="{{ laneTrackUp }}" onPointerCancel="{{ laneTrackUp }}" style="display:flex;gap:3px;align-items:flex-end;touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none;">
+                    <sc-for list="{{ laneTicksDrag }}" as="t" hint-placeholder-count="8">
+                      <span style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.numText }}</span></span>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;"><span style="color:#9aa3b2;">{{ laneTraffic }} TRAFFIC</span><span style="color:#f5b32a;">{{ laneMult }}</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <sc-for list="{{ diffTiles }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.click }}" style="{{ d.style }}"><span style="{{ d.labelStyle }}">{{ d.label }}</span><span style="{{ d.multStyle }}">{{ d.mult }}</span></button>
+                </sc-for>
+              </div>
+            </div>
+
+            <button style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:13px 14px;color:#fff;cursor:pointer;width:100%;animation:startRunPulse 1.8s ease-in-out infinite;">
+              <span style="display:flex;align-items:center;gap:10px;"><svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg><span style="font-size:14px;letter-spacing:2px;">START RUN</span></span>
+              <span style="display:flex;align-items:baseline;gap:5px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:28px;line-height:1;color:#fff;">×{{ multBare }}</span></span>
+            </button>
+
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:16px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#e63946;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">NEW!</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">MISSIONS</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#4d9fff;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">2</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GIFT</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#2ee6b0;color:#0c2a22;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">CLAIM!</span>
+              </button>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:7px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg>SETTINGS</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg>TUTORIAL</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:40px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:3px;color:#f5b32a;">TURN 4 · ICON PICKS</div>
+    <div style="font-family:'VT323',monospace;font-size:20px;color:#9aa3b2;line-height:1.3;">Three candidates each for SCORES, GIFT, SETTINGS and MISSIONS, drawn at real menu size on the real tile. Call them out by id (e.g. S2, G1, X1, M3) and I will drop them into <a href="#3a">3a</a>.</div>
+  </div>
+
+  <div id="4a" style="display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start;">
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">S</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">SCORES</span></div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M2 0h8v1h-8zM2 1h8v1h-8zM0 2h2v1h-2zM3 2h6v1h-6zM10 2h2v1h-2zM0 3h2v1h-2zM3 3h6v1h-6zM10 3h2v1h-2zM1 4h1v1h-1zM3 4h6v1h-6zM10 4h1v1h-1zM4 5h4v1h-4zM5 6h2v1h-2zM5 7h2v1h-2zM3 8h6v1h-6zM2 9h8v1h-8zM2 10h8v1h-8z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">SCORES</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">S1 TROPHY</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M3 0h2v1h-2zM7 0h2v1h-2zM3 1h2v1h-2zM7 1h2v1h-2zM4 2h4v1h-4zM4 3h4v1h-4zM4 4h4v1h-4zM3 5h6v1h-6zM2 6h8v1h-8zM2 7h8v1h-8zM2 8h8v1h-8zM3 9h6v1h-6zM4 10h4v1h-4z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">SCORES</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">S2 MEDAL</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M4 1h4v1h-4zM4 2h4v1h-4zM4 3h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h3v1h-3zM4 5h4v1h-4zM9 5h3v1h-3zM0 6h3v1h-3zM4 6h4v1h-4zM9 6h3v1h-3zM0 7h3v1h-3zM4 7h4v1h-4zM9 7h3v1h-3zM0 8h3v1h-3zM4 8h4v1h-4zM9 8h3v1h-3zM0 9h3v1h-3zM4 9h4v1h-4zM9 9h3v1h-3zM0 10h12v1h-12z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">SCORES</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">S3 PODIUM</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#2ee6b0;color:#0c2a22;padding:3px 7px;">G</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">GIFT</span></div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h2v1h-2zM8 0h2v1h-2zM3 1h2v1h-2zM7 1h2v1h-2zM0 2h12v1h-12zM0 3h12v1h-12zM1 4h10v1h-10zM1 5h1v1h-1zM5 5h2v1h-2zM10 5h1v1h-1zM1 6h1v1h-1zM5 6h2v1h-2zM10 6h1v1h-1zM1 7h1v1h-1zM5 7h2v1h-2zM10 7h1v1h-1zM1 8h1v1h-1zM5 8h2v1h-2zM10 8h1v1h-1zM1 9h1v1h-1zM5 9h2v1h-2zM10 9h1v1h-1zM1 10h1v1h-1zM5 10h2v1h-2zM10 10h1v1h-1zM1 11h10v1h-10z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">GIFT</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">G1 BOX</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M4 1h4v1h-4zM3 2h6v1h-6zM4 3h4v1h-4zM3 5h6v1h-6zM2 6h8v1h-8zM3 7h6v1h-6zM2 9h8v1h-8zM1 10h10v1h-10zM2 11h8v1h-8z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">GIFT</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">G2 COINS</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 1h10v1h-10zM1 2h10v1h-10zM1 3h2v1h-2zM9 3h2v1h-2zM1 4h3v1h-3zM8 4h3v1h-3zM1 5h1v1h-1zM3 5h2v1h-2zM7 5h2v1h-2zM10 5h1v1h-1zM1 6h1v1h-1zM4 6h4v1h-4zM10 6h1v1h-1zM1 7h1v1h-1zM3 7h2v1h-2zM7 7h2v1h-2zM10 7h1v1h-1zM1 8h3v1h-3zM8 8h3v1h-3zM1 9h2v1h-2zM9 9h2v1h-2zM1 10h1v1h-1zM10 10h1v1h-1zM1 11h10v1h-10z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">GIFT</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">G3 CRATE</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#9aa3b2;color:#12161f;padding:3px 7px;">X</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">SETTINGS</span></div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:118px;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M3 0h2v1h-2zM7 0h2v1h-2zM3 1h2v1h-2zM7 1h2v1h-2zM2 2h8v1h-8zM1 3h10v1h-10zM1 4h3v1h-3zM8 4h3v1h-3zM0 5h4v1h-4zM8 5h4v1h-4zM0 6h4v1h-4zM8 6h4v1h-4zM1 7h3v1h-3zM8 7h3v1h-3zM1 8h10v1h-10zM2 9h8v1h-8zM3 10h2v1h-2zM7 10h2v1h-2zM3 11h2v1h-2zM7 11h2v1h-2z"></path></svg>SETTINGS
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">X1 COG</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:118px;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M1 2h10v1h-10zM3 1h2v3h-2zM1 6h10v1h-10zM7 5h2v3h-2zM1 10h10v1h-10zM4 9h2v3h-2z"></path></svg>SETTINGS
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">X2 SLIDERS</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:118px;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M8 0h3v1h-3zM7 1h1v1h-1zM10 1h1v1h-1zM7 2h4v1h-4zM6 3h4v1h-4zM5 4h3v1h-3zM4 5h3v1h-3zM3 6h3v1h-3zM2 7h3v1h-3zM1 8h3v1h-3zM0 9h3v1h-3zM0 10h2v1h-2zM0 11h2v1h-2z"></path></svg>SETTINGS
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">X3 WRENCH</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#4d9fff;color:#0a1b2e;padding:3px 7px;">M</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">MISSIONS</span></div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M4 0h4v1h-4zM1 1h10v1h-10zM1 2h1v1h-1zM10 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM5 3h4v1h-4zM10 3h1v1h-1zM1 4h1v1h-1zM10 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM5 5h4v1h-4zM10 5h1v1h-1zM1 6h1v1h-1zM10 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h4v1h-4zM10 7h1v1h-1zM1 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">MISSIONS</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">M1 CLIPBOARD</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M4 1h4v1h-4zM2 2h2v1h-2zM8 2h2v1h-2zM1 3h1v1h-1zM10 3h1v1h-1zM1 4h1v1h-1zM5 4h2v1h-2zM10 4h1v1h-1zM0 5h1v1h-1zM4 5h4v1h-4zM11 5h1v1h-1zM0 6h1v1h-1zM4 6h4v1h-4zM11 6h1v1h-1zM1 7h1v1h-1zM5 7h2v1h-2zM10 7h1v1h-1zM1 8h1v1h-1zM10 8h1v1h-1zM2 9h2v1h-2zM8 9h2v1h-2zM4 10h4v1h-4z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">MISSIONS</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">M2 TARGET</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;">
+            <svg width="20" height="20" viewBox="0 0 12 12" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M3 0h1v1h-1zM0 1h1v1h-1zM2 1h1v1h-1zM5 1h7v1h-7zM1 2h1v1h-1zM3 4h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM5 5h7v1h-7zM1 6h1v1h-1zM3 8h1v1h-1zM0 9h1v1h-1zM2 9h1v1h-1zM5 9h7v1h-7zM1 10h1v1h-1z"></path></svg>
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">MISSIONS</span>
+          </div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;">M3 CHECKS</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:40px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:3px;color:#f5b32a;">TURN 3 · THE MIX</div>
+    <div style="font-family:'VT323',monospace;font-size:20px;color:#9aa3b2;line-height:1.3;">2a's centred header and START RUN bar + 2×3 icon grid, with 2b's big-digit lane box, tick track and three mode tiles in the middle.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+    <div id="3a" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">3a</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">HEADER 2A · SETUP 2B · TABS 2A</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:8px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;">
+              <div style="width:76px;height:76px;border:5px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:28px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+              <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-family:'VT323',monospace;font-size:30px;line-height:1;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:18px;line-height:1;color:#9aa3b2;">2 340/4 000 XP</span></div>
+            </div>
+
+            <div style="margin-top:96px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;gap:8px;align-items:stretch;">
+                <div style="width:96px;flex:none;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 0;">
+                  <span style="font-family:'VT323',monospace;font-size:46px;line-height:.9;color:#fff;">{{ lanes }}</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2;">LANES</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span>
+                </div>
+                <div style="flex:1;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+                  <div onPointerDown="{{ laneTrackDown }}" onPointerMove="{{ laneTrackMove }}" onPointerUp="{{ laneTrackUp }}" onPointerCancel="{{ laneTrackUp }}" style="display:flex;gap:3px;align-items:flex-end;touch-action:none;user-select:none;-webkit-user-select:none;">
+                    <sc-for list="{{ laneTicksDrag }}" as="t" hint-placeholder-count="8">
+                      <span style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.numText }}</span></span>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:7px;color:#6d7789;"><span>DRAG · TIGHT PAYS MORE</span><span>WIDE</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <sc-for list="{{ diffTiles }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.click }}" style="{{ d.style }}"><span style="{{ d.labelStyle }}">{{ d.label }}</span><span style="{{ d.multStyle }}">{{ d.mult }}</span></button>
+                </sc-for>
+              </div>
+            </div>
+
+            <button style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:13px 14px;color:#fff;cursor:pointer;width:100%;animation:startRunPulse 1.8s ease-in-out infinite;">
+              <span style="display:flex;align-items:center;gap:10px;"><svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg><span style="font-size:14px;letter-spacing:2px;">START RUN</span></span>
+              <span style="display:flex;align-items:baseline;gap:5px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:28px;line-height:1;color:#fff;">×{{ multBare }}</span></span>
+            </button>
+
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:16px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#e63946;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">NEW!</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">MISSIONS</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#4d9fff;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">2</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GIFT</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#2ee6b0;color:#0c2a22;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">CLAIM!</span>
+              </button>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:7px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg>SETTINGS</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:13px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg>TUTORIAL</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:40px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:3px;color:#f5b32a;">TURN 2 · RUN SETUP, BUILT FROM 1F LANES + 1E MODE</div>
+    <div style="font-family:'VT323',monospace;font-size:20px;color:#9aa3b2;line-height:1.3;">Four takes on the same block: the 1f lane track and the 1e tap-to-cycle mode, arranged differently. Icons redrawn — car is a real car, trophy has a solid rim, the question mark reads as one, and SETTINGS is a proper gear.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+
+    <!-- ===== 2a ===== -->
+    <div id="2a" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">2a</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">TRACK + CYCLER · two rows, mult on START</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:8px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;">
+              <div style="width:52px;height:52px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:20px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+              <div style="display:flex;flex-direction:column;"><span style="font-family:'VT323',monospace;font-size:22px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span></div>
+            </div>
+
+            <div style="margin-top:20px;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;">
+              <div style="padding:11px 12px 12px;display:flex;flex-direction:column;gap:8px;border-bottom:2px solid #232b3b;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df;">ROAD LANES</span>
+                  <span style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'VT323',monospace;font-size:26px;line-height:1;color:#fff;">{{ lanes }}</span><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span></span>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:8px;">
+                  <button onClick="{{ laneDown }}" style="width:28px;height:28px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">-</button>
+                  <div style="flex:1;display:flex;gap:3px;align-items:flex-end;">
+                    <sc-for list="{{ laneTicksNum }}" as="t" hint-placeholder-count="8">
+                      <button onClick="{{ t.click }}" style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.n }}</span></button>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ laneUp }}" style="width:28px;height:28px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">+</button>
+                </div>
+              </div>
+              <div style="padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df;">DIFFICULTY</span>
+                  <span style="font-family:'VT323',monospace;font-size:16px;color:#6d7789;">{{ diffHint }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ modeMult }}</span>
+                  <button onClick="{{ cycleDiff }}" style="display:flex;align-items:center;gap:10px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#fff;padding:8px 10px;font-size:10px;letter-spacing:1px;cursor:pointer;min-width:112px;justify-content:space-between;">{{ diffLabel }}<span style="font-family:'VT323',monospace;font-size:18px;line-height:1;color:#f5b32a;">›</span></button>
+                </div>
+              </div>
+            </div>
+            <button style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:13px 14px;color:#fff;cursor:pointer;width:100%;">
+              <span style="display:flex;align-items:center;gap:10px;"><svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg><span style="font-size:14px;letter-spacing:2px;">START RUN</span></span>
+              <span style="display:flex;align-items:baseline;gap:5px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:28px;line-height:1;color:#fff;">×{{ multBare }}</span></span>
+            </button>
+
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:16px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#e63946;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">NEW!</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">MISSIONS</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#4d9fff;color:#fff;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">2</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GIFT</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#2ee6b0;color:#0c2a22;font-size:8px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">CLAIM!</span>
+              </button>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:10px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#12161f;border:2px solid #232b3b;padding:9px 0;color:#9aa3b2;font-size:9px;letter-spacing:1px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg>SETTINGS</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#12161f;border:2px solid #232b3b;padding:9px 0;color:#9aa3b2;font-size:9px;letter-spacing:1px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg>TUTORIAL</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2b ===== -->
+    <div id="2b" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">2b</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">BIG DIGIT · track beside the number, mode tiles</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:16px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:44px;height:44px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:1px 1px 0 #000;">7</div>
+                <div style="display:flex;flex-direction:column;"><span style="font-family:'VT323',monospace;font-size:18px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span></div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="15" height="15" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg></button>
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="15" height="15" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg></button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:24px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:26px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+
+            <div style="margin-top:24px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;gap:8px;align-items:stretch;">
+                <div style="width:96px;flex:none;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 0;">
+                  <span style="font-family:'VT323',monospace;font-size:46px;line-height:.9;color:#fff;">{{ lanes }}</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2;">LANES</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span>
+                </div>
+                <div style="flex:1;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+                  <div style="display:flex;gap:3px;align-items:flex-end;">
+                    <sc-for list="{{ laneTicksNum }}" as="t" hint-placeholder-count="8">
+                      <button onClick="{{ t.click }}" style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.n }}</span></button>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:7px;color:#6d7789;"><span>TIGHT · PAYS MORE</span><span>WIDE</span></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <sc-for list="{{ diffTiles }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.click }}" style="{{ d.style }}"><span style="{{ d.labelStyle }}">{{ d.label }}</span><span style="{{ d.multStyle }}">{{ d.mult }}</span></button>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 2px;">
+                <span style="font-family:'VT323',monospace;font-size:17px;color:#6d7789;">{{ diffHint }}</span>
+                <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789;">{{ formula }}</span>
+              </div>
+              <button style="display:flex;align-items:center;justify-content:center;gap:14px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:15px;color:#fff;cursor:pointer;width:100%;">
+                <span style="font-size:15px;letter-spacing:2px;">START RUN</span>
+                <span style="background:#12161f;border:2px solid #f5b32a;padding:2px 9px;font-family:'VT323',monospace;font-size:24px;line-height:1.05;color:#f5b32a;">×{{ multBare }}</span>
+              </button>
+            </div>
+
+            <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a;margin-top:20px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">PROGRESSION<span style="flex:1;height:2px;background:#232b3b;"></span></div>
+            <div style="display:flex;flex-direction:column;border:2px solid #47506a;box-shadow:3px 3px 0 #000;background:#1b2130;">
+              <button style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="17" height="17" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">GARAGE</span><span style="background:#e63946;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">NEW!</span><span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="17" height="17" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">ACHIEVEMENTS</span><span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">14/60</span><span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="17" height="17" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">MISSIONS</span><span style="background:#4d9fff;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span><span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:transparent;border:none;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="17" height="17" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">DAILY GIFT</span><span style="background:#2ee6b0;color:#0c2a22;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span><span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:8px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg>SCORES</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>STATISTICS</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2c ===== -->
+    <div id="2c" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">2c</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">HERO MULT · cycler with ‹ ›, bottom tab bar</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:18px 16px 0;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+                <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+                <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="display:flex;flex-direction:column;align-items:flex-end;"><span style="font-family:'VT323',monospace;font-size:18px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:13px;color:#9aa3b2;">2 340/4 000</span></div>
+                <div style="width:48px;height:48px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:18px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+              </div>
+            </div>
+
+            <div style="margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0;">
+              <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:3px;color:#9aa3b2;">RUN MULTIPLIER</span>
+              <span style="font-family:'VT323',monospace;font-size:72px;line-height:1;color:#f5b32a;text-shadow:3px 3px 0 #000;">×{{ multBare }}</span>
+              <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789;">{{ formula }}</span>
+            </div>
+
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df;">ROAD LANES <span style="font-family:'VT323',monospace;font-size:22px;color:#fff;margin-left:6px;">{{ lanes }}</span></span>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:8px;">
+                <button onClick="{{ laneDown }}" style="width:30px;height:30px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:13px;cursor:pointer;padding:0;">-</button>
+                <div style="flex:1;display:flex;gap:3px;align-items:flex-end;">
+                  <sc-for list="{{ laneTicksNum }}" as="t" hint-placeholder-count="8">
+                    <button onClick="{{ t.click }}" style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.n }}</span></button>
+                  </sc-for>
+                </div>
+                <button onClick="{{ laneUp }}" style="width:30px;height:30px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:13px;cursor:pointer;padding:0;">+</button>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df;">DIFFICULTY</span>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ modeMult }}</span>
+              </div>
+              <div style="display:flex;align-items:stretch;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;">
+                <button onClick="{{ prevDiff }}" style="width:38px;flex:none;background:#1b2130;border:none;border-right:2px solid #232b3b;color:#f5b32a;font-family:'VT323',monospace;font-size:26px;line-height:1;cursor:pointer;padding:0;">‹</button>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 0;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:2px;color:#fff;">{{ diffLabel }}</span>
+                  <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">{{ diffHint }}</span>
+                </div>
+                <button onClick="{{ nextDiff }}" style="width:38px;flex:none;background:#1b2130;border:none;border-left:2px solid #232b3b;color:#f5b32a;font-family:'VT323',monospace;font-size:26px;line-height:1;cursor:pointer;padding:0;">›</button>
+              </div>
+            </div>
+
+            <button style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:12px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:16px 14px;color:#fff;cursor:pointer;width:100%;font-size:15px;letter-spacing:2px;">
+              <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg>START RUN</button>
+
+            <div style="margin:16px -16px 0;display:flex;background:#0b0e14;border-top:2px solid #232b3b;">
+              <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#e8e6df;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg><span style="font-size:8px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;top:8px;right:14px;width:8px;height:8px;background:#e63946;border:2px solid #0b0e14;"></span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg><span style="font-size:8px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span style="font-size:8px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg><span style="font-size:8px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="font-size:8px;letter-spacing:1px;">DAILY</span>
+                <span style="position:absolute;top:6px;right:10px;background:#2ee6b0;color:#0c2a22;padding:1px 4px;border:2px solid #0b0e14;font-family:'VT323',monospace;font-size:13px;line-height:1;">3</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2d ===== -->
+    <div id="2d" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">2d</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">RED CARD · setup lives inside START RUN</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;">
+              <div style="width:44px;height:44px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:1px 1px 0 #000;">7</div>
+              <span style="font-family:'VT323',monospace;font-size:20px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span>
+            </div>
+
+            <div style="margin-top:18px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:12px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;flex-direction:column;gap:7px;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);padding:9px 10px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#fff;">ROAD LANES <span style="font-family:'VT323',monospace;font-size:20px;margin-left:5px;">{{ lanes }}</span></span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:7px;color:#ffd9dc;">{{ laneMult }}</span>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:7px;">
+                  <button onClick="{{ laneDown }}" style="width:26px;height:26px;flex:none;background:transparent;border:2px solid #fff;color:#fff;font-size:12px;cursor:pointer;padding:0;">-</button>
+                  <div style="flex:1;display:flex;gap:3px;align-items:flex-end;">
+                    <sc-for list="{{ laneTicksNumLight }}" as="t" hint-placeholder-count="8">
+                      <button onClick="{{ t.click }}" style="{{ t.wrapStyle }}"><span style="{{ t.barStyle }}"></span><span style="{{ t.numStyle }}">{{ t.n }}</span></button>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ laneUp }}" style="width:26px;height:26px;flex:none;background:transparent;border:2px solid #fff;color:#fff;font-size:12px;cursor:pointer;padding:0;">+</button>
+                </div>
+              </div>
+              <button onClick="{{ cycleDiff }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);padding:9px 10px;cursor:pointer;color:#fff;width:100%;">
+                <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;">DIFFICULTY</span>
+                  <span style="font-family:'VT323',monospace;font-size:16px;color:#ffd9dc;">{{ diffHint }}</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:9px;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:7px;color:#ffd9dc;">{{ modeMult }}</span>
+                  <span style="display:flex;align-items:center;gap:8px;border:2px solid #fff;padding:6px 8px;"><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">{{ diffLabel }}</span><span style="font-family:'VT323',monospace;font-size:17px;line-height:1;">›</span></span>
+                </span>
+              </button>
+              <div style="display:flex;align-items:center;justify-content:space-between;border-top:2px solid rgba(255,255,255,.35);padding-top:10px;">
+                <span style="display:flex;align-items:center;gap:10px;color:#fff;"><svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg><span style="font-family:'Silkscreen',monospace;font-size:16px;letter-spacing:2px;">START RUN</span></span>
+                <span style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:36px;line-height:1;color:#fff;text-shadow:2px 2px 0 #7a1620;">×{{ multBare }}</span></span>
+              </div>
+            </div>
+
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;gap:6px;">
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">GARAGE</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#e63946;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">GIFT</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#2ee6b0;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">MISSIONS</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#4d9fff;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">AWARDS</span></button>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">SCORES</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:11px 0 9px;color:#e8e6df;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">STATS</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#12161f;border:2px solid #232b3b;padding:11px 0 9px;color:#6d7789;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">TUTORIAL</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#12161f;border:2px solid #232b3b;padding:11px 0 9px;color:#6d7789;cursor:pointer;"><svg width="19" height="19" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">SETTINGS</span></button>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:8px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;margin-top:20px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:12px;letter-spacing:2px;color:#f5b32a;">ICON SET · BEFORE → AFTER</div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;background:#171c27;border:2px solid #47506a;padding:14px 16px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#2ee6b0;"><path fill="currentColor" d="M2 1h4v1h-4zM1 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h8v1h-8zM1 6h2v1h-2zM5 6h2v1h-2z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">GARAGE</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h8v1h-8zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h4v1h-4zM7 3h1v1h-1zM2 4h4v1h-4zM3 5h2v1h-2zM3 6h2v1h-2zM1 7h6v1h-6z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">SCORES</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#e8e6df;"><path fill="currentColor" d="M2 0h1v1h-1zM5 0h1v1h-1zM1 1h6v1h-6zM0 2h3v1h-3zM5 2h3v1h-3zM0 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h3v1h-3zM5 5h3v1h-3zM1 6h6v1h-6zM2 7h1v1h-1zM5 7h1v1h-1z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">SETTINGS</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#e8e6df;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">TUTORIAL</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#f5b32a;"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM0 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM6 5h2v1h-2zM1 6h2v1h-2zM5 6h2v1h-2zM2 7h4v1h-4z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">AWARDS</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="display:flex;gap:10px;align-items:center;"><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d5670;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg><span style="color:#4d5670;font-family:'VT323',monospace;font-size:18px;">→</span><svg width="22" height="22" viewBox="0 0 8 8" shape-rendering="crispEdges" style="color:#4d9fff;"><path fill="currentColor" d="M0 0h2v1h-2zM3 0h5v1h-5zM0 1h2v1h-2zM0 3h2v1h-2zM3 3h5v1h-5zM0 4h2v1h-2zM0 6h2v1h-2zM3 6h5v1h-5zM0 7h2v1h-2z"></path></svg></div><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#9aa3b2;">MISSIONS</span></div>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:40px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px;">
+    <div style="font-family:'Silkscreen',monospace;font-size:14px;letter-spacing:3px;color:#f5b32a;">TURN 1 · MAIN MENU REDESIGN</div>
+    <div style="font-family:'VT323',monospace;font-size:20px;color:#9aa3b2;line-height:1.3;">Six directions. Every one moves ROAD LANES + DIFFICULTY under START RUN with a live multiplier (car × 1.00 assumed), gives each tab a pixel icon, and groups tabs. Steppers, chips and segments are live — click them; all six share one state so you can compare the same setup.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+
+    <!-- ===== 1a STACK ===== -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1a</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">STACK · run card + 2×3 icon grid</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:10px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:18px;">
+              <div style="width:86px;height:86px;border:5px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:30px;color:#fff;text-shadow:2px 2px 0 #000;box-shadow:0 0 0 3px #12161f;">7</div>
+              <div style="font-family:'VT323',monospace;font-size:22px;letter-spacing:1px;color:#2ee6b0;">STEEL II</div>
+              <div style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000</div>
+            </div>
+
+            <div style="margin-top:20px;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px;display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df;">ROAD LANES</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#f5b32a;">{{ laneMult }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <button onClick="{{ laneDown }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:14px;cursor:pointer;padding:0;">-</button>
+                  <div style="width:34px;text-align:center;font-family:'VT323',monospace;font-size:26px;color:#fff;">{{ lanes }}</div>
+                  <button onClick="{{ laneUp }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:14px;cursor:pointer;padding:0;">+</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df;">DIFFICULTY</span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#f5b32a;">{{ modeMult }}</span>
+                </div>
+                <div style="display:flex;background:#12161f;border:2px solid #232b3b;">
+                  <sc-for list="{{ diffOpts }}" as="d" hint-placeholder-count="3">
+                    <button onClick="{{ d.click }}" style="{{ d.segStyle }}">{{ d.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="height:2px;background:#232b3b;"></div>
+              <button style="display:flex;align-items:center;justify-content:space-between;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:11px 14px;color:#fff;cursor:pointer;width:100%;">
+                <span style="display:flex;align-items:center;gap:10px;"><svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg><span style="font-size:13px;letter-spacing:1px;">START RUN</span></span>
+                <span style="display:flex;align-items:baseline;gap:5px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:26px;line-height:1;color:#fff;">{{ mult }}</span></span>
+              </button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#e63946;color:#fff;font-size:8px;letter-spacing:.5px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">NEW!</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">MISSIONS</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#4d9fff;color:#fff;font-size:8px;letter-spacing:.5px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">2</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px 0 10px;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="font-size:9px;letter-spacing:1px;">GIFT</span>
+                <span style="position:absolute;right:-6px;top:-8px;background:#2ee6b0;color:#0c2a22;font-size:8px;letter-spacing:.5px;padding:3px 5px;border:2px solid #fff;box-shadow:2px 2px 0 #000;">CLAIM!</span>
+              </button>
+            </div>
+
+            <div style="display:flex;gap:7px;margin-top:10px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#12161f;border:2px solid #232b3b;padding:9px 0;color:#9aa3b2;font-size:9px;letter-spacing:1px;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg>SETTINGS</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#12161f;border:2px solid #232b3b;padding:9px 0;color:#9aa3b2;font-size:9px;letter-spacing:1px;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg>TUTORIAL</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 1b GROUPED LIST ===== -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1b</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">GROUPED · labelled sections, list rows</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:16px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:44px;height:44px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:1px 1px 0 #000;">7</div>
+                <div style="display:flex;flex-direction:column;gap:1px;"><span style="font-family:'VT323',monospace;font-size:18px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span></div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg></button>
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg></button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:26px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+
+            <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a;margin-top:26px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">RUN<span style="flex:1;height:2px;background:#232b3b;"></span></div>
+            <div style="display:flex;gap:7px;">
+              <div style="flex:1;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2;">LANES</span>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <button onClick="{{ laneDown }}" style="width:26px;height:26px;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">-</button>
+                  <span style="font-family:'VT323',monospace;font-size:28px;color:#fff;line-height:1;">{{ lanes }}</span>
+                  <button onClick="{{ laneUp }}" style="width:26px;height:26px;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">+</button>
+                </div>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#f5b32a;">{{ laneMult }}</span>
+              </div>
+              <div style="flex:1.4;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2;">DIFFICULTY</span>
+                <div style="display:flex;background:#12161f;border:2px solid #232b3b;">
+                  <sc-for list="{{ diffOpts }}" as="d" hint-placeholder-count="3">
+                    <button onClick="{{ d.click }}" style="{{ d.segStyleFlex }}">{{ d.label }}</button>
+                  </sc-for>
+                </div>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#f5b32a;">{{ modeMult }}</span>
+              </div>
+            </div>
+            <button style="margin-top:7px;display:flex;align-items:center;justify-content:center;gap:12px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:12px 14px;color:#fff;cursor:pointer;width:100%;">
+              <span style="font-size:13px;letter-spacing:1px;">START RUN</span>
+              <span style="background:#12161f;border:2px solid #f5b32a;padding:1px 7px;font-family:'VT323',monospace;font-size:20px;line-height:1.1;color:#f5b32a;">×{{ multBare }}</span>
+            </button>
+
+            <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a;margin-top:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">PROGRESSION<span style="flex:1;height:2px;background:#232b3b;"></span></div>
+            <div style="display:flex;flex-direction:column;border:2px solid #47506a;box-shadow:3px 3px 0 #000;background:#1b2130;">
+              <button style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">GARAGE</span>
+                <span style="background:#e63946;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">NEW!</span>
+                <span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">ACHIEVEMENTS</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">14/60</span>
+                <span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:transparent;border:none;border-bottom:2px solid #232b3b;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">MISSIONS</span>
+                <span style="background:#4d9fff;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span>
+                <span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+              <button style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:transparent;border:none;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg>
+                <span style="flex:1;font-size:10px;letter-spacing:1px;">DAILY GIFT</span>
+                <span style="background:#2ee6b0;color:#0c2a22;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span>
+                <span style="font-family:'VT323',monospace;font-size:18px;color:#6d7789;">›</span>
+              </button>
+            </div>
+
+            <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a;margin-top:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">RECORDS<span style="flex:1;height:2px;background:#232b3b;"></span></div>
+            <div style="display:flex;gap:7px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg>SCORES</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 0;color:#e8e6df;font-size:10px;letter-spacing:1px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>STATISTICS</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 1c BOTTOM TAB BAR ===== -->
+    <div id="1c" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1c</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">TAB BAR · lane chips, hero multiplier, 5 bottom tabs</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:16px 16px 0;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;">v2.213.0</span>
+              <div style="display:flex;gap:6px;">
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg></button>
+                <button style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;color:#9aa3b2;cursor:pointer;padding:0;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg></button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:30px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:28px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;">
+              <div style="width:44px;height:44px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:1px 1px 0 #000;">7</div>
+              <div style="display:flex;flex-direction:column;"><span style="font-family:'VT323',monospace;font-size:20px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span></div>
+            </div>
+
+            <div style="margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:3px;color:#9aa3b2;">RUN MULTIPLIER</span>
+              <span style="font-family:'VT323',monospace;font-size:64px;line-height:1;color:#f5b32a;text-shadow:3px 3px 0 #000;">×{{ multBare }}</span>
+              <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789;">{{ formula }}</span>
+            </div>
+
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#e8e6df;">ROAD LANES</span><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span></div>
+              <div style="display:flex;gap:4px;">
+                <sc-for list="{{ laneChips }}" as="c" hint-placeholder-count="8">
+                  <button onClick="{{ c.click }}" style="{{ c.style }}">{{ c.n }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#e8e6df;">DIFFICULTY</span><span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ modeMult }}</span></div>
+              <div style="display:flex;gap:4px;">
+                <sc-for list="{{ diffOpts }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.click }}" style="{{ d.chipStyle }}">{{ d.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <button style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:12px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:15px 14px;color:#fff;cursor:pointer;width:100%;font-size:15px;letter-spacing:2px;">
+              <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg>START RUN</button>
+
+            <div style="margin:16px -16px 0;display:flex;background:#0b0e14;border-top:2px solid #232b3b;">
+              <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#e8e6df;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:8px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;top:8px;right:14px;width:8px;height:8px;background:#e63946;border:2px solid #0b0e14;"></span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg><span style="font-size:8px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span style="font-size:8px;letter-spacing:1px;">STATS</span>
+              </button>
+              <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;border-right:2px solid #232b3b;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:8px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 14px;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="font-size:8px;letter-spacing:1px;">DAILY</span>
+                <span style="position:absolute;top:6px;right:10px;background:#2ee6b0;color:#0c2a22;font-size:8px;padding:1px 4px;border:2px solid #0b0e14;font-family:'VT323',monospace;font-size:13px;line-height:1;">3</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'VT323',monospace;font-size:16px;color:#6d7789;max-width:506px;">DAILY tab = gift + missions in one screen; badge counts claimables.</div>
+    </div>
+
+    <!-- ===== 1d SIDE RAIL ===== -->
+    <div id="1d" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1d</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">SIDE RAIL · icon rail right, run panel left</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;padding:0;box-sizing:border-box;">
+            <div style="flex:1;display:flex;flex-direction:column;padding:22px 14px 16px 16px;box-sizing:border-box;min-width:0;">
+              <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;margin-top:10px;">
+                <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+                <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:26px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+                <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:22px;">
+                <div style="width:52px;height:52px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:20px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+                <div style="display:flex;flex-direction:column;"><span style="font-family:'VT323',monospace;font-size:22px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span></div>
+              </div>
+
+              <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;">
+                <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#9aa3b2;">RUN SETUP</div>
+                <div style="background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:10px 12px;display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:8px;color:#e8e6df;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M0 0h1v1h-1zM3 0h2v1h-2zM7 0h1v1h-1zM0 1h1v1h-1zM3 1h2v1h-2zM7 1h1v1h-1zM0 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h1v1h-1zM3 4h2v1h-2zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h1v1h-1zM3 7h2v1h-2zM7 7h1v1h-1z"></path></svg><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">LANES</span></div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <button onClick="{{ laneDown }}" style="width:28px;height:28px;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">-</button>
+                      <span style="width:30px;text-align:center;font-family:'VT323',monospace;font-size:26px;color:#fff;line-height:1;">{{ lanes }}</span>
+                      <button onClick="{{ laneUp }}" style="width:28px;height:28px;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">+</button>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;color:#e8e6df;"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#9aa3b2;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h6v1h-6zM0 2h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM0 3h8v1h-8zM1 4h6v1h-6zM2 5h1v1h-1zM4 5h1v1h-1zM2 6h4v1h-4z"></path></svg><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;">MODE</span></div>
+                    <div style="display:flex;background:#12161f;border:2px solid #232b3b;">
+                      <sc-for list="{{ diffOpts }}" as="d" hint-placeholder-count="3">
+                        <button onClick="{{ d.click }}" style="{{ d.segStyleSm }}">{{ d.short }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #232b3b;padding-top:8px;">
+                    <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789;">{{ formula }}</span>
+                    <span style="font-family:'VT323',monospace;font-size:30px;line-height:1;color:#f5b32a;">×{{ multBare }}</span>
+                  </div>
+                </div>
+                <button style="display:flex;align-items:center;justify-content:center;gap:12px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:14px;color:#fff;cursor:pointer;width:100%;font-size:14px;letter-spacing:2px;">START RUN</button>
+                <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:8px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+              </div>
+            </div>
+            <div style="width:86px;flex:none;background:#0b0e14;border-left:2px solid #232b3b;display:flex;flex-direction:column;padding:14px 0;gap:4px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;border-left:3px solid transparent;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:1px;">GARAGE</span>
+                <span style="position:absolute;top:6px;right:16px;width:8px;height:8px;background:#e63946;border:2px solid #0b0e14;"></span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg><span style="font-size:7px;letter-spacing:1px;">SCORES</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:1px;">STATS</span>
+              </button>
+              <div style="height:2px;background:#232b3b;margin:6px 16px;"></div>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:1px;">AWARDS</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:1px;">MISSIONS</span>
+                <span style="position:absolute;top:6px;right:16px;width:8px;height:8px;background:#4d9fff;border:2px solid #0b0e14;"></span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#e8e6df;cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="font-size:7px;letter-spacing:1px;">GIFT</span>
+                <span style="position:absolute;top:6px;right:16px;width:8px;height:8px;background:#2ee6b0;border:2px solid #0b0e14;"></span>
+              </button>
+              <div style="flex:1;"></div>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:1px;">HOW TO</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:transparent;border:none;color:#6d7789;cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:1px;">SETUP</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 1e TILES ===== -->
+    <div id="1e" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1e</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">TILES · every tab shows one live stat</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+                <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+                <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="display:flex;flex-direction:column;align-items:flex-end;"><span style="font-family:'VT323',monospace;font-size:18px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:13px;color:#9aa3b2;">2 340/4 000</span></div>
+                <div style="width:52px;height:52px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:20px;color:#fff;text-shadow:2px 2px 0 #000;">7</div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:12px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-family:'Silkscreen',monospace;font-size:15px;letter-spacing:2px;color:#fff;">START RUN</span>
+                <span style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MULT</span><span style="font-family:'VT323',monospace;font-size:34px;line-height:1;color:#fff;text-shadow:2px 2px 0 #7a1620;">×{{ multBare }}</span></span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                  <span style="display:flex;flex-direction:column;gap:2px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">LANES</span><span style="font-family:'Silkscreen',monospace;font-size:7px;color:#fff;">{{ laneMult }}</span></span>
+                  <span style="display:flex;align-items:center;gap:4px;">
+                    <button onClick="{{ laneDown }}" style="width:24px;height:24px;background:transparent;border:2px solid #fff;color:#fff;font-size:11px;cursor:pointer;padding:0;">-</button>
+                    <span style="width:24px;text-align:center;font-family:'VT323',monospace;font-size:24px;color:#fff;line-height:1;">{{ lanes }}</span>
+                    <button onClick="{{ laneUp }}" style="width:24px;height:24px;background:transparent;border:2px solid #fff;color:#fff;font-size:11px;cursor:pointer;padding:0;">+</button>
+                  </span>
+                </div>
+                <div style="flex:1.2;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                  <span style="display:flex;flex-direction:column;gap:2px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#ffd9dc;">MODE</span><span style="font-family:'Silkscreen',monospace;font-size:7px;color:#fff;">{{ modeMult }}</span></span>
+                  <button onClick="{{ cycleDiff }}" style="display:flex;align-items:center;gap:8px;background:transparent;border:2px solid #fff;color:#fff;padding:5px 8px;font-size:9px;letter-spacing:1px;cursor:pointer;">{{ diffLabel }}<span style="font-family:'VT323',monospace;font-size:16px;line-height:1;">›</span></button>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;">
+              <button style="position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <span style="display:flex;justify-content:space-between;width:100%;align-items:center;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="background:#e63946;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">NEW!</span></span>
+                <span style="font-size:10px;letter-spacing:1px;">GARAGE</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">18/42 cars owned</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg>
+                <span style="font-size:10px;letter-spacing:1px;">SCORES</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">best 48 210</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg>
+                <span style="font-size:10px;letter-spacing:1px;">STATISTICS</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">312 runs · 1 480 km</span>
+              </button>
+              <button style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg>
+                <span style="font-size:10px;letter-spacing:1px;">ACHIEVEMENTS</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">14/60 unlocked</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #4d9fff;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <span style="display:flex;justify-content:space-between;width:100%;align-items:center;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg><span style="background:#4d9fff;color:#fff;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span></span>
+                <span style="font-size:10px;letter-spacing:1px;">MISSIONS</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">2 of 3 done · 6h left</span>
+              </button>
+              <button style="position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#1b2130;border:2px solid #2ee6b0;box-shadow:3px 3px 0 #000;padding:12px;color:#e8e6df;cursor:pointer;text-align:left;">
+                <span style="display:flex;justify-content:space-between;width:100%;align-items:center;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="background:#2ee6b0;color:#0c2a22;font-size:8px;padding:2px 5px;border:2px solid #fff;">CLAIM!</span></span>
+                <span style="font-size:10px;letter-spacing:1px;">DAILY GIFT</span>
+                <span style="font-family:'VT323',monospace;font-size:16px;color:#9aa3b2;">day 5 streak</span>
+              </button>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:8px;">
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:2px solid #232b3b;padding:9px 0;color:#6d7789;font-size:8px;letter-spacing:1px;cursor:pointer;"><svg width="12" height="12" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg>SETTINGS</button>
+              <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:2px solid #232b3b;padding:9px 0;color:#6d7789;font-size:8px;letter-spacing:1px;cursor:pointer;"><svg width="12" height="12" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg>TUTORIAL</button>
+            </div>
+            <div style="margin-top:auto;display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:14px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'VT323',monospace;font-size:16px;color:#6d7789;max-width:506px;">MODE cycles on tap (SAFE → RECKLESS → SUICIDAL). Claimable tiles get a coloured border instead of a corner badge.</div>
+    </div>
+
+    <!-- ===== 1f CONSOLE ===== -->
+    <div id="1f" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:'Silkscreen',monospace;font-size:12px;background:#f5b32a;color:#12161f;padding:3px 7px;">1f</span><span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:2px;color:#9aa3b2;">CONSOLE · lane track, difficulty ladder, icon row</span></div>
+      <div style="position:relative;width:506px;height:940px;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);background:#000;box-sizing:border-box;padding:8px;flex:none;">
+        <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;background:#12161f;overflow:hidden;">
+          <div style="position:absolute;top:0;bottom:0;left:22%;width:56%;background:repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 33% 0/3px 30px repeat-y,repeating-linear-gradient(180deg,#cfd0c8 0 14px,transparent 14px 30px) 66% 0/3px 30px repeat-y,#5a5f66;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,18,.94) 0%,rgba(9,12,18,.7) 55%,rgba(9,12,18,.92) 100%);display:flex;flex-direction:column;padding:22px 16px 16px;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;margin-top:6px;">
+              <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a;">HIGHWAY</div>
+              <div style="font-family:'Silkscreen',monospace;font-weight:700;font-size:24px;line-height:1;color:#fff;text-shadow:2px 2px 0 #12161f;">RECK<span style="color:#e63946;">LESS</span></div>
+              <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:6px;color:#fff;text-shadow:2px 2px 0 #1b2130;">DRIVING</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;">
+              <div style="width:40px;height:40px;border:4px solid #2ee6b0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',monospace;font-size:15px;color:#fff;text-shadow:1px 1px 0 #000;">7</div>
+              <span style="font-family:'VT323',monospace;font-size:20px;color:#2ee6b0;letter-spacing:1px;">STEEL II</span><span style="font-family:'VT323',monospace;font-size:14px;color:#9aa3b2;">2 340/4 000 XP</span>
+            </div>
+
+            <div style="margin-top:18px;background:#171c27;border:2px solid #47506a;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:2px solid #232b3b;">
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#9aa3b2;">RUN SETUP</span>
+                <span style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#9aa3b2;">MULTIPLIER</span><span style="font-family:'VT323',monospace;font-size:28px;line-height:1;color:#f5b32a;">{{ mult }}</span></span>
+              </div>
+              <div style="padding:12px;display:flex;flex-direction:column;gap:8px;border-bottom:2px solid #232b3b;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:#e8e6df;">ROAD LANES <span style="font-family:'VT323',monospace;font-size:22px;color:#fff;margin-left:6px;">{{ lanes }}</span></span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;">{{ laneMult }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button onClick="{{ laneDown }}" style="width:28px;height:28px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">-</button>
+                  <div style="flex:1;display:flex;gap:3px;height:16px;">
+                    <sc-for list="{{ laneTicks }}" as="t" hint-placeholder-count="8">
+                      <div onClick="{{ t.click }}" style="{{ t.style }}"></div>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ laneUp }}" style="width:28px;height:28px;flex:none;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-size:12px;cursor:pointer;padding:0;">+</button>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:7px;color:#6d7789;padding:0 36px;"><span>3 · TIGHT · PAYS MORE</span><span>10 · WIDE</span></div>
+              </div>
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ diffOpts }}" as="d" hint-placeholder-count="3">
+                  <button onClick="{{ d.click }}" style="{{ d.rowStyle }}">
+                    <span style="width:10px;height:10px;border:2px solid currentColor;display:inline-block;flex:none;background:{{ d.dot }};"></span>
+                    <span style="flex:1;text-align:left;font-size:10px;letter-spacing:1px;">{{ d.label }}</span>
+                    <span style="font-family:'VT323',monospace;font-size:15px;color:#9aa3b2;">{{ d.hint }}</span>
+                    <span style="font-family:'Silkscreen',monospace;font-size:8px;color:#f5b32a;min-width:44px;text-align:right;">{{ d.mult }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <button style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:12px;background:#e63946;border:2px solid #fff;box-shadow:3px 3px 0 #000;padding:13px;color:#fff;cursor:pointer;width:100%;font-size:14px;letter-spacing:2px;">
+              <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h8v1h-8zM0 4h8v1h-8zM0 5h6v1h-6zM0 6h4v1h-4zM0 7h2v1h-2z"></path></svg>START RUN</button>
+
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;gap:6px;">
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM1 2h6v1h-6zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">GARAGE</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#e63946;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#2ee6b0;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h8v1h-8zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h1v1h-1zM0 7h8v1h-8z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">GIFT</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#2ee6b0;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M0 0h3v1h-3zM4 0h4v1h-4zM0 1h1v1h-1zM2 1h1v1h-1zM0 2h3v1h-3zM4 2h4v1h-4zM0 4h3v1h-3zM4 4h4v1h-4zM0 5h1v1h-1zM2 5h1v1h-1zM0 6h3v1h-3zM4 6h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">MISSIONS</span><span style="position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#4d9fff;border:2px solid #12161f;"></span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M1 0h2v1h-2zM5 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM1 6h6v1h-6zM2 7h4v1h-4z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">AWARDS</span></button>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#f5b32a;"><path fill="currentColor" d="M0 0h8v1h-8zM0 1h1v1h-1zM2 1h4v1h-4zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM3 5h2v1h-2zM2 6h4v1h-4zM1 7h6v1h-6z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">SCORES</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b2130;border:2px solid #47506a;box-shadow:2px 2px 0 #000;padding:10px 0 8px;color:#e8e6df;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;color:#4d9fff;"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">STATS</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#12161f;border:2px solid #232b3b;padding:10px 0 8px;color:#6d7789;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM4 3h2v1h-2zM3 4h2v1h-2zM3 5h2v1h-2zM3 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">TUTORIAL</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:#12161f;border:2px solid #232b3b;padding:10px 0 8px;color:#6d7789;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block;"><path fill="currentColor" d="M3 0h2v1h-2zM1 1h6v1h-6zM1 2h2v1h-2zM5 2h2v1h-2zM0 3h3v1h-3zM5 3h3v1h-3zM0 4h3v1h-3zM5 4h3v1h-3zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h6v1h-6zM3 7h2v1h-2z"></path></svg><span style="font-size:7px;letter-spacing:.5px;">SETTINGS</span></button>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-family:'Silkscreen',monospace;font-size:8px;color:#4d5670;padding-top:8px;"><span style="text-decoration:underline;">DEV</span><span>v2.213.0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'VT323',monospace;font-size:16px;color:#6d7789;max-width:506px;">Row 1 = play/progression (badged), row 2 = records + help/settings (dimmed).</div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { lanes: 4, diff: 'reckless' };
+  renderVals() {
+    const LANE_MULT = { 3: 1.30, 4: 1.15, 5: 1.10, 6: 1.07, 7: 1.05, 8: 1.03, 9: 1.01, 10: 1.00 };
+    const BONUS = { calm: 0, reckless: 0.15, suicidal: 0.4 };
+    const { lanes, diff } = this.state;
+    const lm = LANE_MULT[lanes], mm = 1 + BONUS[diff], carMult = 1.0;
+    const mult = lm * mm * carMult;
+    const SS = "'Silkscreen',monospace";
+    const setLanes = n => this.setState({ lanes: Math.max(3, Math.min(10, n)) });
+    const setDiff = d => this.setState({ diff: d });
+    const order = ['calm', 'reckless', 'suicidal'];
+    const meta = { calm: ['SAFE', 'SAFE', '0.6× traffic'], reckless: ['RECKLESS', 'RECK', 'normal traffic'], suicidal: ['SUICIDAL', 'SUIC', '2.2× traffic'] };
+    const seg = (sel, extra) => Object.assign({ padding: '8px 11px', fontFamily: SS, fontSize: 9, letterSpacing: 1, cursor: 'pointer', border: 'none', background: sel ? '#e63946' : 'transparent', color: sel ? '#fff' : '#6d7789' }, extra || {});
+    const diffOpts = order.map(k => {
+      const sel = k === diff;
+      return {
+        key: k, label: meta[k][0], short: meta[k][1], hint: meta[k][2], mult: (1 + BONUS[k]).toFixed(2) + 'x',
+        click: () => setDiff(k),
+        segStyle: seg(sel), segStyleFlex: seg(sel, { flex: 1, padding: '7px 0' }), segStyleSm: seg(sel, { padding: '7px 8px', fontSize: 8 }),
+        chipStyle: { flex: 1, padding: '10px 0', fontFamily: SS, fontSize: 9, letterSpacing: 1, cursor: 'pointer', background: sel ? '#e63946' : '#1b2130', border: '2px solid ' + (sel ? '#fff' : '#47506a'), color: sel ? '#fff' : '#9aa3b2', boxShadow: sel ? '2px 2px 0 #000' : 'none' },
+        rowStyle: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: sel ? 'rgba(230,57,70,.16)' : 'transparent', border: 'none', borderBottom: '2px solid #232b3b', color: sel ? '#fff' : '#9aa3b2', cursor: 'pointer', width: '100%', fontFamily: SS },
+        dot: sel ? '#e63946' : 'transparent'
+      };
+    });
+    const laneChips = [3,4,5,6,7,8,9,10].map(n => { const sel = n === lanes; return { n, click: () => setLanes(n), style: { flex: 1, padding: '9px 0', fontFamily: "'VT323',monospace", fontSize: 22, lineHeight: 1, cursor: 'pointer', background: sel ? '#f5b32a' : '#1b2130', border: '2px solid ' + (sel ? '#fff' : '#47506a'), color: sel ? '#12161f' : '#9aa3b2', boxShadow: sel ? '2px 2px 0 #000' : 'none' } }; });
+    const laneTicks = [3,4,5,6,7,8,9,10].map(n => ({ click: () => setLanes(n), style: { flex: 1, cursor: 'pointer', background: n <= lanes ? '#f5b32a' : '#232b3b', border: n === lanes ? '2px solid #fff' : '2px solid transparent', boxSizing: 'border-box' } }));
+    const laneTicksNum = [3,4,5,6,7,8,9,10].map(n => {
+      const sel = n === lanes;
+      return { n, click: () => setLanes(n),
+        wrapStyle: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 },
+        barStyle: { width: '100%', height: sel ? 22 : 14, background: n <= lanes ? '#f5b32a' : '#232b3b', border: sel ? '2px solid #fff' : '2px solid transparent', boxSizing: 'border-box' },
+        numStyle: { fontFamily: "'VT323',monospace", fontSize: 15, lineHeight: 1, color: sel ? '#fff' : '#4d5670' } };
+    });
+    const laneTicksNumLight = laneTicksNum.map(t => Object.assign({}, t, { numStyle: Object.assign({}, t.numStyle, { color: t.numStyle.color === '#fff' ? '#fff' : 'rgba(255,255,255,.75)' }) }));
+    const DIFF_COL = { calm: { bg: '#2ee6b0', ink: '#0c2a22', sub: 'rgba(12,42,34,.7)' }, reckless: { bg: '#f5b32a', ink: '#2b1c00', sub: 'rgba(43,28,0,.7)' }, suicidal: { bg: '#e63946', ink: '#fff', sub: '#ffd9dc' } };
+    const diffTiles = order.map(k => {
+      const sel = k === diff, c = DIFF_COL[k];
+      return { label: meta[k][0], hint: meta[k][2], mult: (1 + BONUS[k]).toFixed(2) + 'x', click: () => setDiff(k),
+        style: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '9px 0', cursor: 'pointer', fontFamily: SS, background: sel ? c.bg : '#1b2130', border: '2px solid ' + (sel ? '#fff' : '#47506a'), boxShadow: sel ? '2px 2px 0 #000' : 'none', color: sel ? c.ink : '#9aa3b2' },
+        labelStyle: { fontSize: 9, letterSpacing: 1 },
+        multStyle: { fontFamily: "'VT323',monospace", fontSize: 16, lineHeight: 1, color: sel ? c.sub : '#6d7789' } };
+    });
+    const laneColor = lanes <= 4 ? '#e63946' : lanes <= 6 ? '#f5b32a' : lanes <= 8 ? '#2ee6b0' : '#9aa3b2';
+    const laneTicksDrag = [3,4,5,6,7,8,9,10].map(n => {
+      const sel = n === lanes;
+      return { n, numText: sel ? String(n) : '', click: () => setLanes(n),
+        wrapStyle: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'transparent', border: 'none', padding: 0, pointerEvents: 'none' },
+        barStyle: { width: '100%', height: sel ? 24 : 14, background: n <= lanes ? laneColor : '#232b3b', border: sel ? '2px solid #fff' : '2px solid transparent', boxSizing: 'border-box' },
+        numStyle: { fontFamily: "'VT323',monospace", fontSize: 17, lineHeight: 1, height: 17, color: laneColor } };
+    });
+    const pickLane = e => {
+      const r = e.currentTarget.getBoundingClientRect();
+      setLanes(3 + Math.floor(((e.clientX - r.left) / r.width) * 8));
+    };
+    return {
+      lanes, diffLabel: meta[diff][0],
+      laneTraffic: ({ 3: '+60%', 4: '+45%', 5: '+30%', 6: '+20%', 7: '+12%', 8: '+6%', 9: '+2%', 10: 'BASE' })[lanes],
+      mult: mult.toFixed(2) + 'x', multBare: mult.toFixed(2),
+      laneMult: lm.toFixed(2) + 'x MULT', modeMult: mm.toFixed(2) + 'x MULT',
+      formula: lm.toFixed(2) + ' LANES × ' + mm.toFixed(2) + ' MODE × ' + carMult.toFixed(2) + ' CAR',
+      laneDown: () => setLanes(lanes - 1), laneUp: () => setLanes(lanes + 1),
+      cycleDiff: () => setDiff(order[(order.indexOf(diff) + 1) % 3]),
+      diffOpts, laneChips, laneTicks, laneTicksNum, laneTicksNumLight, diffTiles, laneTicksDrag, laneColor,
+      laneTrackDown: e => { this._drag = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} pickLane(e); },
+      laneTrackMove: e => { if (this._drag) pickLane(e); },
+      laneTrackUp: () => { this._drag = false; },
+      diffHint: meta[diff][2], modeMultBare: mm.toFixed(2),
+      prevDiff: () => setDiff(order[(order.indexOf(diff) + 2) % 3]),
+      nextDiff: () => setDiff(order[(order.indexOf(diff) + 1) % 3])
+    };
+  }
+}
+</script>
+</body>
+</html>

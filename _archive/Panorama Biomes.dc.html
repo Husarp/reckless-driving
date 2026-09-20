@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #14161b; }
+  a { color: #f5b32a; }
+  a:hover { color: #ffd06b; }
+  canvas { image-rendering: pixelated; }
+</style>
+</helmet>
+
+<div style="font-family:'DotGothic16',monospace; background:#14161b; color:#e6e2d6; padding:36px 40px 60px; box-sizing:border-box; min-width:1440px">
+
+  <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:14px">
+    <div style="font-family:'Silkscreen',monospace; font-size:15px; letter-spacing:1px; color:#f5b32a">PANORAMA BIOMES &nbsp;— extraction</div>
+    <div style="font-size:11px; line-height:1.75; color:#8a8782; max-width:760px">The four biome verges, the river crossing and the side-road underpass, lifted out of <a href="Departure Art.dc.html">Departure Art</a> with every lamppost and light pool removed. Nothing here draws street furniture. All plates are lane-count aware — change the lane count in Tweaks and everything redraws against the live road width.</div>
+    <div style="font-size:10px; line-height:1.8; color:#6f6c67; max-width:760px; border-left:2px solid #2a2d34; padding-left:12px">Travel is bottom to top. A verge tiles forever on its own. A crossing is a fixed-height plate that marks a biome change: something wide passes under the road, each half carried by the verge on its side, so any biome joins any other with no per-pair art.</div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:34px 0 6px; letter-spacing:1px">BIOME VERGES</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:760px; margin-bottom:16px">Each one tiles vertically. Ground is painted first, scatter second, road last, so the carriageway is never overdrawn.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:22px; margin-bottom:44px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="bMeadow" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">MEADOW</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Flat green, flower scatter, occasional tree. The neutral default — safe to start a run in and safe to fall back to.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="bCoast" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">COAST</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Sea and surf line on the left, dense forest on the right, sand blown onto the near shoulder. Asymmetric on purpose — it tells you which way you are facing.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="bMountain" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">MOUNTAIN</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Rock rising on both sides with a lit/shaded slope, snow suppressed at this altitude, crash barrier and a cut face along the verge.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="bRiver" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">RIVER UNDER ROAD</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">A bend of water passing beneath, stone abutments where it disappears, low parapet on the road edge. Usable as its own verge or as the crossing filling.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:34px 0 6px; letter-spacing:1px">CROSSINGS &nbsp;— RIVER AND SIDE ROAD</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:760px; margin-bottom:16px">Two fillings for one slot: water, or a side road running under yours. Both use the same profile and the same abutments, so the pair of biomes on either side is irrelevant.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:22px; margin-bottom:44px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="crossA" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">RIVER &nbsp;&middot; MEADOW TO COAST</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Meadow below, coast above, one river built from the two halves.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="crossB" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">RIVER &nbsp;&middot; COAST TO MOUNTAIN</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Same two halves, different neighbours. Nothing was authored for this pair.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="crossC" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">SIDE ROAD &nbsp;&middot; MOUNTAIN TO MEADOW</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">A road passing under yours instead of water: dashed centre line, kerbs, grey deck, same stone abutments.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:420px">
+      <canvas data-plate="crossD" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">SIDE ROAD &nbsp;&middot; MEADOW TO MEADOW</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Same biome either side. A crossing does not have to change the biome — it can just be scenery.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:34px 0 6px; letter-spacing:1px">FULL PANORAMA</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:760px; margin-bottom:16px">Bottom to top at 2x: meadow, river crossing into coast, coast, side-road crossing into mountain, mountain. This is the whole scroll loop — pick a next biome, emit a crossing, run the verge until the next change.</div>
+  <canvas data-plate="chain" style="border:1px solid #2a2d34"></canvas>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;laneCount&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;10&quot;],&quot;default&quot;:&quot;4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Road&quot;},&quot;flowers&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Mixed&quot;,&quot;Yellow&quot;,&quot;Red&quot;,&quot;Blue&quot;],&quot;default&quot;:&quot;Mixed&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Meadow&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.paintAll(); }
+  componentDidUpdate() { this.paintAll(); }
+  renderVals() { return {}; }
+
+  lanes() { return parseInt(this.props.laneCount || '4', 10); }
+
+  paintAll() {
+    const W = 140, n = this.lanes();
+    const B = {
+      meadow:   (g, w, h) => this.biomeMeadow(g, w, h, n),
+      coast:    (g, w, h) => this.biomeCoast(g, w, h, n),
+      mountain: (g, w, h) => this.biomeMountain(g, w, h, n),
+      river:    (g, w, h) => this.biomeRiver(g, w, h, n)
+    };
+    const specs = {
+      bMeadow:  [W, 210, 3, g => B.meadow(g, W, 210)],
+      bCoast:   [W, 210, 3, g => B.coast(g, W, 210)],
+      bMountain:[W, 210, 3, g => B.mountain(g, W, 210)],
+      bRiver:   [W, 210, 3, g => B.river(g, W, 210)],
+      crossA:   [W, 240, 3, g => this.crossing(g, W, 240, n, 'river', B.coast, B.meadow)],
+      crossB:   [W, 240, 3, g => this.crossing(g, W, 240, n, 'river', B.mountain, B.coast)],
+      crossC:   [W, 240, 3, g => this.crossing(g, W, 240, n, 'underpass', B.meadow, B.mountain)],
+      crossD:   [W, 240, 3, g => this.crossing(g, W, 240, n, 'underpass', B.meadow, B.meadow)],
+      chain:    [W, 900, 2, g => this.chain(g, W, 900, n)]
+    };
+    document.querySelectorAll('canvas[data-plate]').forEach(cv => {
+      const spec = specs[cv.dataset.plate];
+      if (!spec) return;
+      const [w, h, S, fn] = spec;
+      cv.width = w; cv.height = h;
+      cv.style.width = (w * S) + 'px';
+      cv.style.height = (h * S) + 'px';
+      const g = cv.getContext('2d');
+      g.clearRect(0, 0, w, h);
+      fn(g);
+    });
+  }
+
+  /* ---------- primitives ---------- */
+
+  h(s) { const x = Math.sin(s * 127.1 + 7.3) * 43758.5453; return x - Math.floor(x); }
+
+  vn(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const sx = xf * xf * (3 - 2 * xf), sy = yf * yf * (3 - 2 * yf);
+    const n = (a, b) => this.h(a * 157.31 + b * 311.7);
+    const a = n(xi, yi), b = n(xi + 1, yi), c = n(xi, yi + 1), d = n(xi + 1, yi + 1);
+    const t = a + (b - a) * sx, u = c + (d - c) * sx;
+    return t + (u - t) * sy;
+  }
+  fbm(x, y, oct) {
+    let s = 0, amp = 0.5, f = 1, norm = 0;
+    for (let i = 0; i < (oct || 4); i++) { s += amp * this.vn(x * f, y * f); norm += amp; amp *= 0.5; f *= 2; }
+    return s / norm;
+  }
+
+  shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const cl = v => Math.max(0, Math.min(255, Math.round(v)));
+    return '#' + ((1 << 24) + (cl(((n >> 16) & 255) + 255 * amt) << 16)
+      + (cl(((n >> 8) & 255) + 255 * amt) << 8) + cl((n & 255) + 255 * amt)).toString(16).slice(1);
+  }
+  mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const l = s => [(s >> 16) & 255, (s >> 8) & 255, s & 255];
+    const A = l(pa), B = l(pb);
+    const c = A.map((v, i) => Math.round(v + (B[i] - v) * t));
+    return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+  }
+
+  grain(g, x0, y0, w, h, dark, light, seed) {
+    for (let y = y0; y < y0 + h; y += 2) for (let x = x0; x < x0 + w; x += 2) {
+      const r = this.h(y * 13.1 + x * 4.7 + (seed || 0));
+      if (r > 0.86) { g.fillStyle = light; g.fillRect(x, y, 2, 2); }
+      else if (r < 0.12) { g.fillStyle = dark; g.fillRect(x, y, 2, 2); }
+    }
+  }
+
+  merge(g, x0, y0, w, h, col, dir, seed, strength) {
+    const s = strength === undefined ? 1 : strength;
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+      let t;
+      if (dir === 'up') t = (y - y0) / h;
+      else if (dir === 'down') t = 1 - (y - y0) / h;
+      else if (dir === 'left') t = (x - x0) / w;
+      else t = 1 - (x - x0) / w;
+      const p = Math.pow(Math.max(0, Math.min(1, t)), 1.3) * s;
+      if (this.h(x * 11.3 + y * 6.1 + (seed || 0)) < p) { g.fillStyle = col; g.fillRect(x, y, 1, 1); }
+    }
+  }
+
+  disc(g, cx, cy, r, col) {
+    g.fillStyle = col;
+    for (let y = -Math.ceil(r); y <= Math.ceil(r); y++) {
+      const w = Math.floor(Math.sqrt(Math.max(0, r * r - y * y)));
+      if (w > 0) g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2, 1);
+    }
+  }
+
+  tree(g, cx, cy, r, pal) {
+    const p = pal || ['#14300f', '#1d4a17', '#2c6b22', '#3d8a2c'];
+    this.disc(g, cx + r * 0.55, cy + r * 0.6, r * 0.9, 'rgba(0,0,0,.32)');
+    this.disc(g, cx, cy, r, p[0]);
+    this.disc(g, cx, cy, r - 1, p[1]);
+    this.disc(g, cx - r * 0.18, cy - r * 0.2, r * 0.72, p[2]);
+    this.disc(g, cx - r * 0.38, cy - r * 0.4, r * 0.38, p[3]);
+  }
+
+  layer(W, H, fn) {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    fn(c.getContext('2d'), W, H);
+    return c;
+  }
+
+  flowerPal() {
+    const m = this.props.flowers || 'Mixed';
+    if (m === 'Yellow') return ['#e8d24a', '#f2e58a'];
+    if (m === 'Red') return ['#c9423a', '#e8746a'];
+    if (m === 'Blue') return ['#4a6fc9', '#8aa4e8'];
+    return ['#e8d24a', '#c9423a', '#4a6fc9', '#f2f0ea'];
+  }
+
+  /* ---------- road ---------- */
+
+  laneW(W, lanes) { return lanes === 1 ? 30 : Math.max(6, Math.min(22, Math.floor(W * 0.64 / lanes))); }
+  roadEdges(W, lanes) {
+    const rw = this.laneW(W, lanes) * lanes, L = Math.round((W - rw) / 2);
+    return [L, L + rw];
+  }
+
+  shoulder(g, ex, y, h, dir, seed) {
+    const span = 11;
+    for (let i = 0; i < span; i++) {
+      const x = dir > 0 ? ex + i : ex - 1 - i;
+      const keep = i < 3 ? 1 : 1 - (i - 3) / (span - 3);
+      for (let yy = y; yy < y + h; yy++) {
+        const r = this.h(x * 12.9 + yy * 7.7 + (seed || 0));
+        if (r > keep) continue;
+        g.fillStyle = r > 0.78 ? '#9c968a' : r < 0.22 ? '#767065' : '#8b857a';
+        g.fillRect(x, yy, 1, 1);
+      }
+    }
+  }
+
+  road(g, W, y, h, lanes, seed) {
+    const n = lanes || 1, lw = this.laneW(W, n);
+    const [L, R] = this.roadEdges(W, n), rw = R - L;
+    this.shoulder(g, L, y, h, -1, seed);
+    this.shoulder(g, R, y, h, 1, seed);
+    g.fillStyle = '#5a5f66'; g.fillRect(L, y, rw, h);
+    this.grain(g, L, y, rw, h, '#53585f', '#63686f', seed || 91);
+    g.fillStyle = '#c9c4b4'; g.fillRect(L, y, 2, h); g.fillRect(R - 2, y, 2, h);
+    if (n === 1) {
+      for (let yy = y + 3; yy < y + h; yy += 12) { g.fillStyle = '#b8b3a4'; g.fillRect(L + Math.floor(lw / 2) - 1, yy, 2, 6); }
+    } else {
+      for (let i = 1; i < n; i++) for (let yy = y + 2; yy < y + h; yy += 11) { g.fillStyle = '#b8b3a4'; g.fillRect(L + i * lw, yy, 1, 6); }
+    }
+    return [L, R];
+  }
+
+  /* ---------- terrain ---------- */
+
+  terrain(g, W, x0, y0, w, h, opts) {
+    const o = opts || {};
+    const rock = ['#3a352f', '#4a443c', '#5a534a', '#6b6359', '#7c7367', '#8d8376', '#9c9184'];
+    const elev = (px, py) => {
+      const u = (px - x0) / w, v = (py - y0) / h;
+      const gauss = (cu, cv, su, sv) => Math.exp(-(((u - cu) / su) ** 2 + ((v - cv) / sv) ** 2));
+      let e = 1.05 * gauss(o.c1 || 0.34, 0.5, 0.30, 0.42)
+            + 0.78 * gauss(o.c2 || 0.76, 0.44, 0.22, 0.34)
+            + 0.34 * gauss(0.08, 0.56, 0.16, 0.30);
+      const ar = h / w;
+      e += 0.5 * (this.fbm(u * 5.5, v * 5.5 * ar, 4) - 0.5);
+      e += 0.22 * (this.fbm(u * 13, v * 13 * ar, 3) - 0.5);
+      const edge = Math.min(1, Math.min(v, 1 - v) / (o.edge || 0.14));
+      return Math.max(0, e * Math.max(0, edge));
+    };
+    for (let x = x0; x < x0 + w; x++) for (let y = y0; y < y0 + h; y++) {
+      const e = elev(x, y);
+      if (e <= 0.02) continue;
+      const dzx = elev(x + 1.4, y) - elev(x - 1.4, y);
+      const dzy = elev(x, y + 1.4) - elev(x, y - 1.4);
+      let lam = 0.55 - (dzx * 2.6 + dzy * 2.6);
+      lam = Math.max(0, Math.min(1, lam));
+      const snowLine = 0.94 + (this.h(x * 3.1 + y * 5.7) - 0.5) * 0.06;
+      if (e > snowLine && !o.noSnow) g.fillStyle = this.mix('#8d9099', '#f2f0ea', lam);
+      else if (e > snowLine) g.fillStyle = this.mix('#6b6359', '#9c9184', lam);
+      else if (e < 0.16) g.fillStyle = this.mix('#1a3d18', '#3f7a32', lam * 0.9);
+      else {
+        const idx = Math.max(0, Math.min(rock.length - 1, Math.round(lam * (rock.length - 1))));
+        g.fillStyle = rock[idx];
+      }
+      g.fillRect(x, y, 1, 1);
+      if (this.h(x * 7.3 + y * 3.1) > 0.988 && e > 0.22 && e < 0.84) {
+        g.fillStyle = lam > 0.5 ? 'rgba(178,168,154,.55)' : 'rgba(52,47,42,.55)'; g.fillRect(x, y, 1, 1);
+      }
+    }
+    for (let i = 0; i < (o.trees || 120); i++) {
+      const px = x0 + Math.floor(this.h(i * 4.7) * w);
+      const py = y0 + Math.floor(this.h(i * 8.9) * h);
+      const e = elev(px, py);
+      if (e < 0.05 || e > 0.34) continue;
+      g.fillStyle = i % 3 ? '#1e4a20' : '#16371a';
+      g.fillRect(px, py, 3, 4);
+      g.fillStyle = '#2b6330'; g.fillRect(px + 1, py, 1, 2);
+    }
+  }
+
+  /* ---------- biome verges (lane-count aware, no street furniture) ---------- */
+
+  biomeMeadow(g, W, H, lanes) {
+    g.fillStyle = '#4f8f3f'; g.fillRect(0, 0, W, H);
+    this.grain(g, 0, 0, W, H, '#3f7a32', '#5da44a', 41);
+    const [L, R] = this.roadEdges(W, lanes);
+    const pal = this.flowerPal();
+    const spot = i => {
+      const left = this.h(i * 1.9) > 0.5;
+      return [left ? 2 + Math.floor(this.h(i * 3.3) * Math.max(3, L - 15))
+                   : R + 14 + Math.floor(this.h(i * 3.3) * Math.max(3, W - R - 16)),
+              Math.floor(this.h(i * 8.1) * H)];
+    };
+    // tree positions resolved first so ground cover can avoid the canopies, but the trees
+    // themselves are painted last — after the road — so a canopy is never sliced by the tarmac
+    const trees = [];
+    for (let i = 0; i < 110; i += 9) trees.push([...spot(i), 6 + this.h(i) * 3]);
+    const clear = (x, y) => !trees.some(([tx, ty, tr]) => {
+      const pad = tr + 3;
+      return x > tx - pad && x < tx + pad * 1.6 && y > ty - pad && y < ty + pad * 1.7;
+    });
+    for (let i = 0; i < 110; i++) {
+      if (i % 9 === 0) continue;
+      const [x, y] = spot(i);
+      if (!clear(x, y)) continue;
+      if (i % 3 === 0) { g.fillStyle = this.h(i * 2.2) > 0.5 ? '#5da44a' : '#63ad4e'; g.fillRect(x, y, 2, 3); continue; }
+      const c = pal[Math.floor(this.h(i * 5.7) * pal.length)];
+      g.fillStyle = '#3f7a32'; g.fillRect(x, y + 1, 1, 3);
+      g.fillStyle = c; g.fillRect(x, y, 2, 1);
+      if (this.h(i * 7.1) > 0.55) g.fillRect(x + (this.h(i) > 0.5 ? 2 : -1), y + 1, 1, 1);
+    }
+    this.road(g, W, 0, H, lanes, 44);
+    trees.forEach(([x, y, r]) => this.tree(g, x, y, r, ['#1a3d18', '#265a20', '#31752a', '#3f8f33']));
+  }
+
+  biomeMountain(g, W, H, lanes) {
+    g.fillStyle = '#2c5a2a'; g.fillRect(0, 0, W, H);
+    this.grain(g, 0, 0, W, H, '#20441e', '#3a7233', 47);
+    const [L, R] = this.roadEdges(W, lanes);
+    const cut = 9;
+    if (L - cut > 6) this.terrain(g, W, 0, -30, L - cut, H + 60, { c1: 0.3, c2: 0.72, edge: 0.06, trees: 40, noSnow: true });
+    if (W - R - cut > 6) this.terrain(g, W, R + cut, -30, W - R - cut, H + 60, { c1: 0.6, c2: 0.2, edge: 0.06, trees: 40, noSnow: true });
+    this.road(g, W, 0, H, lanes, 51);
+    for (let y = 3; y < H; y += 7) {
+      g.fillStyle = '#9aa0a6'; g.fillRect(L - cut + 2, y, 3, 4); g.fillRect(R + cut - 5, y, 3, 4);
+    }
+    g.fillStyle = '#7f858b'; g.fillRect(L - cut + 2, 0, 1, H); g.fillRect(R + cut - 3, 0, 1, H);
+    this.merge(g, L - cut - 4, 0, 6, H, '#6b6359', 'left', 53, 0.7);
+    this.merge(g, R + cut - 2, 0, 6, H, '#6b6359', 'right', 54, 0.7);
+  }
+
+  biomeCoast(g, W, H, lanes) {
+    const [L, R] = this.roadEdges(W, lanes);
+    const beachW = Math.max(10, L - 12);
+    const forX = R + 12, forW = Math.max(8, W - forX);
+    g.fillStyle = '#e0d3ac'; g.fillRect(0, 0, Math.max(beachW, L), H);
+    this.grain(g, 0, 0, Math.max(beachW, L), H, '#cfc09a', '#eee3c2', 71);
+    g.fillStyle = '#20441e'; g.fillRect(R, 0, W - R, H);
+    this.grain(g, R, 0, W - R, H, '#173216', '#2c5a2a', 83);
+    const surf = Math.max(8, Math.round(beachW * 0.55));
+    for (let y = 0; y < H; y++) {
+      const edge = surf + Math.round(Math.sin(y * 0.09) * 3 + (this.fbm(y * 0.06, 1, 3) - 0.5) * 6);
+      g.fillStyle = '#1f5f7a'; g.fillRect(0, y, Math.max(0, edge - 6), 1);
+      g.fillStyle = '#2b7d9c'; g.fillRect(Math.max(0, edge - 10), y, 6, 1);
+      g.fillStyle = '#57b3c9'; g.fillRect(Math.max(0, edge - 4), y, 4, 1);
+      g.fillStyle = '#e8f4f6'; g.fillRect(edge, y, 3, 1);
+      g.fillStyle = '#d8c9a2'; g.fillRect(edge + 3, y, 2, 1);
+    }
+    for (let y = 0; y < H; y += 3) if (this.h(y * 2.7) > 0.6) { g.fillStyle = 'rgba(232,244,246,.22)'; g.fillRect(2, y, 9, 1); }
+    for (let i = 0; i < 26; i++) {
+      const x = forX + 3 + Math.floor(this.h(i * 5.1) * Math.max(2, forW - 6));
+      const y = Math.floor(this.h(i * 9.3) * H);
+      this.tree(g, x, y, 5 + this.h(i * 2.3) * 3, ['#0f2a0d', '#173d13', '#22571c', '#2f7526']);
+    }
+    this.merge(g, forX - 10, 0, 10, H, '#20441e', 'right', 85, 0.8);
+    this.merge(g, beachW, 0, 8, H, '#e0d3ac', 'left', 86, 0.8);
+    this.road(g, W, 0, H, lanes, 87);
+    g.fillStyle = 'rgba(224,211,172,.45)'; g.fillRect(L, 0, 5, H);
+  }
+
+  biomeRiver(g, W, H, lanes) {
+    g.fillStyle = '#46853a'; g.fillRect(0, 0, W, H);
+    this.grain(g, 0, 0, W, H, '#37692e', '#54974a', 31);
+    const [L, R] = this.roadEdges(W, lanes);
+    const cy = H * 0.5;
+    const bank = x => {
+      const bend = Math.sin(x * 0.05) * 8 + (this.fbm(x * 0.045, 5, 3) - 0.5) * 9;
+      const half = 16 + Math.sin(x * 0.028) * 3;
+      return [Math.round(cy + bend - half), Math.round(cy + bend + half)];
+    };
+    for (let x = 0; x < W; x++) {
+      const [y0, y1] = bank(x);
+      g.fillStyle = '#7d6b4a'; g.fillRect(x, y0 - 3, 1, 3); g.fillRect(x, y1, 1, 3);
+      this.merge(g, x, y0 - 7, 1, 5, '#7d6b4a', 'down', 32, 0.8);
+      this.merge(g, x, y1 + 3, 1, 5, '#7d6b4a', 'up', 33, 0.8);
+      g.fillStyle = '#1f5f7a'; g.fillRect(x, y0, 1, y1 - y0);
+      g.fillStyle = '#2b7d9c'; g.fillRect(x, y0 + 2, 1, 4); g.fillRect(x, y1 - 6, 1, 4);
+      if (this.h(x * 3.3) > 0.7) { g.fillStyle = '#57b3c9'; g.fillRect(x, y0 + 6 + Math.floor(this.h(x) * 12), 1, 2); }
+    }
+    for (let i = 0; i < 40; i++) {
+      const x = Math.floor(this.h(i * 4.1) * W);
+      if (x > L - 12 && x < R + 12) continue;
+      const [y0, y1] = bank(x);
+      const y = this.h(i * 1.7) > 0.5 ? y0 - 4 : y1 + 2;
+      g.fillStyle = i % 2 ? '#3f7a32' : '#5c9642'; g.fillRect(x, y, 1, 4);
+    }
+    [[L - 12, 12], [R, 12]].forEach(p => {
+      for (let x = p[0]; x < p[0] + p[1]; x++) {
+        const [y0, y1] = bank(x);
+        g.fillStyle = '#8e8874'; g.fillRect(x, y0 - 2, 1, y1 - y0 + 4);
+        for (let y = y0 - 2; y < y1 + 2; y += 4) { g.fillStyle = '#7c7666'; g.fillRect(x, y, 1, 1); }
+      }
+    });
+    this.road(g, W, 0, H, lanes, 35);
+    const [pl0, pl1] = bank(L), [pr0, pr1] = bank(R);
+    const pTop = Math.min(pl0, pr0) - 7, pBot = Math.max(pl1, pr1) + 7;
+    [[L - 5, 4], [R + 1, 4]].forEach(p => {
+      g.fillStyle = '#8e939c'; g.fillRect(p[0], pTop, p[1], pBot - pTop);
+      g.fillStyle = '#c9c4b4'; g.fillRect(p[0], pTop, p[1], 2);
+      for (let y = pTop + 4; y < pBot; y += 6) { g.fillStyle = '#6f747c'; g.fillRect(p[0], y, p[1], 1); }
+    });
+  }
+
+  /* ---------- crossings ---------- */
+
+  crossHalf(g, W, H, lanes, edge, kind) {
+    const [L, R] = this.roadEdges(W, lanes);
+    const span = 33;
+    const bendAt = x => Math.sin(x * 0.045) * 6 + (this.fbm(x * 0.04, 11, 3) - 0.5) * 7;
+    const water = kind !== 'underpass';
+    for (let x = 0; x < W; x++) {
+      const b = bendAt(x);
+      const limit = Math.round(span + (edge === 'top' ? b : -b));
+      for (let d = 0; d < limit + 4; d++) {
+        const y = edge === 'top' ? d : H - 1 - d;
+        if (y < 0 || y >= H) continue;
+        if (d < limit) {
+          if (water) {
+            const k = d / limit;
+            g.fillStyle = k > 0.86 ? '#2b7d9c' : '#1f5f7a';
+            if (this.h(x * 3.3 + d * 1.7) > 0.93) g.fillStyle = '#57b3c9';
+          } else {
+            g.fillStyle = '#55595f';
+            if (this.h(x * 4.7 + d * 2.1) > 0.88) g.fillStyle = '#5e636a';
+            else if (this.h(x * 2.9 + d * 3.7) < 0.12) g.fillStyle = '#4c5057';
+            if (d < 3 || d > limit - 4) g.fillStyle = '#8a8f97';
+            if (d > 3 && d < 6) g.fillStyle = '#c9c4b4';
+          }
+        } else {
+          g.fillStyle = water ? '#7d6b4a' : '#8a8f97';
+        }
+        g.fillRect(x, y, 1, 1);
+      }
+      const dEnd = limit + 4;
+      if (x > L - 14 && x < R + 14) continue;
+      for (let i = 0; i < 7; i++) {
+        const y = edge === 'top' ? dEnd + i : H - 1 - dEnd - i;
+        if (y < 0 || y >= H) continue;
+        if (this.h(x * 11.3 + y * 6.1 + 5) < (1 - i / 7) * 0.6) {
+          g.fillStyle = water ? '#7d6b4a' : '#8a8f97'; g.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+    const y0 = edge === 'top' ? 0 : H - span - 12;
+    const hgt = span + 12;
+    [[L - 7, 7], [R, 7]].forEach(p => {
+      g.fillStyle = '#8e8874'; g.fillRect(p[0], y0, p[1], hgt);
+      for (let y = y0; y < y0 + hgt; y += 4) { g.fillStyle = '#7c7666'; g.fillRect(p[0], y, p[1], 1); }
+      g.fillStyle = '#cdc6b3'; g.fillRect(p[0], edge === 'top' ? y0 : y0 + hgt - 2, p[1], 2);
+    });
+    this.road(g, W, y0, hgt, lanes, 35);
+    [[L - 5, 4], [R + 1, 4]].forEach(p => {
+      g.fillStyle = '#8e939c'; g.fillRect(p[0], y0, p[1], hgt);
+      g.fillStyle = '#c9c4b4'; g.fillRect(p[0], y0, p[1], 2);
+      for (let y = y0 + 4; y < y0 + hgt; y += 6) { g.fillStyle = '#6f747c'; g.fillRect(p[0], y, p[1], 1); }
+    });
+    if (kind === 'underpass') {
+      const mid = edge === 'top' ? Math.round(span / 2) : H - Math.round(span / 2);
+      for (let x = 3; x < W; x += 14) {
+        if (x > L - 14 && x < R + 6) continue;
+        g.fillStyle = '#b8b3a4'; g.fillRect(x, mid - 1, 8, 2);
+      }
+    }
+  }
+
+  crossing(g, W, H, lanes, kind, above, below) {
+    const half = Math.round(H / 2);
+    const top = this.layer(W, half, (gg, w, h) => { above(gg, w, h); this.crossHalf(gg, w, h, lanes, 'bottom', kind); });
+    const bot = this.layer(W, H - half, (gg, w, h) => { below(gg, w, h); this.crossHalf(gg, w, h, lanes, 'top', kind); });
+    g.drawImage(top, 0, 0);
+    g.drawImage(bot, 0, half);
+  }
+
+  chain(g, W, H, lanes) {
+    const parts = [
+      [170, (gg, w, h) => this.biomeMountain(gg, w, h, lanes)],
+      [120, (gg, w, h) => { this.biomeMountain(gg, w, h, lanes); this.crossHalf(gg, w, h, lanes, 'bottom', 'underpass'); }],
+      [120, (gg, w, h) => { this.biomeCoast(gg, w, h, lanes); this.crossHalf(gg, w, h, lanes, 'top', 'underpass'); }],
+      [170, (gg, w, h) => this.biomeCoast(gg, w, h, lanes)],
+      [120, (gg, w, h) => { this.biomeCoast(gg, w, h, lanes); this.crossHalf(gg, w, h, lanes, 'bottom', 'river'); }],
+      [120, (gg, w, h) => { this.biomeMeadow(gg, w, h, lanes); this.crossHalf(gg, w, h, lanes, 'top', 'river'); }]
+    ];
+    let y = 0;
+    parts.forEach(([ph, fn]) => {
+      const c = this.layer(W, ph, fn);
+      g.drawImage(c, 0, y);
+      y += ph;
+    });
+    if (y < H) {
+      const c = this.layer(W, H - y, (gg, w, h) => this.biomeMeadow(gg, w, h, lanes));
+      g.drawImage(c, 0, y);
+    }
+  }
+}
+
+</script>
+</body>
+</html>

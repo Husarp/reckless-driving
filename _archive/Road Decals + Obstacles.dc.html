@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #14161b; }
+  a { color: #f5b32a; }
+  a:hover { color: #ffd06b; }
+  canvas { image-rendering: pixelated; }
+  table { border-collapse: collapse; }
+</style>
+</helmet>
+
+<div style="font-family:'DotGothic16',monospace; background:#14161b; color:#e6e2d6; padding:36px 40px 60px; box-sizing:border-box; min-width:1460px">
+
+  <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:14px">
+    <div style="font-family:'Silkscreen',monospace; font-size:15px; letter-spacing:1px; color:#f5b32a">ROAD SURFACE DECALS &nbsp;+&nbsp; STATIC OBSTACLES &nbsp;&middot; v2</div>
+    <div style="font-size:11px; line-height:1.75; color:#8a8782; max-width:840px">Decals are cosmetic marks with no collision; obstacles are things you die on. Both drawn in the game's own idiom &mdash; 1px grid, the asphalt palette from <span style="color:#c9c4b4">makeAsphalt53</span> (#5a5f66 base, #63686f / #53585f speck, #44484f lane line), deterministic hash placement so a mark at a given world position always renders the same as it scrolls.</div>
+    <div style="font-size:10px; line-height:1.8; color:#6f6c67; max-width:840px; border-left:2px solid #2a2d34; padding-left:12px">Changed in v2: density halved, so the old LIGHT rate is now the densest setting on offer. Every type now has 3 shape variants and takes a size argument &mdash; five for the asphalt patch, all squarish and each a different tone darker than the road. Every type appears in the strips, not only on the sheet. Wreck, debris pile and fallen branch dropped. Cones now span the full lane with a broken-down car ahead of them, plus three biome-specific obstacles. Warning sign redrawn to real proportions.</div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:34px 0 6px; letter-spacing:1px">DECAL LIBRARY &nbsp;— 4x, VARIANTS SIDE BY SIDE</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:16px">Each draw function takes <span style="color:#c9c4b4">(x, y, variant, size)</span>. The variant picks the silhouette, the size scales it &mdash; so 7 types cover about 25 distinct marks, and no two rocks of the road look alike within a run. Patch edges are straight runs that step at two to four points down each side, and the seam outline is traced from a mask so every variant closes properly, including the L-cut.</div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:16px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:560px">
+      <canvas data-plate="dPatch" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">ASPHALT PATCH &mdash; 5 SHAPES</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Left to right: ragged rectangle, stepped rectangle with a mild taper, L-shaped cut around a trench, long strip down a wheel path, and a blocky many-sided cut. All five are squarish now &mdash; edges are straight runs that step, not slopes, so they read as sawn asphalt rather than spills. Each is <span style="color:#c9c4b4">darker</span> than the surrounding road, on its own tone between #464b52 and #50555c, since a fresh patch is newer bitumen. Sizes here run 13&ndash;34px.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:400px">
+      <canvas data-plate="dPothole" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">POTHOLE &mdash; 3 SHAPES, 4 SIZES</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Round-ish, torn-long, and a cracked cluster of two. Shown from 5 to 13px. Darker core than a manhole and a rim on the top-left only, so shape alone separates the two at speed.</div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:24px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:272px">
+      <canvas data-plate="dManhole" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">MANHOLE &mdash; 3</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">9px disc with a cross seam, 7px plain disc, and a square inspection cover. Round reads at 1x because nothing else on the road is round.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:272px">
+      <canvas data-plate="dDrain" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">DRAIN &mdash; 3</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Long grate, short square grate, kerb inlet. All three sit within 6px of the road edge &mdash; a drain mid-lane reads as a mistake.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:272px">
+      <canvas data-plate="dOil" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">OIL &mdash; 3 SIZES</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Drip, pool, long smear. Stacked translucent blacks, no rim and no hard edge &mdash; deliberately the softest mark in the set so nobody reads it as something to dodge.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:272px">
+      <canvas data-plate="dSkid" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">SKID &mdash; 3 LENGTHS</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Short stab, long straight pair, and a swerve that drifts across the lane. Always 12px apart &mdash; one car's track width. Length is a parameter, so a panic stop can be twice a tap.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:272px">
+      <canvas data-plate="dStripe" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">SCUFFED DASH &mdash; 3</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">A clean dash, one worn thin, and one repainted with a ghost of the old line beside it. A flag on the dash rather than a decal, so the art is the stripe you already draw.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">DENSITY &nbsp;— 2x, ONE FULL 576px ASPHALT CYCLE EACH</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:16px">Shown over the real repeat length rather than a screen's worth, because at these rates you need the whole cycle to see anything happen. Halved from v1: the densest setting on offer is 1 mark per 190px &mdash; roughly one thing in view at a time, never two abreast. Both OCCASIONAL panels are that same rate on different seeds; the point is that the type and shape vary run to run, not that the road is busy.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:24px">
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="sClean" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#6f6c67; letter-spacing:1px">CLEAN &mdash; TODAY</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:248px">No decals at all. Kept for Coast and City arterials.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="sRare" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">RARE &mdash; 1 / 480px</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:248px">About one mark per cycle. You notice it as a detail, never as a texture.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="sOcc" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">OCCASIONAL &mdash; 1 / 190px</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:248px">The ceiling, and half of what v1 called LIGHT. Three marks per cycle: stepped patch, scuffed dash, torn pothole.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="sOcc2" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">OCCASIONAL &mdash; SEED 2</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:248px">Same rate, different draw: skid pair, manhole, oil pool, edge drain, wheel-path strip patch. This is how the rest of the set gets its turn.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">BIOME WEIGHTING</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:14px">One weight table keyed by biome, same shape as the existing prop tables. Numbers are relative pick weights within a biome; RATE is which panel above that biome runs at. Shape variants are picked uniformly inside a type, except the patch strip variant which is weighted up on motorway-like stretches.</div>
+  <table style="font-size:10px; color:#c9c4b4; margin-bottom:8px; min-width:820px">
+    <tr style="font-family:'Silkscreen',monospace; font-size:9px; color:#6f6c67; text-align:left">
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">BIOME</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">RATE</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">MANHOLE</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">DRAIN</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">POTHOLE</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">PATCH</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">OIL</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">SCUFF</th>
+      <th style="padding:6px 14px 6px 0; border-bottom:1px solid #2a2d34">SKID</th>
+    </tr>
+    <sc-for list="{{ weightRows }}" as="row" hint-placeholder-count="10">
+      <tr>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026; color:#e6e2d6">{{ row.biome }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026; color:#f5b32a">{{ row.density }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.manhole }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.drain }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.pothole }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.patch }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.oil }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.scuff }}</td>
+        <td style="padding:5px 14px 5px 0; border-bottom:1px solid #1d2026">{{ row.skid }}</td>
+      </tr>
+    </sc-for>
+  </table>
+  <div style="font-size:9px; color:#6f6c67; line-height:1.7; max-width:840px; margin-bottom:12px">Zeros are what make this table worth having: no manholes outside built-up stretches, no drains where there is no kerb, no oil away from junctions and yards.</div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">STATIC OBSTACLES &nbsp;— 5x, ONE LANE OF ROAD</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:16px">Four kinds, each shown in a single 31px lane with its neighbours' lane lines either side. All fit within one lane, so they can ride the vehicle spawn list at speed 0 and inherit the lane-clearance guarantee unchanged. The breakdown is the global one; the other three are biome-gated the same way NPC types already are.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:16px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="oBreak" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">BREAKDOWN &mdash; GLOBAL</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Barrier spans the full lane width, cones taper back from it, and a car sits ahead of it with its bonnet up and hazards on. The whole thing says "this lane is shut" without a legend. The car is any body from the existing NPC pool in any paint, so no new car art is needed, and orange on grey is the most legible pairing in the game.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="oRocks" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">ROCKFALL &mdash; MOUNTAIN, QUARRY, CANYON</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Four faceted boulders and scree in the grey-rock palette those biomes already use. Each rock is straight-sided with a hard split between its lit and shadowed faces, a bright rim upper-left and a crack down the middle &mdash; angular rather than rounded, which is what stops it reading as a pile of sacks.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="oCow" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">COW &mdash; FARM, MEADOW</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Broadside across the lane, which is both what cows do and the widest silhouette available. Reuses <span style="color:#c9c4b4">sprCow53</span> from the verge, scaled to the car's footprint.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="oDeer" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">DEER &mdash; FOREST, RIVER, MARSH</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Facing the road, antlers up, from <span style="color:#c9c4b4">sprDeer53</span>. Brown on grey is the weakest contrast of the four, so this one leans hardest on the warning sign.</div>
+    </div>
+  </div>
+  <div style="font-size:9px; color:#6f6c67; line-height:1.7; max-width:840px; margin-bottom:12px">Animals raise one question the others don't: static, or do they wander a lane's width and give you a moving target? Static is the cheap version and the one drawn here.</div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">WARNING SIGN &nbsp;— 8x</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:16px">Rebuilt from the real thing: equilateral, symmetric about its centre column, a red border of even weight on all three sides, yellow field, black bar and dot inside it. 17px wide at 1x, just over half a lane. The old 13px version had uneven slopes and no room under the bar for the dot, which is why its exclamation looked crushed.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; margin-bottom:24px">
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="gSign" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">17 x 15</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">Every row is an odd width centred on one column, so both slopes are identical.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="gSignTri" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">CLONE &mdash; 1px BORDER</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">15&times;15, every width step exactly two rows apart, so each slope is one unbroken staircase with no kink at the base. Red border is a single pixel, leaving more yellow field around the mark.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="gSignOld" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#6f6c67; letter-spacing:1px">v1, FOR COMPARISON</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">13px, uneven slopes, dot fused to the bar.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; width:200px">
+      <canvas data-plate="gSign1x" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#6f6c67; letter-spacing:1px">1x / 2x / 3x</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7">The size it ships at. It survives 1x because border and field differ in value, not only hue.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">PRE-WARNING &nbsp;— 3x</div>
+  <div style="font-size:9px; color:#8a8782; line-height:1.7; max-width:840px; margin-bottom:16px">Three frames of one approach, read bottom to top in each panel. The sign is pinned to the top of the obstacle's lane and flashes on the ambulance warning's cadence, then hands off to the obstacle itself as that enters view.</div>
+  <div style="display:flex; flex-wrap:wrap; gap:24px; margin-bottom:20px">
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="wA" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">1 &mdash; SIGN ONLY</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:372px">Lane 3 flagged. About 1.2s of warning at cruise, matching the ambulance flash.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="wB" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">2 &mdash; OBSTACLE ENTERS</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:372px">Barrier and cones scroll in under the sign, broken-down car ahead of them. Three lanes still clear.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <canvas data-plate="wC" style="border:1px solid #2a2d34"></canvas>
+      <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px">3 &mdash; COMMITTED</div>
+      <div style="font-size:9px; color:#8a8782; line-height:1.7; width:372px">Sign gone, player alongside in lane 2, one moving car ahead. The worst case worth testing: obstacle and traffic in view together, one open lane left.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#e6e2d6; margin:38px 0 6px; letter-spacing:1px">OPEN &mdash; NEEDS YOUR CALL</div>
+  <div style="font-size:10px; color:#8a8782; line-height:1.9; max-width:840px">
+    Contact rule. Everything here assumes an obstacle ends the run exactly like traffic. A survivable clip needs a damage state, its own feedback and a tuning pass, and it changes what the sign promises.<br>
+    Animals. Static, or wandering across a lane? Static is drawn; wandering is a small movement system on top.<br>
+    Rate default. RARE globally with OCCASIONAL on the rough biomes, or one flat rate everywhere for one less number.<br>
+    Obstacle frequency. Not drawn &mdash; a difficulty-curve question rather than an art one.
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;laneCount&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;3&quot;,&quot;4&quot;,&quot;5&quot;],&quot;default&quot;:&quot;4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Road&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.paintAll(); }
+  componentDidUpdate() { this.paintAll(); }
+
+  renderVals() {
+    const R = (biome, density, m, d, p, pa, o, s, sk) =>
+      ({ biome, density, manhole: m, drain: d, pothole: p, patch: pa, oil: o, scuff: s, skid: sk });
+    return {
+      weightRows: [
+        R('CITY', 'rare', 40, 20, 8, 20, 6, 4, 2),
+        R('SUBURB', 'rare', 24, 16, 12, 24, 4, 12, 8),
+        R('INDUSTRIAL', 'occasional', 20, 10, 20, 26, 14, 4, 6),
+        R('FARM', 'occasional', 0, 0, 44, 30, 4, 12, 10),
+        R('MOUNTAIN', 'occasional', 0, 0, 38, 34, 0, 18, 10),
+        R('QUARRY', 'occasional', 0, 0, 40, 26, 10, 10, 14),
+        R('FOREST', 'rare', 0, 0, 34, 34, 0, 22, 10),
+        R('MEADOW', 'rare', 0, 0, 26, 34, 0, 26, 14),
+        R('RIVER', 'rare', 0, 8, 22, 40, 0, 20, 10),
+        R('COAST', 'clean', 0, 0, 0, 0, 0, 0, 0)
+      ]
+    };
+  }
+
+  lanes() { return parseInt(this.props.laneCount || '4', 10); }
+  h(n) { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
+
+  // piecewise-linear edge from n control points — this is what makes a shape many-sided
+  edge(seed, h, lo, hi, n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) pts.push(lo + this.h(seed + i * 3.37) * (hi - lo));
+    return (i) => {
+      const t = (h <= 1 ? 0 : i / (h - 1)) * (n - 1);
+      const a = Math.floor(t), b = Math.min(n - 1, a + 1), f = t - a;
+      return Math.round(pts[a] + (pts[b] - pts[a]) * f);
+    };
+  }
+
+  buf(w, h, fn) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    fn(g);
+    return c;
+  }
+
+  asphalt(g, W, H, lanes, seed) {
+    const s = seed || 0, lw = Math.floor(W / lanes);
+    g.fillStyle = '#5a5f66'; g.fillRect(0, 0, W, H);
+    for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 3) {
+      const r = this.h(y * 13.1 + x * 4.7 + s);
+      if (r > .86) { g.fillStyle = '#63686f'; g.fillRect(x, y, 1, 1); }
+      else if (r < .09) { g.fillStyle = '#53585f'; g.fillRect(x, y, 1, 1); }
+    }
+    g.fillStyle = '#565b62';
+    for (let i = 0; i < lanes; i++) {
+      const c = i * lw + Math.floor(lw / 2);
+      g.fillRect(Math.max(0, c - 7), 0, 3, H);
+      g.fillRect(Math.min(W - 3, c + 5), 0, 3, H);
+    }
+    g.fillStyle = '#44484f';
+    for (let i = 1; i < lanes; i++) g.fillRect(i * lw, 0, 1, H);
+  }
+
+  dash(g, x, y, variant) {
+    if (variant === 1) {
+      g.fillStyle = '#8e8a80';
+      for (let i = 0; i < 18; i++) {
+        if (this.h(y * 3.1 + i * 7.7) < .34) continue;
+        g.fillRect(x, y + i, this.h(i * 2.3) > .6 ? 2 : 3, 1);
+      }
+      return;
+    }
+    if (variant === 2) {
+      g.fillStyle = 'rgba(158,154,143,.45)';
+      for (let i = 0; i < 18; i++) g.fillRect(x + 4, y + i, 2, 1);
+      g.fillStyle = '#c9c4b4'; g.fillRect(x, y, 3, 18);
+      g.fillStyle = '#9d998d'; g.fillRect(x, y + 15, 3, 3);
+      return;
+    }
+    g.fillStyle = '#c9c4b4'; g.fillRect(x, y, 3, 18);
+    g.fillStyle = '#9d998d'; g.fillRect(x, y + 16, 3, 2);
+  }
+
+  dashes(g, W, H, lanes, scuff) {
+    const lw = Math.floor(W / lanes), sc = scuff || {};
+    for (let i = 1; i < lanes; i++) {
+      let k = 0;
+      for (let y = -6; y < H; y += 32, k++) this.dash(g, i * lw - 1, y, sc[i * 100 + k] || 0);
+    }
+  }
+
+  // ---- decals: (x, y, variant, size) ----
+  manhole(g, x, y, v, size) {
+    const s = size || 9;
+    if (v === 2) { // square inspection cover
+      g.fillStyle = '#33373d'; g.fillRect(x, y, s, s);
+      g.fillStyle = '#7a7f86'; g.fillRect(x, y, s, 1); g.fillRect(x, y, 1, s);
+      g.fillStyle = '#2a2e34'; g.fillRect(x, y + s - 1, s, 1); g.fillRect(x + s - 1, y, 1, s);
+      g.fillStyle = '#464b52'; g.fillRect(x + 2, y + 2, s - 4, s - 4);
+      return;
+    }
+    const r = (s - 1) / 2, c = r;
+    g.fillStyle = '#33373d';
+    for (let i = 0; i < s; i++) {
+      const d = Math.round(Math.sqrt(Math.max(0, r * r - (i - c) * (i - c))));
+      g.fillRect(x + c - d, y + i, d * 2 + 1, 1);
+    }
+    g.fillStyle = '#7a7f86';
+    g.fillRect(x + c - 2, y, 5, 1); g.fillRect(x, y + c - 1, 1, 3);
+    g.fillStyle = '#2a2e34'; g.fillRect(x + c - 2, y + s - 1, 5, 1);
+    if (v === 0) {
+      g.fillStyle = '#464b52';
+      g.fillRect(x + c, y + 1, 1, s - 2); g.fillRect(x + 2, y + c, s - 4, 1);
+    }
+  }
+
+  drain(g, x, y, v) {
+    if (v === 1) { // short square grate
+      g.fillStyle = '#2e3238'; g.fillRect(x, y, 8, 6);
+      g.fillStyle = '#6e737a'; g.fillRect(x, y, 8, 1); g.fillRect(x, y, 1, 6);
+      g.fillStyle = '#4c5057';
+      for (let i = 1; i < 7; i += 2) g.fillRect(x + i, y + 1, 1, 4);
+      g.fillStyle = '#1f2328'; g.fillRect(x, y + 5, 8, 1);
+      return;
+    }
+    if (v === 2) { // kerb inlet
+      g.fillStyle = '#1f2328'; g.fillRect(x, y, 3, 11);
+      g.fillStyle = '#6e737a'; g.fillRect(x + 3, y, 1, 11);
+      g.fillStyle = '#4c5057'; g.fillRect(x, y, 3, 1); g.fillRect(x, y + 10, 3, 1);
+      return;
+    }
+    g.fillStyle = '#2e3238'; g.fillRect(x, y, 6, 10);
+    g.fillStyle = '#6e737a'; g.fillRect(x, y, 6, 1); g.fillRect(x, y, 1, 10);
+    g.fillStyle = '#4c5057';
+    for (let i = 2; i < 9; i += 2) g.fillRect(x + 1, y + i, 4, 1);
+    g.fillStyle = '#1f2328'; g.fillRect(x, y + 9, 6, 1);
+  }
+
+  // v0 round-ish, v1 torn long, v2 cracked cluster
+  pothole(g, x, y, v, size, seed) {
+    const s = Math.max(4, size || 9), sd = (seed || 0) + v * 11;
+    const blob = (bx, by, w, hh, sdd) => {
+      const L = this.edge(sdd, hh, 0, Math.max(1, w * .34), 4);
+      const R = this.edge(sdd + 5.1, hh, w * .62, w, 4);
+      g.fillStyle = '#3a3e44';
+      for (let i = 0; i < hh; i++) {
+        const l = L(i), r = Math.max(l + 1, R(i));
+        g.fillRect(bx + l, by + i, r - l, 1);
+      }
+      g.fillStyle = '#24272c';
+      for (let i = 1; i < hh - 1; i++) {
+        const l = L(i) + 1, r = Math.max(l + 1, R(i) - 1);
+        if (r - l > 1) g.fillRect(bx + l, by + i, r - l, 1);
+      }
+      g.fillStyle = '#767b82';
+      for (let i = 0; i < hh; i++) g.fillRect(bx + L(i), by + i, 1, 1);
+      g.fillStyle = '#4e5259';
+      for (let i = Math.floor(hh / 2); i < hh; i++) g.fillRect(bx + Math.max(0, R(i) - 1), by + i, 1, 1);
+    };
+    if (v === 1) blob(x, y, Math.max(4, Math.round(s * .7)), Math.round(s * 1.7), sd);
+    else if (v === 2) {
+      blob(x, y, Math.round(s * .62), Math.round(s * .62), sd);
+      blob(x + Math.round(s * .55), y + Math.round(s * .5), Math.round(s * .78), Math.round(s * .7), sd + 3.7);
+      g.fillStyle = 'rgba(36,39,44,.55)';
+      for (let i = 0; i < 4; i++) g.fillRect(x + Math.round(s * .5) + i, y + Math.round(s * .5) - i, 1, 1);
+    } else blob(x, y, s, Math.round(s * .85), sd);
+  }
+
+  // straight-run edge: constant over each segment, so shapes step instead of slope
+  stepEdge(seed, h, lo, hi, segs) {
+    const n = Math.max(2, segs || 3), vals = [];
+    for (let i = 0; i < n; i++) vals.push(Math.round(lo + this.h(seed + i * 4.11) * (hi - lo)));
+    return (i) => vals[Math.min(n - 1, Math.floor((i / Math.max(1, h)) * n))];
+  }
+
+  // v0 ragged rect, v1 stepped rect, v2 L-cut, v3 long strip, v4 stepped block
+  // patches are DARKER than the surrounding asphalt — fresh bitumen, not new concrete
+  patch(g, x, y, v, w, h, seed) {
+    const sd = (seed || 0) + v * 7.3;
+    const tones = ['#4c5158', '#494e55', '#50555c', '#464b52', '#4e535a'];
+    const base = tones[v % tones.length];
+    const rows = [];
+    if (v === 2) { // L-cut around a trench: two straight-sided arms
+      const armW = Math.round(w * .62), armH = Math.round(h * .48);
+      const L1 = this.stepEdge(sd, armH, 0, 1, 2), R1 = this.stepEdge(sd + 4, armH, w - 1, w, 2);
+      for (let i = 0; i < armH; i++) { const l = L1(i); rows.push([i, l, Math.max(4, R1(i) - l)]); }
+      const L2 = this.stepEdge(sd + 9, h - armH, 0, 1, 2), R2 = this.stepEdge(sd + 12, h - armH, armW - 1, armW, 2);
+      for (let i = armH; i < h; i++) { const l = L2(i - armH); rows.push([i, l, Math.max(4, R2(i - armH) - l)]); }
+    } else if (v === 1) { // stepped rectangle, mild taper
+      const L = this.stepEdge(sd, h, 0, 2, 3);
+      for (let i = 0; i < h; i++) {
+        const l = L(i), r = Math.round(w - (w * .18) * (i / (h - 1)));
+        rows.push([i, l, Math.max(4, r - l)]);
+      }
+    } else if (v === 3) { // long strip down a wheel path
+      const L = this.stepEdge(sd, h, 0, 1, 4), R = this.stepEdge(sd + 6, h, w - 1, w, 4);
+      for (let i = 0; i < h; i++) { const l = L(i); rows.push([i, l, Math.max(4, R(i) - l)]); }
+    } else if (v === 4) { // blocky many-sided: a few straight runs, no curves
+      const L = this.stepEdge(sd, h, 0, w * .22, 4), R = this.stepEdge(sd + 8, h, w * .78, w, 4);
+      for (let i = 0; i < h; i++) { const l = L(i); rows.push([i, l, Math.max(4, R(i) - l)]); }
+    } else { // ragged rectangle
+      for (let i = 0; i < h; i++) {
+        const l = this.h(i * 3.7 + sd) > .65 ? 1 : 0;
+        const r = this.h(i * 6.1 + sd + 3) > .7 ? 1 : 0;
+        rows.push([i, l, w - l - r]);
+      }
+    }
+    // fill + coarse grain
+    g.fillStyle = base;
+    rows.forEach(([ry, rx, rw]) => g.fillRect(x + rx, y + ry, rw, 1));
+    rows.forEach(([ry, rx, rw]) => {
+      for (let ix = 0; ix < rw; ix += 2) {
+        const r = this.h(ry * 5.7 + (rx + ix) * 2.9 + sd);
+        if (r > .80) { g.fillStyle = this.shade(base, .05); g.fillRect(x + rx + ix, y + ry, 1, 1); }
+        else if (r < .14) { g.fillStyle = this.shade(base, -.04); g.fillRect(x + rx + ix, y + ry, 1, 1); }
+      }
+    });
+    // seam: closed 1px outline derived from a mask, so every variant gets a full frame
+    const mask = {};
+    rows.forEach(([ry, rx, rw]) => { for (let ix = 0; ix < rw; ix++) mask[(rx + ix) + ',' + ry] = 1; });
+    g.fillStyle = '#33373d';
+    rows.forEach(([ry, rx, rw]) => {
+      for (let ix = 0; ix < rw; ix++) {
+        const px = rx + ix;
+        if (!mask[(px - 1) + ',' + ry] || !mask[(px + 1) + ',' + ry] ||
+            !mask[px + ',' + (ry - 1)] || !mask[px + ',' + (ry + 1)]) g.fillRect(x + px, y + ry, 1, 1);
+      }
+    });
+  }
+
+  // v0 drip, v1 pool, v2 long smear; size scales both axes
+  oil(g, x, y, v, size) {
+    const s = size || 12, w = v === 2 ? Math.round(s * .8) : s, hh = v === 2 ? Math.round(s * 2.2) : Math.round(s * .95);
+    const L = this.edge(v * 3.1 + s, hh, 0, w * .3, 5), R = this.edge(v * 5.7 + s + 2, hh, w * .7, w, 5);
+    g.fillStyle = 'rgba(18,20,24,.20)';
+    for (let i = 0; i < hh; i++) { const l = L(i); g.fillRect(x + l, y + i, Math.max(2, R(i) - l), 1); }
+    g.fillStyle = 'rgba(18,20,24,.22)';
+    for (let i = 2; i < hh - 2; i++) { const l = L(i) + 1; g.fillRect(x + l, y + i, Math.max(1, R(i) - l - 1), 1); }
+    g.fillStyle = 'rgba(18,20,24,.18)';
+    for (let i = 0; i < Math.round(s * .9); i++) {
+      const px = Math.floor(this.h(i * 7.3 + v) * (w + 4)) - 2;
+      const py = Math.floor(this.h(i * 3.9 + v) * (hh + 4)) - 2;
+      g.fillRect(x + px, y + py, this.h(i * 2.2) > .6 ? 2 : 1, 1);
+    }
+  }
+
+  // v0/v1 straight pair, v2 swerve; len sets length
+  skid(g, x, y, v, len) {
+    const n = len || 22, drift = v === 2 ? 1 : 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const off = drift ? Math.round(Math.sin(t * 2.3) * 6) : 0;
+      const b = Math.floor(this.h(i * 2.7 + v) * 2);
+      const fade = t < .18 || t > .86 ? '.32' : '.60';
+      g.fillStyle = 'rgba(24,26,30,' + fade + ')';
+      g.fillRect(x + b + off, y + i, 2, 1);
+      g.fillRect(x + 12 - b + off, y + i, 2, 1);
+    }
+  }
+
+  // ---- warning sign: 17 wide, 15 tall, every row odd and centred ----
+  signRows() {
+    const H = 15, W = 17, out = [];
+    for (let i = 0; i < H; i++) {
+      let w = Math.round(1 + i * (W - 1) / (H - 1));
+      if (w % 2 === 0) w += 1;
+      out.push(Math.min(W, w));
+    }
+    return out;
+  }
+
+  sign(g, cx, y) {
+    const rows = this.signRows(), H = rows.length;
+    g.fillStyle = 'rgba(0,0,0,.34)';
+    rows.forEach((w, i) => g.fillRect(cx - ((w - 1) >> 1) + 1, y + i + 1, w, 1));
+    g.fillStyle = '#e63946';
+    rows.forEach((w, i) => g.fillRect(cx - ((w - 1) >> 1), y + i, w, 1));
+    g.fillStyle = '#f5b32a';
+    for (let i = 3; i < H - 2; i++) {
+      const w = rows[i] - 4;
+      if (w > 0) g.fillRect(cx - ((w - 1) >> 1), y + i, w, 1);
+    }
+    g.fillStyle = '#1a1f28';
+    g.fillRect(cx, y + 5, 1, 4);
+    g.fillRect(cx, y + 11, 1, 1);
+  }
+
+  // clone: regular triangle — 15 base, 15 tall, every step exactly 2 rows apart — + 1px red border
+  signTri(g, cx, y) {
+    const rows = [1, 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15], H = rows.length;
+    g.fillStyle = 'rgba(0,0,0,.34)';
+    rows.forEach((w, i) => g.fillRect(cx - ((w - 1) >> 1) + 1, y + i + 1, w, 1));
+    g.fillStyle = '#e63946';
+    rows.forEach((w, i) => g.fillRect(cx - ((w - 1) >> 1), y + i, w, 1));
+    g.fillStyle = '#f5b32a';
+    for (let i = 2; i < H - 1; i++) {
+      const w = rows[i] - 2;
+      if (w > 0) g.fillRect(cx - ((w - 1) >> 1), y + i, w, 1);
+    }
+    g.fillStyle = '#1a1f28';
+    g.fillRect(cx, y + 5, 1, 4);
+    g.fillRect(cx, y + 11, 1, 1);
+  }
+
+  signOld(g, cx, y) {
+    const x = cx - 7;
+    g.fillStyle = 'rgba(0,0,0,.35)';
+    for (let i = 0; i < 6; i++) g.fillRect(x + 7 - i, y + i + 1, 2 + i * 2, 1);
+    g.fillStyle = '#e63946';
+    for (let i = 0; i < 6; i++) g.fillRect(x + 6 - i, y + i, 2 + i * 2, 1);
+    g.fillStyle = '#f5b32a';
+    for (let i = 1; i < 6; i++) g.fillRect(x + 7 - i, y + i, i * 2, 1);
+    g.fillStyle = '#1a1f28'; g.fillRect(x + 6, y + 2, 1, 3); g.fillRect(x + 6, y + 6, 1, 1);
+  }
+
+  // ---- obstacles ----
+  shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = (v) => Math.max(0, Math.min(255, Math.round(v + 255 * amt)));
+    return 'rgb(' + f((n >> 16) & 255) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')';
+  }
+
+  brokenCar(g, x, y, color) {
+    const c = color || '#b4bcc4';
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x + 1, y + 3, 18, 30);
+    g.fillStyle = '#1b1e24'; g.fillRect(x, y, 18, 31);
+    g.fillStyle = c; g.fillRect(x + 1, y + 1, 16, 29);
+    g.fillStyle = this.shade(c, .08); g.fillRect(x + 1, y + 8, 16, 5);
+    g.fillStyle = '#20242c'; g.fillRect(x + 3, y + 13, 12, 7); g.fillRect(x + 3, y + 24, 12, 4);
+    g.fillStyle = this.shade(c, -.16); g.fillRect(x + 1, y + 21, 16, 1);
+    g.fillStyle = '#1b1e24'; g.fillRect(x + 2, y + 1, 14, 6);
+    g.fillStyle = '#2b2f36'; g.fillRect(x + 3, y + 2, 12, 4);
+    g.fillStyle = '#f5b32a';
+    g.fillRect(x + 1, y + 29, 3, 2); g.fillRect(x + 14, y + 29, 3, 2);
+    g.fillRect(x + 1, y + 7, 2, 2); g.fillRect(x + 15, y + 7, 2, 2);
+  }
+
+  cone(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.24)'; g.fillRect(x, y + 6, 8, 2);
+    g.fillStyle = '#1f2228'; g.fillRect(x, y + 5, 8, 2);
+    g.fillStyle = '#e06a1e'; g.fillRect(x + 1, y + 1, 6, 5); g.fillRect(x + 2, y, 4, 1);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 1, y + 2, 6, 2);
+    g.fillStyle = '#f58a2e'; g.fillRect(x + 3, y, 2, 1);
+  }
+
+  breakdown(g, x0, lw, y) {
+    this.brokenCar(g, x0 + Math.floor((lw - 18) / 2), y);
+    const by = y + 37;
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x0 + 1, by + 5, lw - 2, 3);
+    g.fillStyle = '#20242c'; g.fillRect(x0 + 1, by, lw - 2, 6);
+    g.fillStyle = '#e06a1e'; g.fillRect(x0 + 1, by + 1, lw - 2, 4);
+    g.fillStyle = '#e6e2d6';
+    for (let i = 0; i < lw - 5; i += 8) g.fillRect(x0 + 3 + i, by + 1, 4, 4);
+    g.fillStyle = '#4a4f5a'; g.fillRect(x0 + 2, by + 6, 2, 3); g.fillRect(x0 + lw - 4, by + 6, 2, 3);
+    this.cone(g, x0 + 2, by + 12);
+    this.cone(g, x0 + lw - 10, by + 14);
+    this.cone(g, x0 + Math.floor(lw / 2) - 4, by + 22);
+  }
+
+  // angular boulders: straight facets, hard highlight/shadow split, cracks
+  rocks(g, x0, lw, y) {
+    const cx = x0 + Math.floor(lw / 2);
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(cx - 12, y + 16, 25, 16);
+    g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(cx - 13, y + 20, 27, 9);
+    const boulder = (bx, by, w, hh, sd) => {
+      const L = this.stepEdge(sd, hh, 0, w * .3, 4), R = this.stepEdge(sd + 5.7, hh, w * .7, w, 4);
+      const lAt = [], rAt = [];
+      for (let i = 0; i < hh; i++) {
+        // taper the top and bottom rows so it reads as a solid lump, not a column
+        const t = i < 2 ? (2 - i) : i > hh - 3 ? (i - (hh - 3)) : 0;
+        const l = Math.min(w - 3, L(i) + t), r = Math.max(l + 3, R(i) - t);
+        lAt.push(l); rAt.push(r);
+      }
+      g.fillStyle = '#6b6359';
+      for (let i = 0; i < hh; i++) g.fillRect(bx + lAt[i], by + i, rAt[i] - lAt[i], 1);
+      // lit facet: upper-left wedge, straight diagonal break
+      g.fillStyle = '#9a9083';
+      for (let i = 0; i < Math.round(hh * .55); i++) {
+        const wd = Math.round((rAt[i] - lAt[i]) * (.62 - i / hh * .35));
+        if (wd > 0) g.fillRect(bx + lAt[i] + 1, by + i, wd, 1);
+      }
+      g.fillStyle = '#82796d';
+      for (let i = Math.round(hh * .3); i < Math.round(hh * .7); i++) {
+        const wd = Math.round((rAt[i] - lAt[i]) * .34);
+        if (wd > 0) g.fillRect(bx + lAt[i] + 1, by + i, wd, 1);
+      }
+      // shadow facet: lower-right
+      g.fillStyle = '#494339';
+      for (let i = Math.round(hh * .6); i < hh; i++) {
+        const wd = Math.round((rAt[i] - lAt[i]) * .5);
+        if (wd > 0) g.fillRect(bx + rAt[i] - wd, by + i, wd, 1);
+      }
+      // rim + crack
+      g.fillStyle = '#a89e90';
+      for (let i = 0; i < Math.round(hh * .5); i++) g.fillRect(bx + lAt[i], by + i, 1, 1);
+      g.fillStyle = '#3a352d';
+      for (let i = 0; i < hh; i++) g.fillRect(bx + rAt[i] - 1, by + i, 1, 1);
+      g.fillRect(bx + lAt[0], by, rAt[0] - lAt[0], 1);
+      g.fillStyle = '#4c463f';
+      let ck = bx + Math.round(w * .45);
+      for (let i = Math.round(hh * .25); i < Math.round(hh * .85); i++) {
+        ck += this.h(sd + i * 2.9) > .55 ? 1 : 0;
+        g.fillRect(Math.min(bx + rAt[i] - 2, ck), by + i, 1, 1);
+      }
+    };
+    boulder(cx - 13, y + 8, 15, 21, 3.1);
+    boulder(cx + 1, y, 13, 17, 8.4);
+    boulder(cx - 6, y + 19, 13, 13, 12.7);
+    boulder(cx + 5, y + 17, 9, 12, 19.3);
+    // scree, kept inside the lane interior
+    for (let i = 0; i < 20; i++) {
+      const px = cx - 13 + Math.floor(this.h(i * 6.1) * 25), py = y + Math.floor(this.h(i * 2.7) * 34);
+      const s = this.h(i * 9.1) > .55 ? 2 : 1;
+      g.fillStyle = this.h(i * 4.3) > .5 ? '#8d8376' : '#5c554b';
+      g.fillRect(px, py, s, s > 1 ? 2 : 1);
+    }
+  }
+
+  cow(g, x0, lw, y) {
+    const x = x0 + Math.floor((lw - 24) / 2);
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x + 3, y + 15, 20, 4);
+    // slimmer barrel: 9 rows deep instead of 13, with a dip behind the shoulder
+    g.fillStyle = '#e6e2d6';
+    g.fillRect(x + 4, y + 6, 17, 9);
+    g.fillRect(x + 6, y + 5, 12, 1);
+    g.fillStyle = '#f2efe6'; g.fillRect(x + 5, y + 6, 15, 2);
+    g.fillStyle = '#26292e';
+    g.fillRect(x + 7, y + 7, 5, 4); g.fillRect(x + 15, y + 9, 4, 3);
+    g.fillStyle = '#b0a89a'; g.fillRect(x + 4, y + 14, 17, 1);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 6, y + 15, 2, 5); g.fillRect(x + 17, y + 15, 2, 5);
+    g.fillStyle = '#c9c4b4'; g.fillRect(x + 9, y + 15, 2, 4); g.fillRect(x + 14, y + 15, 2, 4);
+    g.fillStyle = '#26292e';
+    g.fillRect(x + 6, y + 19, 2, 1); g.fillRect(x + 17, y + 19, 2, 1);
+    // head, facing left off the lane
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 1, y + 7, 4, 5);
+    g.fillStyle = '#26292e'; g.fillRect(x + 1, y + 7, 4, 2); g.fillRect(x + 2, y + 10, 1, 1);
+    g.fillStyle = '#c9c4b4'; g.fillRect(x + 2, y + 5, 1, 2); g.fillRect(x + 4, y + 5, 1, 2);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 21, y + 7, 2, 7);
+  }
+
+  deer(g, x0, lw, y) {
+    const x = x0 + Math.floor((lw - 16) / 2);
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x + 1, y + 21, 14, 4);
+    g.fillStyle = '#7a5433'; g.fillRect(x + 3, y + 8, 10, 12);
+    g.fillStyle = '#96683f'; g.fillRect(x + 3, y + 8, 10, 3);
+    g.fillStyle = '#5a3c24'; g.fillRect(x + 3, y + 18, 10, 1);
+    g.fillStyle = '#7a5433'; g.fillRect(x + 4, y + 20, 3, 5); g.fillRect(x + 10, y + 20, 3, 5);
+    g.fillStyle = '#3d2c1b'; g.fillRect(x + 4, y + 24, 3, 1); g.fillRect(x + 10, y + 24, 3, 1);
+    g.fillStyle = '#e6ded0'; g.fillRect(x + 5, y + 15, 6, 3);
+    g.fillStyle = '#96683f'; g.fillRect(x + 6, y + 3, 5, 6);
+    g.fillStyle = '#1a1f28'; g.fillRect(x + 6, y + 5, 1, 1); g.fillRect(x + 10, y + 5, 1, 1);
+    g.fillStyle = '#e6ded0'; g.fillRect(x + 7, y + 7, 3, 2);
+    g.fillStyle = '#5a3c24';
+    g.fillRect(x + 5, y + 1, 1, 3); g.fillRect(x + 11, y + 1, 1, 3);
+    g.fillRect(x + 3, y + 2, 2, 1); g.fillRect(x + 12, y + 2, 2, 1);
+    g.fillRect(x + 4, y, 1, 1); g.fillRect(x + 12, y, 1, 1);
+  }
+
+  player(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x + 1, y + 3, 18, 30);
+    g.fillStyle = '#1b1e24'; g.fillRect(x, y, 18, 31);
+    g.fillStyle = '#3f7fa8'; g.fillRect(x + 1, y + 1, 16, 29);
+    g.fillStyle = '#5aa0c8'; g.fillRect(x + 1, y + 1, 16, 6);
+    g.fillStyle = '#20242c'; g.fillRect(x + 3, y + 8, 12, 7); g.fillRect(x + 3, y + 22, 12, 5);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 2, y, 3, 2); g.fillRect(x + 13, y, 3, 2);
+  }
+
+  npc(g, x, y) {
+    g.fillStyle = 'rgba(0,0,0,.26)'; g.fillRect(x + 1, y + 3, 18, 30);
+    g.fillStyle = '#1b1e24'; g.fillRect(x, y, 18, 31);
+    g.fillStyle = '#c9c4b4'; g.fillRect(x + 1, y + 1, 16, 29);
+    g.fillStyle = '#e6e2d6'; g.fillRect(x + 1, y + 1, 16, 6);
+    g.fillStyle = '#20242c'; g.fillRect(x + 3, y + 8, 12, 7); g.fillRect(x + 3, y + 22, 12, 5);
+    g.fillStyle = '#e63946'; g.fillRect(x + 2, y + 29, 3, 2); g.fillRect(x + 13, y + 29, 3, 2);
+  }
+
+  // ---- plates ----
+  patchSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 5);
+    this.patch(g, 3, 7, 0, 20, 26, 2);
+    this.patch(g, 28, 4, 1, 24, 32, 9);
+    this.patch(g, 57, 3, 2, 26, 34, 4);
+    this.patch(g, 88, 2, 3, 13, 38, 11);
+    this.patch(g, 106, 6, 4, 28, 28, 6);
+  }
+
+  potholeSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 2);
+    this.pothole(g, 4, 14, 0, 5, 1);
+    this.pothole(g, 14, 11, 0, 9, 3);
+    this.pothole(g, 30, 7, 1, 11, 5);
+    this.pothole(g, 45, 6, 2, 13, 7);
+    this.pothole(g, 70, 11, 1, 7, 2);
+    this.pothole(g, 80, 9, 2, 9, 4);
+  }
+
+  manholeSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 8);
+    this.manhole(g, 5, 11, 0, 9);
+    this.manhole(g, 24, 12, 1, 7);
+    this.manhole(g, 42, 11, 2, 9);
+  }
+
+  drainSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 3);
+    g.fillStyle = '#3d4149'; g.fillRect(0, 0, 2, H);
+    this.drain(g, 3, 10, 0);
+    this.drain(g, 22, 12, 1);
+    this.drain(g, 44, 10, 2);
+  }
+
+  oilSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 6);
+    this.oil(g, 4, 13, 0, 7);
+    this.oil(g, 20, 9, 1, 14);
+    this.oil(g, 42, 4, 2, 12);
+  }
+
+  skidSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 4);
+    this.skid(g, 4, 20, 0, 10);
+    this.skid(g, 24, 4, 1, 38);
+    this.skid(g, 44, 6, 2, 34);
+  }
+
+  stripeSheet(g, W, H) {
+    this.asphalt(g, W, H, 1, 7);
+    g.fillStyle = '#44484f';
+    [8, 28, 48].forEach(x => g.fillRect(x + 1, 0, 1, H));
+    this.dash(g, 7, 12, 0);
+    this.dash(g, 27, 12, 1);
+    this.dash(g, 47, 12, 2);
+  }
+
+  strip(g, W, H, mode, seed) {
+    const n = this.lanes(), lw = Math.floor(W / n), laneC = (i) => i * lw + Math.floor(lw / 2);
+    this.asphalt(g, W, H, n, 7);
+    if (mode === 'clean') { this.dashes(g, W, H, n, {}); return; }
+    const scuff = mode === 'rare' ? {} : (seed === 2 ? { 201: 2 } : { 302: 1 });
+    this.dashes(g, W, H, n, scuff);
+    if (mode === 'rare') {
+      this.patch(g, laneC(1) - 10, 208, 4, 21, 24, 3);
+      return;
+    }
+    if (seed === 2) {
+      this.skid(g, laneC(2) - 6, 70, 2, 34);
+      this.manhole(g, laneC(0) - 4, 246, 0, 9);
+      this.oil(g, laneC(3) - 6, 402, 1, 13);
+      this.drain(g, W - 7, 486, 0);
+      this.patch(g, laneC(1) - 6, 126, 3, 13, 36, 8);
+    } else {
+      this.patch(g, laneC(2) - 11, 92, 1, 23, 28, 5);
+      this.pothole(g, laneC(0) - 4, 300, 1, 10, 6);
+      this.pothole(g, laneC(3) - 3, 466, 0, 7, 2);
+    }
+  }
+
+  obsPlate(g, kind) {
+    const W = 40, H = 76, x0 = 5, lw = 31;
+    this.asphalt(g, W, H, 1, kind.length);
+    g.fillStyle = '#44484f'; g.fillRect(x0 - 1, 0, 1, H); g.fillRect(x0 + lw, 0, 1, H);
+    let k = 0;
+    for (let y = -4; y < H; y += 32, k++) {
+      this.dash(g, x0 - 2, y, 0);
+      this.dash(g, x0 + lw, y, 0);
+    }
+    if (kind === 'break') this.breakdown(g, x0, lw, 3);
+    if (kind === 'rocks') this.rocks(g, x0, lw, 24);
+    if (kind === 'cow') this.cow(g, x0, lw, 26);
+    if (kind === 'deer') this.deer(g, x0, lw, 24);
+  }
+
+  warnPlate(g, W, H, frame) {
+    const n = this.lanes(), lw = Math.floor(W / n), laneC = (i) => i * lw + Math.floor(lw / 2);
+    const x0 = 2 * lw;
+    this.asphalt(g, W, H, n, 7);
+    this.dashes(g, W, H, n, {});
+    this.manhole(g, laneC(0) - 4, 96, 0, 9);
+    this.patch(g, laneC(1) - 10, 18, 1, 21, 26, 4);
+    if (frame === 0) {
+      this.sign(g, laneC(2), 6);
+      this.player(g, laneC(1) - 9, H - 46);
+    } else if (frame === 1) {
+      this.sign(g, laneC(2), 6);
+      this.breakdown(g, x0, lw, 26);
+      this.player(g, laneC(1) - 9, H - 46);
+    } else {
+      this.breakdown(g, x0, lw, 76);
+      this.npc(g, laneC(0) - 9, 30);
+      this.player(g, laneC(1) - 9, 150);
+    }
+  }
+
+  signPlate(g, W, H, which) {
+    g.fillStyle = '#2a2d34'; g.fillRect(0, 0, W, H);
+    if (which === 'new') this.sign(g, 11, 2);
+    else if (which === 'tri') this.signTri(g, 11, 2);
+    else if (which === 'old') this.signOld(g, 11, 5);
+  }
+
+  scalePlate(g, W, H) {
+    g.fillStyle = '#2a2d34'; g.fillRect(0, 0, W, H);
+    const s = this.buf(19, 17, gg => this.sign(gg, 9, 1));
+    g.imageSmoothingEnabled = false;
+    g.drawImage(s, 3, H - 20, 19, 17);
+    g.drawImage(s, 26, H - 37, 38, 34);
+    g.drawImage(s, 68, H - 54, 57, 51);
+  }
+
+  paintAll() {
+    const RW = 124, SH = 576;
+    const specs = {
+      dPatch: [140, 42, 4, g => this.patchSheet(g, 140, 42)],
+      dPothole: [100, 34, 4, g => this.potholeSheet(g, 100, 34)],
+      dManhole: [68, 30, 4, g => this.manholeSheet(g, 68, 30)],
+      dDrain: [68, 30, 4, g => this.drainSheet(g, 68, 30)],
+      dOil: [68, 30, 4, g => this.oilSheet(g, 68, 30)],
+      dSkid: [68, 46, 4, g => this.skidSheet(g, 68, 46)],
+      dStripe: [68, 42, 4, g => this.stripeSheet(g, 68, 42)],
+      sClean: [RW, SH, 2, g => this.strip(g, RW, SH, 'clean', 1)],
+      sRare: [RW, SH, 2, g => this.strip(g, RW, SH, 'rare', 1)],
+      sOcc: [RW, SH, 2, g => this.strip(g, RW, SH, 'occ', 1)],
+      sOcc2: [RW, SH, 2, g => this.strip(g, RW, SH, 'occ', 2)],
+      oBreak: [40, 76, 5, g => this.obsPlate(g, 'break')],
+      oRocks: [40, 76, 5, g => this.obsPlate(g, 'rocks')],
+      oCow: [40, 76, 5, g => this.obsPlate(g, 'cow')],
+      oDeer: [40, 76, 5, g => this.obsPlate(g, 'deer')],
+      gSign: [23, 20, 8, g => this.signPlate(g, 23, 20, 'new')],
+      gSignTri: [23, 20, 8, g => this.signPlate(g, 23, 20, 'tri')],
+      gSignOld: [23, 20, 8, g => this.signPlate(g, 23, 20, 'old')],
+      gSign1x: [130, 58, 2, g => this.scalePlate(g, 130, 58)],
+      wA: [RW, 288, 3, g => this.warnPlate(g, RW, 288, 0)],
+      wB: [RW, 288, 3, g => this.warnPlate(g, RW, 288, 1)],
+      wC: [RW, 288, 3, g => this.warnPlate(g, RW, 288, 2)]
+    };
+    document.querySelectorAll('canvas[data-plate]').forEach(cv => {
+      const spec = specs[cv.dataset.plate];
+      if (!spec) return;
+      const [w, h, z, fn] = spec;
+      const src = this.buf(w, h, fn);
+      cv.width = w * z; cv.height = h * z;
+      const g = cv.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      g.clearRect(0, 0, cv.width, cv.height);
+      g.drawImage(src, 0, 0, cv.width, cv.height);
+    });
+  }
+}
+</script>
+</body>
+</html>

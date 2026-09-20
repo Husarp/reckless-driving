@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: #0b0e14; }
+  a { color: #2ee6b0; }
+  a:hover { color: #f5b32a; }
+  svg { shape-rendering: crispEdges; image-rendering: pixelated; display: block; }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:30px;padding:44px;background:#0b0e14;min-height:100vh;box-sizing:border-box;font-family:'DotGothic16','Courier New',monospace;color:#e8e6df">
+  <div style="display:flex;flex-direction:column;gap:7px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#0b0e14;background:#f5b32a;padding:4px 7px">1a</div>
+      <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a">BOOSTER EFFECT ICONS</div>
+    </div>
+    <div style="font-family:'Silkscreen',monospace;font-size:20px;color:#fff;letter-spacing:1px">3 HUD icons</div>
+    <div style="font-size:13px;color:#9aa3b2;max-width:620px;text-wrap:pretty">One 20&times;20 pixel grid per icon. Same fire ramp as the thruster canvas &mdash; hot core at the nozzle stepping down to an ember tip &mdash; but in bigger flat bands with the detail dropped. Underglow is two separate short jets set close together; rocket pods keep their grey canisters. All flames fire downward. Background is transparent; the cell backing is only there to see the shapes.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,184px);gap:26px">
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div style="position:relative;width:184px;height:184px;background:#141924;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ lightCells }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:#d8d4c8"></div></sc-if>
+        <sc-if value="{{ showNumbers }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:6px;left:8px;font-family:'Silkscreen',monospace;font-size:8px;color:#3c465c">01</div></sc-if>
+        <svg width="160" height="160" viewBox="0 0 20 20" style="position:relative"><rect x="5" y="2" width="10" height="3" fill="#fff8d0"></rect><rect x="5" y="5" width="10" height="2" fill="#ffe066"></rect><rect x="6" y="7" width="8" height="3" fill="#ffb02e"></rect><rect x="7" y="10" width="6" height="3" fill="#ff7a18"></rect><rect x="8" y="13" width="4" height="3" fill="#ef4423"></rect><rect x="9" y="16" width="2" height="3" fill="#b3231a"></rect></svg>
+        <sc-if value="{{ showPixelGrid }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;width:160px;height:160px;pointer-events:none;background-image:repeating-linear-gradient(to right,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px),repeating-linear-gradient(to bottom,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px)"></div></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <sc-if value="{{ showTinyPreview }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 20 20"><rect x="5" y="2" width="10" height="3" fill="#fff8d0"></rect><rect x="5" y="5" width="10" height="2" fill="#ffe066"></rect><rect x="6" y="7" width="8" height="3" fill="#ffb02e"></rect><rect x="7" y="10" width="6" height="3" fill="#ff7a18"></rect><rect x="8" y="13" width="4" height="3" fill="#ef4423"></rect><rect x="9" y="16" width="2" height="3" fill="#b3231a"></rect></svg></sc-if>
+        <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#e8e6df">CENTER THRUSTER</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div style="position:relative;width:184px;height:184px;background:#141924;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ lightCells }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:#d8d4c8"></div></sc-if>
+        <sc-if value="{{ showNumbers }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:6px;left:8px;font-family:'Silkscreen',monospace;font-size:8px;color:#3c465c">02</div></sc-if>
+        <svg width="160" height="160" viewBox="0 0 20 20" style="position:relative"><rect x="3" y="6" width="6" height="2" fill="#fff8d0"></rect><rect x="11" y="6" width="6" height="2" fill="#fff8d0"></rect><rect x="3" y="8" width="6" height="2" fill="#ffe066"></rect><rect x="11" y="8" width="6" height="2" fill="#ffe066"></rect><rect x="3" y="10" width="6" height="2" fill="#ffb02e"></rect><rect x="11" y="10" width="6" height="2" fill="#ffb02e"></rect><rect x="4" y="12" width="4" height="2" fill="#ff7a18"></rect><rect x="12" y="12" width="4" height="2" fill="#ff7a18"></rect><rect x="4" y="14" width="4" height="2" fill="#ef4423"></rect><rect x="12" y="14" width="4" height="2" fill="#ef4423"></rect></svg>
+        <sc-if value="{{ showPixelGrid }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;width:160px;height:160px;pointer-events:none;background-image:repeating-linear-gradient(to right,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px),repeating-linear-gradient(to bottom,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px)"></div></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <sc-if value="{{ showTinyPreview }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 20 20"><rect x="3" y="6" width="6" height="2" fill="#fff8d0"></rect><rect x="11" y="6" width="6" height="2" fill="#fff8d0"></rect><rect x="3" y="8" width="6" height="2" fill="#ffe066"></rect><rect x="11" y="8" width="6" height="2" fill="#ffe066"></rect><rect x="3" y="10" width="6" height="2" fill="#ffb02e"></rect><rect x="11" y="10" width="6" height="2" fill="#ffb02e"></rect><rect x="4" y="12" width="4" height="2" fill="#ff7a18"></rect><rect x="12" y="12" width="4" height="2" fill="#ff7a18"></rect><rect x="4" y="14" width="4" height="2" fill="#ef4423"></rect><rect x="12" y="14" width="4" height="2" fill="#ef4423"></rect></svg></sc-if>
+        <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#e8e6df">UNDERGLOW</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div style="position:relative;width:184px;height:184px;background:#141924;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ lightCells }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:#d8d4c8"></div></sc-if>
+        <sc-if value="{{ showNumbers }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:6px;left:8px;font-family:'Silkscreen',monospace;font-size:8px;color:#3c465c">03</div></sc-if>
+        <svg width="160" height="160" viewBox="0 0 20 20" style="position:relative"><rect x="2" y="2" width="6" height="8" fill="#c8d2df"></rect><rect x="6" y="2" width="2" height="8" fill="#8d98a8"></rect><rect x="2" y="10" width="6" height="2" fill="#5d6878"></rect><rect x="12" y="2" width="6" height="8" fill="#c8d2df"></rect><rect x="12" y="2" width="2" height="8" fill="#8d98a8"></rect><rect x="12" y="10" width="6" height="2" fill="#5d6878"></rect><rect x="3" y="12" width="4" height="2" fill="#fff8d0"></rect><rect x="13" y="12" width="4" height="2" fill="#fff8d0"></rect><rect x="3" y="14" width="4" height="2" fill="#ffb02e"></rect><rect x="13" y="14" width="4" height="2" fill="#ffb02e"></rect><rect x="4" y="16" width="2" height="2" fill="#ef4423"></rect><rect x="14" y="16" width="2" height="2" fill="#ef4423"></rect></svg>
+        <sc-if value="{{ showPixelGrid }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;width:160px;height:160px;pointer-events:none;background-image:repeating-linear-gradient(to right,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px),repeating-linear-gradient(to bottom,rgba(122,140,170,0.28) 0 1px,transparent 1px 8px)"></div></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <sc-if value="{{ showTinyPreview }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 20 20"><rect x="2" y="2" width="6" height="8" fill="#c8d2df"></rect><rect x="6" y="2" width="2" height="8" fill="#8d98a8"></rect><rect x="2" y="10" width="6" height="2" fill="#5d6878"></rect><rect x="12" y="2" width="6" height="8" fill="#c8d2df"></rect><rect x="12" y="2" width="2" height="8" fill="#8d98a8"></rect><rect x="12" y="10" width="6" height="2" fill="#5d6878"></rect><rect x="3" y="12" width="4" height="2" fill="#fff8d0"></rect><rect x="13" y="12" width="4" height="2" fill="#fff8d0"></rect><rect x="3" y="14" width="4" height="2" fill="#ffb02e"></rect><rect x="13" y="14" width="4" height="2" fill="#ffb02e"></rect><rect x="4" y="16" width="2" height="2" fill="#ef4423"></rect><rect x="14" y="16" width="2" height="2" fill="#ef4423"></rect></svg></sc-if>
+        <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:#e8e6df">ROCKET PODS</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showNumbers&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showTinyPreview&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showPixelGrid&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;lightCells&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showNumbers: this.props.showNumbers ?? true,
+      showTinyPreview: this.props.showTinyPreview ?? true,
+      showPixelGrid: this.props.showPixelGrid ?? false,
+      lightCells: this.props.lightCells ?? false,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<title>Achievements Tab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14161b;
+    --panel: #1b1e26;
+    --panel-border: #2a2d34;
+    --text: #e6e2d6;
+    --text-dim: #c9c4b4;
+    --text-dimmer: #8a8782;
+    --text-faint: #6f6c67;
+    --amber: #f5b32a;
+    --mint: #4fd6a8;
+    --red: #e63946;
+    --purple: #b98cf0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DotGothic16', 'Courier New', monospace;
+    margin: 0;
+    padding: 40px 44px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  @media (max-width: 640px) { body { padding: 28px 18px 60px; } }
+  .kicker {
+    font-family: 'Silkscreen', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Silkscreen', monospace;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .intro {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-dim);
+    max-width: 62ch;
+    margin-bottom: 6px;
+  }
+  .intro b { color: var(--text); font-weight: normal; }
+  .meta-note {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-faint);
+    max-width: 62ch;
+    border-left: 2px solid var(--panel-border);
+    padding-left: 12px;
+    margin: 18px 0 40px;
+  }
+  h2 {
+    font-family: 'Silkscreen', monospace;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    margin: 46px 0 6px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--panel-border);
+  }
+  h2 .count {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0;
+    font-weight: normal;
+  }
+  .section-note {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-dimmer);
+    max-width: 62ch;
+    margin: 10px 0 18px;
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--panel-border);
+    border: 1px solid var(--panel-border);
+  }
+  .item {
+    background: var(--panel);
+    padding: 11px 14px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 16px;
+    align-items: baseline;
+  }
+  .item-name {
+    font-size: 13.5px;
+    color: var(--text);
+  }
+  .item-name .working-title {
+    color: var(--text-dimmer);
+    font-style: italic;
+  }
+  .item-tag {
+    font-family: 'Silkscreen', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 3px 6px;
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .tag-tiered { background: rgba(79, 214, 168, 0.12); color: var(--mint); border: 1px solid rgba(79, 214, 168, 0.35); }
+  .tag-unclear { background: rgba(245, 179, 42, 0.12); color: var(--amber); border: 1px solid rgba(245, 179, 42, 0.35); }
+  .item-desc {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-dimmer);
+    max-width: 68ch;
+  }
+  .secret-item .item-name { color: var(--purple); }
+  .rules-box {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .rule {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    padding-left: 16px;
+    position: relative;
+  }
+  .rule::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+  }
+  .rule b { color: var(--text); font-weight: normal; }
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 2px solid var(--panel-border);
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.7;
+  }
+</style>
+
+<div class="kicker">HIGHWAY RECKLESS DRIVING — DESIGN BRIEF</div>
+<h1>Achievements Tab — Content List</h1>
+<p class="intro">This is the content for the new Achievements tab (replaces the current inert <b>ACHIEVEMENTS</b> placeholder button on the main menu). It's every achievement/mission idea proposed so far, organized by type. <b>No layout, visual style, or screen structure is specified here on purpose</b> — that's entirely up to you. Rename anything if a better name comes to mind, and treat the exact goal numbers (the "X" in each tiered entry) as placeholders to be tuned, not final.</p>
+<p class="meta-note">Some entries are marked <span style="color:var(--amber)">NEEDS DEFINITION</span> — the idea is real but the exact trigger condition hasn't been pinned down yet (e.g. "do something with the stock car" was never elaborated). Flag these back rather than guessing at what they mean.</p>
+
+<h2>Behavior Rules <span class="count">— how the tab needs to work, not how it needs to look</span></h2>
+<div class="rules-box">
+  <div class="rule">Three sections: <b>one-time</b>, <b>tiered</b>, and <b>secret</b>. Secret achievements stay hidden (name/description withheld) until unlocked.</div>
+  <div class="rule">Tabs to filter the view: <b>ALL / COMPLETED / UNCOMPLETED</b>.</div>
+  <div class="rule">Tiered achievements show two numbers at once: the <b>highest tier already completed</b>, and the <b>next incomplete tier</b> as current progress. Lower tiers must be cleared in order before a higher one counts.</div>
+  <div class="rule">Unlocking any achievement (one-time, a new tier, or a secret) surfaces on the post-run result screen.</div>
+  <div class="rule">Secret achievements should mostly be fun, low-effort discoveries — not grindy — with a couple of harder ones mixed in.</div>
+  <div class="rule">If a section has too many entries to show comfortably at once, sub-section it (by theme, difficulty, whatever makes sense) rather than one long list.</div>
+</div>
+
+<h2>One-Time Achievements <span class="count">— 25</span></h2>
+<p class="section-note">Each of these clears once and stays cleared. A few are flagged as possibly not achievable given current game rules — worth a quick feasibility check before committing art/copy to them.</p>
+<div class="list">
+  <div class="item"><span class="item-name">Ram the ambulance <span class="working-title">("possible?")</span></span><span class="item-tag tag-unclear">CHECK FEASIBILITY</span></div>
+  <div class="item"><span class="item-name">Have a close call with an ambulance</span></div>
+  <div class="item"><span class="item-name">See 2 ambulances on screen at the same time <span class="working-title">("possible?")</span></span><span class="item-tag tag-unclear">CHECK FEASIBILITY</span></div>
+  <div class="item"><span class="item-name">Win a car from a box</span></div>
+  <div class="item"><span class="item-name">Get a paint reward 3 times in a row from boxes</span></div>
+  <div class="item"><span class="item-name">Play early in the morning <span class="working-title">("Early Bird")</span></span></div>
+  <div class="item"><span class="item-name">Play late at night</span></div>
+  <div class="item"><span class="item-name">Claim or complete a Daily Gift / Daily Word / Mission right before the daily reset</span></div>
+  <div class="item"><span class="item-name">Die within 5 seconds of starting a run</span></div>
+  <div class="item"><span class="item-name">Spot the Monster Truck as traffic <span class="working-title">("What a Monster")</span></span></div>
+  <div class="item"><span class="item-name">Own every paint color</span></div>
+  <div class="item"><span class="item-name">Do something notable with the Stock car specifically</span><span class="item-tag tag-unclear">NEEDS DEFINITION</span><div class="item-desc">Original idea never specified what — win with it, hit a score threshold, survive a certain time, etc.</div></div>
+  <div class="item"><span class="item-name">Pass through every biome type in a single run</span><div class="item-desc">Biome order is randomized per run, so this is a genuine run-length/luck challenge, not "just wait long enough."</div></div>
+  <div class="item"><span class="item-name">Have at least one run in every car</span></div>
+  <div class="item"><span class="item-name">Play during every hour of the day (cumulative, across sessions)</span></div>
+  <div class="item"><span class="item-name">Get run over by the ambulance at top speed <span class="working-title">("Caught Up")</span></span></div>
+  <div class="item"><span class="item-name">Get two close calls back to back</span></div>
+  <div class="item"><span class="item-name">Crash into a legendary-rarity car <span class="working-title">("Eye Catching")</span></span></div>
+  <div class="item"><span class="item-name">Reach 250 km/h</span></div>
+  <div class="item"><span class="item-name">Reach the highest possible score multiplier in an actual run</span></div>
+  <div class="item"><span class="item-name">Crash into the school bus <span class="working-title">("No School Today")</span></span></div>
+  <div class="item"><span class="item-name">Have a close call under 60 km/h <span class="working-title">("Bad Driver")</span></span></div>
+  <div class="item"><span class="item-name">Crash on a static road obstacle <span class="working-title">("You Can't Park There, Sir")</span></span><div class="item-desc">Now that the breakdown obstacle exists — likely the anchor for a small family of obstacle-related achievements, not just this one.</div></div>
+  <div class="item"><span class="item-name">Use a legendary car with both a non-default paint AND a non-default booster equipped <span class="working-title">("Dripped Out")</span></span></div>
+  <div class="item"><span class="item-name">Land on top of another car and crash <span class="working-title">("Pull Up! Pull Up!")</span></span></div>
+</div>
+
+<h2>Tiered Achievements <span class="count">— 21, each with multiple goal levels</span></h2>
+<p class="section-note">Each of these is really a ladder (e.g. 10 → 50 → 200 → 1000). Treat the descriptions as the shape of the challenge, not the final numbers.</p>
+<div class="list">
+  <div class="item"><span class="item-name">Meet X rare / epic / legendary cars in one run</span><span class="item-tag tag-tiered">TIERED ×3</span><div class="item-desc">Rarity note: this is really 3 separate ladders, one per rarity tier.</div></div>
+  <div class="item"><span class="item-name">Die X times (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Score X points total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Complete X Daily Gifts / Daily Words / Missions in a single run</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Own X cars, up to owning all of them</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Score X in a single run</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Survive X seconds in a single run</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Pass X cars total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Jump X times total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Ram X cars total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Ram X cars within one single ramming activation <span class="working-title">(newest idea, not yet named)</span></span><span class="item-tag tag-tiered">TIERED</span><div class="item-desc">One continuous Shield Bump window, not spread across a run. First number floated: 20.</div></div>
+  <div class="item"><span class="item-name">Jump over X cars in one single jump</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Pass the same legendary car X times within one run</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Complete X runs total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Reach a daily-play streak of X days</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Play for X minutes in one continuous session <span class="working-title">("Addicted?")</span></span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Get X close calls total (lifetime)</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Get X close calls within one run <span class="working-title">("Truly a Reckless Driver")</span></span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Change X lanes within X seconds</span><span class="item-tag tag-tiered">TIERED</span></div>
+  <div class="item"><span class="item-name">Score X points within X seconds <span class="working-title">(e.g. 2000 in 5s)</span></span><span class="item-tag tag-tiered">TIERED</span><div class="item-desc">Meant to be close-call-driven — hard, fast scoring under pressure.</div></div>
+  <div class="item"><span class="item-name">Score X points using the slowest car</span><span class="item-tag tag-tiered">TIERED</span></div>
+</div>
+
+<h2>Secret Achievements <span class="count">— 3 so far</span></h2>
+<p class="section-note">Hidden until unlocked. Keep adding to this list — an open invitation from the original request stands for more ideas here especially.</p>
+<div class="list">
+  <div class="item secret-item"><span class="item-name">Click the player level badge</span><div class="item-desc">A pure easter egg, not a challenge: the level ring plays a fun bonus animation — spins one extra full loop before settling back to its real current position. Works from any of the 3 places the level badge appears.</div></div>
+  <div class="item secret-item"><span class="item-name">Witness a car crash between two NPCs</span><div class="item-desc">Two other cars colliding with each other, unrelated to anything the player does — ties into the existing NPC-vs-NPC crash mechanic.</div></div>
+  <div class="item secret-item"><span class="item-name">Shoot a car <span class="working-title">(Tank-specific)</span></span><span class="item-tag tag-unclear">SECRET OR TIERED?</span><div class="item-desc">Tank's shot is its own ram-equivalent ability. Distinct from "shoot the ambulance" below — could be secret (one-time) or absorbed into the general Ram X cars ladder instead.</div></div>
+  <div class="item secret-item"><span class="item-name">Shoot the ambulance <span class="working-title">(Tank-specific)</span></span></div>
+  <div class="item secret-item"><span class="item-name">Jump clean over an ambulance</span><span class="item-tag tag-unclear">SECRET OR TIERED?</span><div class="item-desc">Could be a one-time secret, or its own small tiered ladder (jump over an ambulance X times) — original idea left this open.</div></div>
+</div>
+
+<footer>
+  Compiled from accumulated design notes across several sessions. If anything here reads unclear or contradicts something you're seeing elsewhere in the project, ask rather than guess — several entries are intentionally left open (see the CHECK FEASIBILITY / NEEDS DEFINITION / SECRET OR TIERED tags above).
+</footer>

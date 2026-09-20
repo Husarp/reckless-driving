@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reckless Driving CAPTCHA</title>
+    <style>
+        body {
+            background-color: #0f141d;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh; /* mobile browser chrome-aware; falls back to 100vh above on old browsers */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto; /* safety net only — the layout below is meant to always fit without it */
+        }
+
+
+        /* View handling styling. Game height is no longer a fixed internal resolution
+           scaled by width — the whole chain (view -> game-container -> canvas-container)
+           is a flex column that shrinks to whatever vertical space is actually available,
+           and the canvas (a replaced element with a real intrinsic aspect ratio) auto-fits
+           within that via max-width/max-height, so it's never taller than the viewport. */
+        .view {
+            display: none;
+            min-height: 0;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 0;
+            flex: 1 1 0%;
+        }
+
+        /* Settings Side Panel (Centered menu mode) */
+        .settings-panel {
+            background-color: #1a202c;
+            border: 3px solid #6392d4;
+            border-radius: 4px;
+            padding: 25px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 6px 6px 0px #000;
+            box-sizing: border-box;
+        }
+
+        .settings-panel h3 {
+            margin-top: 0;
+            border-bottom: 2px dashed #6392d4;
+            padding-bottom: 8px;
+            color: #6392d4;
+            font-size: 18px;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #f5f6fa;
+        }
+
+        .setting-group select {
+            width: 100%;
+            padding: 8px;
+            background-color: #2d3748;
+            border: 2px solid #4a5568;
+            color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .multiplier-box {
+            background-color: #2d3748;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            color: #2ed573;
+            margin-top: 15px;
+            border: 2px dashed #2ed573;
+        }
+
+        /* Two-column settings grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0 20px;
+        }
+
+        /* Range inputs in settings */
+        .setting-range {
+            width: 100%;
+            accent-color: #6392d4;
+            cursor: pointer;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Tooltips */
+        .tip-wrap {
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .tip-icon {
+            cursor: pointer;
+            color: #718093;
+            font-size: 10px;
+            margin-left: 5px;
+            border: 1px solid #4a5568;
+            border-radius: 50%;
+            padding: 0 3px;
+            user-select: none;
+        }
+        .tip-text {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 1.6em;
+            z-index: 100;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: #f5f6fa;
+            font-size: 11px;
+            font-weight: normal;
+            padding: 6px 8px;
+            border-radius: 4px;
+            width: 210px;
+            line-height: 1.4;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .tip-wrap:hover .tip-text,
+        .tip-wrap.open .tip-text {
+            display: block;
+        }
+
+        @media (min-width: 600px) {
+            .settings-panel { max-width: 640px; }
+            .settings-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Game container — the visible bordered "frame". Its width/height are set directly in
+           JS (sizeGameFrame()) to the largest box matching the canvas's actual aspect ratio
+           that fits the viewport — CSS-only approaches (aspect-ratio + percentage height +
+           max-width together) turned out to be inconsistently resolved across constraint
+           directions (correct when height was the binding dimension, silently non-uniform
+           when width was), so this is computed in JS instead where the math is unambiguous.
+           These are fallback values for the instant before that JS runs. */
+        .game-container {
+            border: 3px solid #6392d4;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 4px 4px 0px #000;
+            box-sizing: border-box;
+            width: 506px;
+            height: 940px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-container {
+            position: relative;
+            background-color: #0f141d;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+            flex: 1 1 0%;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            background-color: #a2a2a2;
+            border: 3px solid #111116;
+            display: block;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Ability energy bar — DOM overlay, replaces the old flashing READY button.
+           Press/hold it to fly, release to land early (Batch 34). Batch 32 visual redesign:
+           bigger, black-and-yellow hazard-stripe frame, red->yellow->green charging fill
+           (set via JS per-frame, see energyColor()), rainbow fill while actively flying,
+           and green marching-ants outline as the separate "100% full" cue on top of it all. */
+        .ability-bar {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 84px;
+            height: 18px;
+            background: rgba(30, 39, 46, 0.9);
+            border: 3px solid;
+            border-image: repeating-linear-gradient(45deg, #000 0 4px, #ffd700 4px 8px) 3;
+            box-sizing: border-box;
+            pointer-events: auto;
+            cursor: pointer;
+            display: none;
+        }
+
+        .ability-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #ff0000; /* fallback; JS sets the real charging color each frame */
+        }
+
+        .ability-bar.active .ability-bar-fill {
+            animation: rainbowHue 1.2s linear infinite;
+        }
+
+        @keyframes rainbowHue {
+            to { filter: hue-rotate(360deg); }
+        }
+
+        .ability-bar.ready {
+            border: none;
+            background-image:
+                linear-gradient(90deg, #2ed573 50%, transparent 50%),
+                linear-gradient(90deg, #2ed573 50%, transparent 50%),
+                linear-gradient(0deg, #2ed573 50%, transparent 50%),
+                linear-gradient(0deg, #2ed573 50%, transparent 50%);
+            background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+            background-size: 8px 3px, 8px 3px, 3px 8px, 3px 8px;
+            background-position: 0 0, 0 100%, 0 0, 100% 0;
+            animation: marchingAnts 0.4s linear infinite;
+            padding: 3px;
+        }
+
+        @keyframes marchingAnts {
+            to { background-position: 8px 0, -8px 100%, 0 -8px, 100% 8px; }
+        }
+
+
+
+        /* Retro Buttons */
+        .btn {
+            background-color: #6392d4;
+            color: white;
+            border: 3px solid #000;
+            padding: 12px 20px;
+            font-weight: bold;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            box-shadow: 4px 4px 0px #000;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
+
+        .return-btn {
+            background-color: #718093;
+            box-shadow: 3px 3px 0px #000;
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+
+        /* Car color picker */
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 3px solid #4a5568;
+            cursor: pointer;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .color-swatch.selected {
+            border-color: #ffffff;
+            box-shadow: 0 0 0 2px #6392d4;
+            transform: scale(1.1);
+        }
+
+        .color-swatch:active {
+            transform: scale(0.92);
+        }
+
+        /* Leaderboard */
+        .lb-list {
+            max-height: 320px;
+            overflow-y: auto;
+            margin: 0 -5px;
+        }
+
+        .lb-entry {
+            padding: 8px 5px;
+            border-bottom: 1px solid #2d3748;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .lb-entry:last-child { border-bottom: none; }
+
+        .lb-entry.latest {
+            background-color: rgba(99, 146, 212, 0.15);
+            border-left: 3px solid #6392d4;
+            padding-left: 7px;
+        }
+
+        .lb-rank  { color: #6392d4; font-weight: bold; font-size: 13px; }
+        .lb-score { color: #2ed573; font-weight: bold; }
+        .lb-meta  { color: #718093; margin-top: 2px; font-size: 10px; }
+
+        /* Pause button */
+        .pause-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 26px;
+            height: 26px;
+            background-color: rgba(15, 20, 29, 0.80);
+            color: #6392d4;
+            border: 1px solid #4a6fa5;
+            font-size: 13px;
+            padding: 0;
+            line-height: 24px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 4px;
+            display: none;
+        }
+
+        /* Game over DOM overlay */
+        #gameOverHud {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            gap: 6px;
+        }
+        .go-title { color: #ff4757; font: bold 32px 'Courier New', monospace; text-shadow: 2px 2px 6px #000, 0 0 20px #ff4757; }
+        .go-score { color: #fff; font: bold 20px 'Courier New', monospace; text-shadow: 2px 2px 4px #000; }
+
+        /* Pause screen — DOM overlay (Batch 20), replaces the old canvas-drawn version that
+           redrew its translucent background every frame without clearing and drifted to solid
+           black within about a second */
+        #pauseHud {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: rgba(0, 0, 0, 0.62);
+        }
+        #pauseHud .go-title { color: #6392d4; text-shadow: 2px 2px 4px #000; }
+        #pauseHudBtns { display: flex; flex-direction: column; gap: 8px; width: 60%; }
+        #pauseHudBtns .btn { padding: 8px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- VIEW 1: MENU SCREEN -->
+    <div id="menuView" class="view active">
+        <div class="settings-panel">
+            <h3>Configuration</h3>
+
+            <div class="settings-grid">
+            <div class="setting-group" data-tip="Fewer lanes = tighter traffic = harder. 3 lanes +0.5×, 4 lanes +0.1×, 5+ lanes -0.1× per lane above 4. Vehicles narrow to fit at 8+ lanes.">
+                <label for="laneCount">Road Lanes:</label>
+                <select id="laneCount">
+                    <option value="3">3 Lanes</option>
+                    <option value="4" selected>4 Lanes</option>
+                    <option value="5">5 Lanes</option>
+                    <option value="6">6 Lanes</option>
+                    <option value="7">7 Lanes</option>
+                    <option value="8">8 Lanes</option>
+                    <option value="9">9 Lanes</option>
+                    <option value="10">10 Lanes</option>
+                </select>
+            </div>
+
+            <div class="setting-group" data-tip="Steer by tilting your phone left or right. Uses gyroscope. iOS requires permission on first use.">
+                <label for="tiltSteering">Tilt Steering:</label>
+                <select id="tiltSteering">
+                    <option value="no" selected>Disabled</option>
+                    <option value="yes">Enabled (mobile)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label for="soundEnabled">Sound: <span id="soundVolumeVal">70%</span></label>
+                <input type="range" id="soundEnabled" class="setting-range" min="0" max="1" step="0.05" value="0.7">
+            </div>
+
+            <div class="setting-group" data-tip="Darkens the screen — only your headlights illuminate the road. Harder to see oncoming cars. +0.2× multiplier.">
+                <label for="nightMode">Night Mode:</label>
+                <select id="nightMode">
+                    <option value="no" selected>Off</option>
+                    <option value="yes">On (+0.2x)</option>
+                </select>
+            </div>
+
+            </div><!-- /settings-grid -->
+
+            <div class="setting-group">
+                <label>Car Color:</label>
+                <div class="color-picker" id="colorPicker">
+                    <div class="color-swatch" data-color="#4a75a0" style="background-color:#4a75a0" title="Blue"></div>
+                    <div class="color-swatch" data-color="#e74c3c" style="background-color:#e74c3c" title="Red"></div>
+                    <div class="color-swatch" data-color="#2ecc71" style="background-color:#2ecc71" title="Green"></div>
+                    <div class="color-swatch" data-color="#f39c12" style="background-color:#f39c12" title="Orange"></div>
+                    <div class="color-swatch" data-color="#9b59b6" style="background-color:#9b59b6" title="Purple"></div>
+                    <div class="color-swatch" data-color="#e91e63" style="background-color:#e91e63" title="Pink"></div>
+                    <div class="color-swatch" data-color="#00bcd4" style="background-color:#00bcd4" title="Cyan"></div>
+                    <div class="color-swatch" data-color="#f1f2f6" style="background-color:#f1f2f6" title="White"></div>
+                    <div class="color-swatch" data-color="#ffd700" style="background-color:#ffd700" title="Gold"></div>
+                    <div class="color-swatch" data-color="#2c3e50" style="background-color:#2c3e50" title="Navy"></div>
+                </div>
+            </div>
+
+            <div class="multiplier-box">
+                Score Multiplier: <span id="multiplierValue">1.0x</span>
+            </div>
+
+            <div class="setting-group" style="margin-top: 25px;">
+                <button class="btn" id="startBtn">START GAME</button>
+                <button class="btn" id="leaderboardBtn" style="background-color: #718093; margin-top: 8px;">View Leaderboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: GAME SCREEN -->
+    <div id="gameView" class="view">
+        <div class="game-container">
+            <div class="canvas-container">
+                <button id="pauseBtn" class="pause-btn">⏸</button>
+                <canvas id="gameCanvas" width="160" height="260"></canvas>
+                <div id="abilityBar" class="ability-bar" title="Tap to use ability">
+                    <div id="abilityBarFill" class="ability-bar-fill"></div>
+                </div>
+                <div id="gameHud" style="display:none; position:absolute; inset:0; pointer-events:none;">
+                    <div id="hudScore" style="position:absolute; top:10px; left:12px; color:#fff; font:bold 14px 'Courier New',monospace; text-shadow:1px 1px 2px #000;">SCORE: 0</div>
+                    <div id="hudMult" style="position:absolute; top:27px; left:12px; color:#2ed573; font:bold 14px 'Courier New',monospace; text-shadow:1px 1px 2px #000;">MULT: 1.0x</div>
+                    <div id="hudAmb" style="display:none; position:absolute; top:50px; left:50%; transform:translateX(-50%); color:#ff4757; font:bold 13px 'Courier New',monospace; white-space:nowrap; text-shadow:1px 1px 2px #000;">! AMBULANCE !</div>
+                </div>
+                <div id="gameOverHud">
+                    <div class="go-title">CRASHED!</div>
+                    <div id="goScore" class="go-score">SCORE: 0</div>
+                    <div id="gameoverBtns" style="display:none; flex-direction:column; gap:5px; width:60%; pointer-events:auto;">
+                        <button class="btn" id="retryBtn">RETRY</button>
+                        <button class="btn return-btn" id="returnBtn">Menu</button>
+                    </div>
+                </div>
+                <div id="pauseHud">
+                    <div class="go-title" style="font-size:22px;">PAUSED</div>
+                    <div id="pauseHudBtns">
+                        <button class="btn" id="resumeBtn">Resume</button>
+                        <button class="btn return-btn" id="pauseMenuBtn">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: LEADERBOARD -->
+    <div id="leaderboardView" class="view">
+        <div class="settings-panel">
+            <h3>Leaderboard</h3>
+            <div id="leaderboardList" class="lb-list"></div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn" id="backBtn" style="background-color: #718093;">Back</button>
+                <button class="btn" id="clearBtn" style="background-color: #e74c3c;">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainerEl = document.querySelector('.game-container');
+
+        // Views
+        const menuView = document.getElementById('menuView');
+        const gameView = document.getElementById('gameView');
+
+        // UI Interaction
+        const startBtn = document.getElementById('startBtn');
+        const returnBtn = document.getElementById('returnBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const gameoverBtns = document.getElementById('gameoverBtns');
+        const gameHud = document.getElementById('gameHud');
+        const hudScore = document.getElementById('hudScore');
+        const hudMult = document.getElementById('hudMult');
+        const hudAmb = document.getElementById('hudAmb');
+        const gameOverHud = document.getElementById('gameOverHud');
+        const goScore = document.getElementById('goScore');
+        const pauseHud = document.getElementById('pauseHud');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const pauseMenuBtn = document.getElementById('pauseMenuBtn');
+        const selectLanes = document.getElementById('laneCount');
+        const selectTilt = document.getElementById('tiltSteering');
+        const multiplierSpan = document.getElementById('multiplierValue');
+        const abilityBar = document.getElementById('abilityBar');
+        const abilityBarFill = document.getElementById('abilityBarFill');
+        const leaderboardView = document.getElementById('leaderboardView');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const backBtn = document.getElementById('backBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const selectSound = document.getElementById('soundEnabled');
+        const selectNightMode = document.getElementById('nightMode');
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        // Car/lane sizing (Batch 42): cars are drawn at a bigger scale than the original
+        // 14x24 pixel-art design resolution (drawPixelCar/Truck/Ambulance still draw at that
+        // native size — callers wrap them in a canvas scale transform), and lanes are sized
+        // so a car fills ~70% of a lane's width instead of the old ~45-50% at low lane
+        // counts — real roads don't leave a full car-width of slack on each side.
+        const CAR_SCALE = 1.3;
+        const CAR_FILL_RATIO = 0.7; // car width as a fraction of lane width
+        const PLAYER_WIDTH = Math.round(14 * CAR_SCALE);   // 18
+        const PLAYER_HEIGHT = Math.round(24 * CAR_SCALE);  // 31
+        const TRUCK_HEIGHT = Math.round(56 * CAR_SCALE);   // 73
+
+        // Low-res coordinate constants. Side margins are always 18px each; the road/canvas
+        // width scales with lane count uniformly now (`REF_LANE_WIDTH * lanes` for every
+        // count, not just 8+) so lane proportions stay consistent regardless of lane count —
+        // CSS then scales the canvas back down to the same displayed size regardless of its
+        // internal resolution, so everything (road, cars, background) visually shrinks
+        // together instead of each element being scaled individually. See applyLaneLayout().
+        const SIDE_MARGIN = 18;
+        const REF_LANE_WIDTH = Math.round(PLAYER_WIDTH / CAR_FILL_RATIO); // 26
+        let ROAD_BORDER_LEFT = SIDE_MARGIN;
+        let ROAD_BORDER_RIGHT = 142;
+        let ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
+
+        // More vertical lookahead (direct user request): taller than the original 220 so the
+        // player can see an oncoming lane change further out and has more time to react.
+        // "Don't overdo it" — a moderate ~18% increase, not a dramatic one.
+        const CANVAS_HEIGHT = 260;
+        const SPAWN_SAFETY_Y = Math.round(140 * CANVAS_HEIGHT / 220); // scaled proportionally with the taller canvas
+
+        function applyLaneLayout(lanes) {
+            const roadWidthPx = REF_LANE_WIDTH * lanes;
+            canvas.width = roadWidthPx + SIDE_MARGIN * 2;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.aspectRatio = canvas.width + ' / ' + canvas.height;
+            sizeGameFrame();
+            ROAD_BORDER_LEFT = SIDE_MARGIN;
+            ROAD_BORDER_RIGHT = canvas.width - SIDE_MARGIN;
+            ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
+        }
+
+        // Sizes the visible frame (.game-container) directly in JS to the largest box
+        // matching the canvas's actual aspect ratio that fits the viewport — computed
+        // explicitly rather than via CSS aspect-ratio/percentage-height/max-width, which
+        // resolved inconsistently depending on whether height or width was the binding
+        // constraint (correct when height-bound, silently non-uniform/stretched when
+        // width-bound, e.g. on a narrow mobile viewport).
+        function sizeGameFrame() {
+            const ratio = canvas.width / canvas.height;
+            const bodyStyleNow = getComputedStyle(document.body);
+            const padX = parseFloat(bodyStyleNow.paddingLeft) + parseFloat(bodyStyleNow.paddingRight);
+            const padY = parseFloat(bodyStyleNow.paddingTop) + parseFloat(bodyStyleNow.paddingBottom);
+            const availW = window.innerWidth - padX;
+            const availH = window.innerHeight - padY;
+            // Fixed chrome around the canvas that doesn't share its aspect ratio
+            // (game-container's own border + canvas-container's padding + canvas's own
+            // border) — subtracted before computing the ratio-correct box, then added back,
+            // so the CANVAS itself (not just the outer frame) ends up undistorted.
+            const CHROME = 2*3 /* game-container border */ + 2*8 /* canvas-container padding */ + 2*3 /* canvas border */;
+            let contentH = availH - CHROME;
+            let contentW = contentH * ratio;
+            if (contentW + CHROME > availW) {
+                contentW = availW - CHROME;
+                contentH = contentW / ratio;
+            }
+            gameContainerEl.style.width = (contentW + CHROME) + 'px';
+            gameContainerEl.style.height = (contentH + CHROME) + 'px';
+        }
+        window.addEventListener('resize', () => { if (gameView.classList.contains('active')) sizeGameFrame(); });
+
+        let config = {
+            mode: 'accelerating',
+            lanes: 4,
+            hasTrucks: true,
+            ability: 'jump',
+            nightMode: false,
+            soundEnabled: true,
+            soundVolume: 0.7
+        };
+
+        let score = 0;
+        let multiplier = 1.0;
+        let gameActive = false;
+        let playerColor = localStorage.getItem('playerColor') || '#4a75a0';
+        let jumpsUsed = 0;
+        let ramsUsed = 0;
+        let gameStartTime = 0;
+        let gamePaused = false;
+
+        function setPaused(val) {
+            gamePaused = val;
+            pauseHud.style.display = val ? 'flex' : 'none';
+        }
+
+        // Web Audio
+        let audioCtx = null;
+        function getAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!config.soundEnabled) return;
+            const ac = getAudio();
+            const now = ac.currentTime;
+            const vol = config.soundVolume;
+            if (type === 'crash') {
+                const buf = ac.createBuffer(1, ac.sampleRate * 0.35, ac.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+                const src = ac.createBufferSource();
+                src.buffer = buf;
+                const g = ac.createGain();
+                g.gain.setValueAtTime(0.45 * vol, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                src.connect(g); g.connect(ac.destination); src.start();
+            } else if (type === 'jump') {
+                const osc = ac.createOscillator();
+                const g = ac.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(660, now + 0.15);
+                g.gain.setValueAtTime(0.12 * vol, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(g); g.connect(ac.destination);
+                osc.start(); osc.stop(now + 0.18);
+            } else if (type === 'ram') {
+                const osc = ac.createOscillator();
+                const g = ac.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+                g.gain.setValueAtTime(0.28 * vol, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(g); g.connect(ac.destination);
+                osc.start(); osc.stop(now + 0.2);
+            }
+        }
+
+        // Lower starting speed for smoother, gradual startup sequence. Scaled by CAR_SCALE
+        // (Batch 42) so the road/world still feels like it's moving at the same relative
+        // pace now that cars (and the distances calibrated against them) are physically bigger.
+        let currentSpeed = 1.2 * CAR_SCALE;
+        const baseSpeed = 1.2 * CAR_SCALE;
+        const maxSpeed = 4.5 * CAR_SCALE;
+
+        let roadOffset = 0;
+        let player = null;
+        let vehicles = [];
+        let pendingAmbulances = []; // [{lane, timer}] — queued ambulances with 3s pre-warning
+        let particles = [];
+        // NPC turn-signal warning now scales with distance covered, not a fixed frame count —
+        // a fixed frame count covers less and less road distance as currentSpeed rises through a
+        // run, silently shrinking the player's real reaction window as the game gets harder.
+        const LANE_CHANGE_WARNING_DISTANCE = Math.round(90 * CAR_SCALE); // px of travel the signal should roughly cover
+        const LANE_CHANGE_INDICATOR_MIN = 25;    // frames — floor so it's never a blink-and-miss-it flash
+        const LANE_CHANGE_INDICATOR_MAX = 150;   // frames — ceiling so it's never absurdly long at low speed
+
+        // Vertical movement (Batch 33, physics reworked in Batch 45): Up/Down held moves the
+        // car between these bounds. No longer an instant constant speed — velocity ramps up
+        // while held (V_ACCEL), coasts to a stop via friction when released (V_FRICTION), and
+        // pressing the opposite direction while still moving brakes harder than friction alone
+        // (V_BRAKE) before reversing. Top speed itself was also lowered — it felt too fast.
+        const PLAYER_MIN_Y = 40;   // near top: aggressive, close to where traffic spawns
+        const PLAYER_MAX_Y = CANVAS_HEIGHT - PLAYER_HEIGHT - 1; // near bottom: cautious, more reaction time
+        const V_MAX_BASE = 1.3 * CAR_SCALE; // top vertical speed at base game speed (px/frame)
+        const V_MAX_TOP = 2.2 * CAR_SCALE;  // top vertical speed at max game speed (px/frame)
+        const V_ACCEL = 0.13 * CAR_SCALE;   // px/frame^2 while held
+        const V_FRICTION = 0.08 * CAR_SCALE; // px/frame^2 coast-down when neither key is held
+        const V_BRAKE = 0.25 * CAR_SCALE;    // px/frame^2 when the opposite key brakes existing motion
+        let vKeys = { up: false, down: false };
+
+        // Horizontal steering (Batch 44 — free movement reverted back to lane-snap): Batch 41
+        // removed lane-snapping in favor of full free horizontal movement, but the user found
+        // holding a key imprecise — overshoot/undershoot a lane by a little and you clip a car,
+        // which felt like bad luck rather than a mistake. Back to snapping to lane centers.
+        // Batch 45: holding the key past the first snap now glides continuously at this speed
+        // instead of re-triggering a discrete snap every repeat event (which stopped dead at
+        // every lane) — release rounds to the nearest lane and the existing LERP eases the
+        // last bit in, so it still lands cleanly.
+        const HORIZONTAL_GLIDE_SPEED_BASE = 2.2 * CAR_SCALE; // px/frame at base game speed
+        const HORIZONTAL_GLIDE_SPEED_MAX = 3.5 * CAR_SCALE;  // px/frame at max game speed
+        let hHeldDir = { left: false, right: false };
+        // How much the car visually banks while actively snapping/gliding between lanes
+        // (Batch 44) — purely cosmetic, derived from how far it moved this frame so it eases
+        // in/out naturally.
+        const MAX_TILT_ANGLE = 0.3; // radians, ~17°
+        const TILT_SENSITIVITY = MAX_TILT_ANGLE / 8; // radians per px of this-frame horizontal movement
+
+        // Jump ability (Batch 34, reworked same day) — hold-to-fly: needs at least
+        // JUMP_MIN_ENERGY to take off, then drains in real time for as long as it's held.
+        // Releasing early lands immediately and keeps whatever energy is left.
+        const JUMP_MIN_ENERGY = 25;         // % energy required to START a jump
+        const JUMP_FULL_DRAIN_MS = 2500;    // ms to drain 100% energy held continuously (was 1000 — bigger pool, longer flights)
+        const JUMP_DRAIN_PER_FRAME = (100 / JUMP_FULL_DRAIN_MS) * 16.66;
+        const MAX_FLIGHT_HEIGHT = 14;       // px
+        const FLIGHT_RISE_SPEED = 0.8;      // px/frame while held
+        const FLIGHT_FALL_SPEED = 1.2;      // px/frame while landing
+        const JUMP_RECHARGE_DELAY = 500;    // ms pause after landing before energy starts refilling
+        function energyColor(pct) {
+            // Charging fill color: red (0%) -> yellow (50%) -> green (100%)
+            if (pct <= 50) {
+                const t = pct / 50;
+                return `rgb(255, ${Math.round(255 * t)}, 0)`;
+            }
+            const t = (pct - 50) / 50;
+            return `rgb(${Math.round(255 * (1 - t))}, 255, 0)`;
+        }
+
+        // Tilt (gyroscope) steering
+        let tiltEnabled = false;
+        let tiltGamma = 0;
+
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.gamma !== null) tiltGamma = e.gamma;
+        });
+
+        async function enableTilt() {
+            if (typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+ requires explicit permission
+                try {
+                    const perm = await DeviceOrientationEvent.requestPermission();
+                    tiltEnabled = (perm === 'granted');
+                } catch (e) {
+                    tiltEnabled = false;
+                }
+            } else {
+                tiltEnabled = true;
+            }
+        }
+
+        // Batch 42: all three drawPixel* functions below still draw at their original 14x24
+        // (or 14x56 for trucks) design resolution — this wraps a call in a canvas scale
+        // transform so the same pixel art renders at CAR_SCALE without touching a single
+        // fillRect coordinate inside them.
+        // Translates by the raw (unfloored) position — slow-moving vehicles have sub-1px
+        // world speed, and flooring here made them visibly hold still for 2-3 frames then
+        // jump, which read as stutter (worse once CAR_SCALE made each jump bigger on screen).
+        // Sub-pixel translation costs a hair of edge anti-aliasing but motion reads as smooth.
+        // `width`/`height` are the vehicle's actual rendered dimensions (e.g. PLAYER_WIDTH),
+        // used only to rotate around its center — pass `angle` (radians) for the Batch 44
+        // lane-change banking tilt; omit/0 for level (every NPC call site does this).
+        function drawScaledVehicle(x, y, width, height, drawFn, angle) {
+            ctx.save();
+            ctx.translate(x + width / 2, y + height / 2);
+            if (angle) ctx.rotate(angle);
+            ctx.translate(-width / 2, -height / 2);
+            ctx.scale(CAR_SCALE, CAR_SCALE);
+            drawFn();
+            ctx.restore();
+        }
+
+        // Pixel-by-pixel rendering of cars (exactly like the video sprites)
+        function drawPixelCar(ctx, x, y, color, isJumping, flightHeight) {
+            ctx.save();
+            let drawY = Math.floor(y);
+            let drawX = Math.floor(x);
+            let w = 14;
+            let h = 24;
+
+            if (isJumping) {
+                // Drop shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(drawX + 1, y + h - 2, w - 2, 2);
+
+                // Altitude is driven directly by Player's rise/fall simulation now (hold-to-fly,
+                // Batch 34 rework), not a fixed-duration sine arc
+                drawY -= Math.floor(flightHeight);
+
+                // Wings — extend from the sides while airborne
+                ctx.fillStyle = '#dfe6e9';
+                ctx.fillRect(drawX - 5, drawY + 9, 5, 3);
+                ctx.fillRect(drawX + w, drawY + 9, 5, 3);
+                ctx.fillStyle = '#95a5a6';
+                ctx.fillRect(drawX - 5, drawY + 11, 5, 1);
+                ctx.fillRect(drawX + w, drawY + 11, 5, 1);
+            }
+
+            // 1. Black border
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(drawX + 1, drawY, 12, 24);
+            ctx.fillRect(drawX, drawY + 1, 14, 22);
+
+            // 2. Wheels
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(drawX, drawY + 4, 1, 5); 
+            ctx.fillRect(drawX + 13, drawY + 4, 1, 5); 
+            ctx.fillRect(drawX, drawY + 15, 1, 5); 
+            ctx.fillRect(drawX + 13, drawY + 15, 1, 5); 
+
+            // 3. Main body color
+            ctx.fillStyle = color;
+            ctx.fillRect(drawX + 2, drawY + 2, 10, 20);
+            ctx.fillRect(drawX + 1, drawY + 3, 12, 18);
+
+            // 4. Shading & 3D bevel effect
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // Highlight
+            ctx.fillRect(drawX + 2, drawY + 3, 4, 18);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Shadows
+            ctx.fillRect(drawX + 7, drawY + 3, 5, 18);
+
+            // 5. Window structures
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(drawX + 3, drawY + 7, 8, 3); // Windshield
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(drawX + 4, drawY + 8, 1, 1); // Windshield reflection
+
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(drawX + 3, drawY + 17, 8, 2); // Rear glass
+
+            ctx.fillStyle = '#1e272e';
+            ctx.fillRect(drawX + 2, drawY + 10, 1, 7); 
+            ctx.fillRect(drawX + 11, drawY + 10, 1, 7); 
+
+            // 6. Grill detailing
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillRect(drawX + 4, drawY + 3, 6, 1);
+
+            // 7. Headlights
+            ctx.fillStyle = '#ffeaa7';
+            ctx.fillRect(drawX + 2, drawY + 1, 2, 1);
+            ctx.fillRect(drawX + 10, drawY + 1, 2, 1);
+
+            // 8. Taillights
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(drawX + 2, drawY + 22, 2, 1);
+            ctx.fillRect(drawX + 10, drawY + 22, 2, 1);
+
+            ctx.restore();
+        }
+
+        // Pixel-by-pixel rendering of semi trucks
+        function drawPixelTruck(ctx, x, y, cabColor) {
+            ctx.save();
+            let drawY = Math.floor(y);
+            let drawX = Math.floor(x);
+            let w = 14;
+            let h = 56;
+            let trailerH = 40;
+
+            // Black border
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(drawX + 1, drawY, 12, 56);
+            ctx.fillRect(drawX, drawY + 1, 14, 54);
+
+            // 1. Trailer Container (upper part)
+            ctx.fillStyle = '#dfe6e9'; 
+            ctx.fillRect(drawX + 2, drawY + 2, 10, trailerH - 2);
+            ctx.fillRect(drawX + 1, drawY + 3, 12, trailerH - 4);
+
+            // Highlight on trailer
+            ctx.fillStyle = '#f5f6fa';
+            ctx.fillRect(drawX + 2, drawY + 3, 4, trailerH - 4);
+
+            // Metal ribbed container lines
+            ctx.fillStyle = '#718093';
+            for (let ry = drawY + 6; ry < drawY + trailerH - 4; ry += 6) {
+                ctx.fillRect(drawX + 2, ry, 10, 1);
+            }
+
+            // 2. Cab (lower part)
+            let cabY = drawY + trailerH;
+            let cabH = 16;
+            ctx.fillStyle = cabColor;
+            ctx.fillRect(drawX + 2, cabY, 10, cabH - 2);
+            ctx.fillRect(drawX + 1, cabY + 1, 12, cabH - 4);
+
+            // Cab highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(drawX + 2, cabY + 1, 4, cabH - 4);
+
+            // Cab Windshield
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(drawX + 3, cabY + 3, 8, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(drawX + 4, cabY + 4, 1, 1);
+
+            // Side Mirrors
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(drawX, cabY + 3, 1, 3);
+            ctx.fillRect(drawX + 13, cabY + 3, 1, 3);
+
+            ctx.restore();
+        }
+
+        function drawPixelAmbulance(ctx, x, y) {
+            ctx.save();
+            let drawX = Math.floor(x);
+            let drawY = Math.floor(y);
+
+            // Black border
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(drawX + 1, drawY, 12, 24);
+            ctx.fillRect(drawX, drawY + 1, 14, 22);
+
+            // White body
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(drawX + 2, drawY + 2, 10, 20);
+            ctx.fillRect(drawX + 1, drawY + 3, 12, 18);
+
+            // Red stripe across mid-body
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(drawX + 1, drawY + 11, 12, 2);
+
+            // Red cross on front
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(drawX + 6, drawY + 3, 2, 4);
+            ctx.fillRect(drawX + 4, drawY + 4, 6, 2);
+
+            // Windshield
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(drawX + 3, drawY + 7, 8, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(drawX + 4, drawY + 8, 1, 1);
+
+            // Rear glass
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(drawX + 3, drawY + 17, 8, 2);
+
+            // Flashing roof lights (alternating red/blue)
+            let blink = Math.floor(Date.now() / 250) % 2;
+            ctx.fillStyle = blink === 0 ? '#ff4757' : '#4f6ef7';
+            ctx.fillRect(drawX + 3, drawY + 1, 3, 2);
+            ctx.fillStyle = blink === 0 ? '#4f6ef7' : '#ff4757';
+            ctx.fillRect(drawX + 8, drawY + 1, 3, 2);
+
+            // Headlights
+            ctx.fillStyle = '#ffeaa7';
+            ctx.fillRect(drawX + 2, drawY + 1, 2, 1);
+            ctx.fillRect(drawX + 10, drawY + 1, 2, 1);
+
+            // Taillights
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(drawX + 2, drawY + 22, 2, 1);
+            ctx.fillRect(drawX + 10, drawY + 22, 2, 1);
+
+            ctx.restore();
+        }
+
+        class Player {
+            constructor() {
+                this.width = PLAYER_WIDTH;
+                this.height = PLAYER_HEIGHT;
+                this.x = ROAD_BORDER_LEFT + (ROAD_WIDTH - this.width)/2;
+                this.targetX = this.x; // lane-snap destination (Batch 44)
+                this.tiltAngle = 0;    // cosmetic lane-change banking (Batch 44)
+                this.y = canvas.height - 35;
+                this.vVelocity = 0;    // signed vertical speed — accel/friction/brake model (Batch 45)
+                this.energy = 100;
+                this.activeAbilityTime = 0; // Ram Shield only now — jump uses flightHeight/jumpHeld below
+                this.flightHeight = 0;
+                this.jumpHeld = false;
+                this.rechargeDelay = 0;
+                this.abilityState = 'idle';
+            }
+
+            update() {
+                const roadMin = ROAD_BORDER_LEFT;
+                const roadMax = ROAD_BORDER_RIGHT - this.width;
+
+                // Movement speed scales with game speed: slow/deliberate at base speed,
+                // quicker at max speed.
+                const speedRatio = Math.max(0, Math.min(1, (currentSpeed - baseSpeed) / (maxSpeed - baseSpeed)));
+                const glideSpeed = HORIZONTAL_GLIDE_SPEED_BASE + speedRatio * (HORIZONTAL_GLIDE_SPEED_MAX - HORIZONTAL_GLIDE_SPEED_BASE);
+
+                // Tilt steering (mobile, deferred): sets a lane-snap target proportional to
+                // tilt angle directly, same as it did through the old slider before Batch 41.
+                if (tiltEnabled) {
+                    const maxTilt = 25;
+                    const dead = 3;
+                    const gamma = Math.max(-maxTilt, Math.min(maxTilt, tiltGamma));
+                    if (Math.abs(gamma) > dead) {
+                        this.targetX = roadMin + ((gamma + maxTilt) / (maxTilt * 2)) * (roadMax - roadMin);
+                    }
+                }
+
+                // Horizontal steering (Batch 44 — lane-snap; Batch 48 — fully smooth hold):
+                // holding a direction glides continuously at `glideSpeed` starting the instant
+                // it's pressed — no discrete "snap to the next lane" step first (Batch 45 had
+                // one, gated behind an arrival check; user found that initial snap felt like a
+                // jump before the smooth part kicked in). Releasing sets `targetX` to the
+                // nearest lane center (keyup's snapToNearestLane) and the LERP below eases the
+                // last bit in, so it still always lands cleanly on a lane.
+                const steerLerp = 0.12 + speedRatio * 0.18; // 0.12 at base speed -> 0.30 at max speed
+                const heldDir = hHeldDir.left ? -1 : (hHeldDir.right ? 1 : 0);
+                let dx;
+                if (heldDir !== 0) {
+                    dx = Math.max(roadMin, Math.min(roadMax, this.x + heldDir * glideSpeed)) - this.x;
+                    this.x += dx;
+                    this.targetX = this.x; // keep in lockstep so the LERP is a no-op while held
+                } else {
+                    dx = (this.targetX - this.x) * steerLerp;
+                    this.x += dx;
+                }
+                // Cosmetic banking tilt while actively snapping/gliding — derived from this
+                // frame's actual movement, so it naturally eases in fast and out as it settles.
+                this.tiltAngle = Math.max(-MAX_TILT_ANGLE, Math.min(MAX_TILT_ANGLE, dx * TILT_SENSITIVITY));
+
+                // Vertical movement (Batch 33; accel/friction/brake physics added in Batch 45):
+                // Up = forward (toward spawning traffic, riskier), Down = backward (more
+                // reaction time). Holding a direction accelerates toward top speed rather than
+                // snapping to it instantly; releasing coasts to a stop via friction; pressing
+                // the opposite direction while still moving brakes harder than friction alone.
+                const vMax = V_MAX_BASE + speedRatio * (V_MAX_TOP - V_MAX_BASE);
+                if (vKeys.up && !vKeys.down) {
+                    this.vVelocity = this.vVelocity > 0
+                        ? Math.max(0, this.vVelocity - V_BRAKE)
+                        : Math.max(-vMax, this.vVelocity - V_ACCEL);
+                } else if (vKeys.down && !vKeys.up) {
+                    this.vVelocity = this.vVelocity < 0
+                        ? Math.min(0, this.vVelocity + V_BRAKE)
+                        : Math.min(vMax, this.vVelocity + V_ACCEL);
+                } else if (this.vVelocity > 0) {
+                    this.vVelocity = Math.max(0, this.vVelocity - V_FRICTION);
+                } else if (this.vVelocity < 0) {
+                    this.vVelocity = Math.min(0, this.vVelocity + V_FRICTION);
+                }
+                this.y = Math.max(PLAYER_MIN_Y, Math.min(PLAYER_MAX_Y, this.y + this.vVelocity));
+                if (this.y === PLAYER_MIN_Y && this.vVelocity < 0) this.vVelocity = 0;
+                if (this.y === PLAYER_MAX_Y && this.vVelocity > 0) this.vVelocity = 0;
+
+                if (this.rechargeDelay > 0) {
+                    this.rechargeDelay = Math.max(0, this.rechargeDelay - 16.66);
+                }
+
+                if (this.energy < 100 && this.abilityState === 'idle' && this.rechargeDelay <= 0) {
+                    // Recharge scales with game speed too: 0.25 (base speed) -> 0.5 (max speed)
+                    this.energy += 0.25 + speedRatio * 0.25;
+                }
+
+                if (this.abilityState === 'jumping') {
+                    if (this.jumpHeld) {
+                        // Held: rise and drain energy in real time
+                        this.flightHeight = Math.min(MAX_FLIGHT_HEIGHT, this.flightHeight + FLIGHT_RISE_SPEED);
+                        this.energy = Math.max(0, this.energy - JUMP_DRAIN_PER_FRAME);
+                        if (this.energy <= 0) this.jumpHeld = false; // out of energy -> forced descent
+                    } else {
+                        // Released early (or just ran dry): descend, no further draining —
+                        // whatever energy remains stays as-is, it isn't zeroed on release
+                        this.flightHeight = Math.max(0, this.flightHeight - FLIGHT_FALL_SPEED);
+                        if (this.flightHeight <= 0) {
+                            this.abilityState = 'idle';
+                            this.rechargeDelay = JUMP_RECHARGE_DELAY;
+                        }
+                    }
+                } else if (this.activeAbilityTime > 0) {
+                    // Ram Shield only (unaffected by the jump rework, still unreachable per Batch 37)
+                    this.activeAbilityTime -= 16.66;
+                    if (this.activeAbilityTime <= 0) {
+                        this.activeAbilityTime = 0;
+                        this.abilityState = 'idle';
+                    }
+                }
+
+                if (config.ability !== 'none') {
+                    const ready = this.energy >= 100 && this.abilityState === 'idle';
+                    abilityBar.classList.toggle('ready', ready);
+                    abilityBar.classList.toggle('active', this.abilityState !== 'idle');
+                    let fillPct;
+                    if (this.abilityState === 'ramming') {
+                        fillPct = (this.activeAbilityTime / 1800) * 100;
+                        abilityBarFill.style.background = '';
+                    } else if (this.abilityState === 'jumping') {
+                        fillPct = this.energy;
+                        abilityBarFill.style.background = ''; // let the CSS rainbow animation take over
+                    } else {
+                        fillPct = this.energy;
+                        abilityBarFill.style.background = energyColor(this.energy);
+                    }
+                    abilityBarFill.style.width = Math.max(0, Math.min(100, fillPct)) + '%';
+                }
+            }
+
+            draw() {
+                if (this.abilityState === 'ramming') {
+                    ctx.save();
+                    ctx.strokeStyle = '#ff4757';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(Math.floor(this.x) - 1, Math.floor(this.y) - 1, this.width + 2, this.height + 2);
+                    ctx.restore();
+                }
+
+                drawScaledVehicle(this.x, this.y, this.width, this.height, () => drawPixelCar(
+                    ctx,
+                    0,
+                    0,
+                    playerColor,
+                    this.abilityState === 'jumping',
+                    this.flightHeight
+                ), this.tiltAngle);
+            }
+
+            useAbility() {
+                if (this.abilityState !== 'idle') return;
+                if (config.ability === 'jump') {
+                    // Needs at least JUMP_MIN_ENERGY to take off; once airborne it can drain
+                    // all the way to 0 (the 25% floor only gates activation, not use)
+                    if (this.energy >= JUMP_MIN_ENERGY) {
+                        this.abilityState = 'jumping';
+                        this.jumpHeld = true;
+                        jumpsUsed++;
+                        playSound('jump');
+                    }
+                } else if (config.ability === 'ram') {
+                    if (this.energy >= 100) {
+                        this.energy = 0;
+                        this.abilityState = 'ramming';
+                        this.activeAbilityTime = 1800;
+                    }
+                }
+            }
+        }
+
+        // True if no other vehicle currently occupies `lane` too close (vertically) to `y` —
+        // stops NPC lane changes from merging into/overlapping a vehicle already there
+        function laneClearForMerge(lane, y, height, self) {
+            for (const v of vehicles) {
+                if (v === self || v.lane !== lane) continue;
+                const vH = v.height;
+                const gap = Math.round(26 * CAR_SCALE); // safety buffer between vehicle centers
+                if (Math.abs(v.y - y) < (height / 2 + vH / 2 + gap)) return false;
+            }
+            return true;
+        }
+
+        class Vehicle {
+            constructor(lane, type) {
+                this.lane = lane;
+                this.type = type;
+                this.laneWidth = Math.floor(ROAD_WIDTH / config.lanes);
+                this.width = PLAYER_WIDTH;
+                this.height = type === 'truck' ? TRUCK_HEIGHT : PLAYER_HEIGHT;
+
+                // Reverted per user feedback: bell-curve lane offset made cars look off-center;
+                // back to centered
+                this.x = ROAD_BORDER_LEFT + lane * this.laneWidth + (this.laneWidth - this.width) / 2;
+                this.y = -this.height - 10;
+
+                // Speed, color and behavior by type
+                const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+                if (type === 'truck') {
+                    this.color = pick(['#636e72', '#b2bec3', '#e17055', '#00b894']);
+                    this.speedOffset = (Math.random() * 1.2 + 0.8) * CAR_SCALE;   // slow: +0.8 to +2.0 (pre-scale)
+                    this.isLaneChanger = Math.random() < 0.04; // trucks can change lanes now, but rarely (halved again per feedback — was 0.08)
+                    this.changeLaneTimer = Math.floor(Math.random() * 150) + 90; // same pacing as normal cars
+                } else if (type === 'reckless') {
+                    this.color = pick(['#e17055', '#fdcb6e', '#d63031', '#fd79a8']);
+                    this.speedOffset = (Math.random() * 0.5 + 0.3) * CAR_SCALE;  // same-dir: +0.3 to +0.8 (pre-scale) — player overtakes, they weave
+                    this.isLaneChanger = true;
+                    // Widened again per feedback — reckless drivers re-roll forever (unlike
+                    // normal/truck, which stop after one change), so even after everything else
+                    // was tuned down, seeing the SAME reckless car change lanes 2+ times while
+                    // it was on screen was still the dominant impression. 150-300 frames (2.5-5s).
+                    this.changeLaneTimer = Math.floor(Math.random() * 150) + 150;
+                } else if (type === 'ambulance') {
+                    this.color = '#f8f9fa';
+                    // Proportional to currentSpeed (like every other vehicle type's speedOffset)
+                    // instead of a fixed CAR_SCALE-only bonus — the old flat +2.5-3.0×CAR_SCALE
+                    // bonus barely mattered next to a high currentSpeed late in a run, but was
+                    // 2-3x currentSpeed itself early on, making the ambulance look completely
+                    // disconnected from how everything else on the road was moving right when
+                    // players were most likely to notice. Speed = currentSpeed × 2.0-2.5 now,
+                    // consistently "clearly the fastest thing on the road" at any game speed,
+                    // same direction as normal traffic, just faster.
+                    this.speedOffset = -currentSpeed * (Math.random() * 0.5 + 1.0);
+                    this.isLaneChanger = false;
+                    this.changeLaneTimer = 0;
+                } else {
+                    // normal
+                    this.color = pick(['#57606f', '#dfe6e9', '#2c3e50', '#74b9ff', '#a29bfe']);
+                    this.speedOffset = ((Math.random() * 1.5) - 0.5) * CAR_SCALE;  // mixed: -0.5 to +1.0 (pre-scale)
+                    this.isLaneChanger = Math.random() < 0.075; // halved again per feedback — was 0.15, then 0.25, then 0.45
+                    this.changeLaneTimer = Math.floor(Math.random() * 150) + 90; // 90-240 frames (1.5-4s), was 30-110
+                }
+
+                // Speed relative to the player is bounded once at spawn, not re-clamped every
+                // frame — currentSpeed keeps rising through a run, so a live clamp would make a
+                // vehicle sitting near the boundary twitch/stutter as the boundary crept past it.
+                // Fixing it at spawn means the vehicle's own speed stays perfectly smooth for its
+                // whole lifetime, even though its ratio to the (still-rising) player speed will
+                // drift after spawn — that's expected and fine. Ambulances are exempt.
+                if (type !== 'ambulance') {
+                    this.speedOffset = Math.max(currentSpeed * 0.75, Math.min(currentSpeed * 1.5, this.speedOffset));
+                }
+
+                // Reverted the eased/LERP lane-change motion — still felt too fast even after
+                // tuning down, and didn't match the original feel. Back to constant px/frame
+                // movement (like before Batch 19), just randomized per vehicle around the old
+                // fixed values (0.25 normal / 0.4 reckless) so "randomized lane change speed"
+                // still holds
+                // Raised ~3x per user feedback — the old 0.2-0.5 range made lane changes take
+                // 2+ seconds, which felt sluggish/unrealistic and looked stuttery next to the
+                // player's own (much faster) steering. Now roughly matches a real lane change.
+                // Halved again per feedback — even the CAR_SCALE-adjusted 0.6-0.9/1.0-1.4 range
+                // still looked "way too quick" once lane-snap made the comparison to the
+                // player's own (now precise, settled) movement more obvious.
+                this.laneChangeSpeed = (this.type === 'reckless'
+                    ? Math.random() * 0.2 + 0.5     // 0.5 - 0.7 (was 1.0 - 1.4), pre-scale
+                    : Math.random() * 0.15 + 0.3) * CAR_SCALE;    // 0.3 - 0.45 (was 0.6 - 0.9), pre-scale
+
+                this.indicatorTimer = 0;
+                this.targetLane = lane;
+                this.changingState = 'none';
+                this.previousLane = null; // lane just left, excluded from the very next decision to stop back-and-forth oscillation
+            }
+
+            update() {
+                // speedOffset was already clamped relative to the player once at spawn (see
+                // constructor) — no per-frame re-clamping here, that's what caused the twitch
+                let speed = currentSpeed - this.speedOffset;
+                this.y += speed;
+
+                // Only lane-changers (normal 45% chance, reckless always) change lanes
+                if (this.isLaneChanger && this.changingState === 'none') {
+                    this.changeLaneTimer--;
+                    if (this.changeLaneTimer <= 0) {
+                        let options = [];
+                        if (this.lane > 0 && this.lane - 1 !== this.previousLane && !laneReservedForAmbulance(this.lane - 1) && laneClearForMerge(this.lane - 1, this.y, this.height, this)) options.push(-1);
+                        if (this.lane < config.lanes - 1 && this.lane + 1 !== this.previousLane && !laneReservedForAmbulance(this.lane + 1) && laneClearForMerge(this.lane + 1, this.y, this.height, this)) options.push(1);
+                        // If avoiding an immediate reversal leaves nothing (e.g. at the edge of
+                        // the road, where only one direction physically exists), fall back to
+                        // allowing it rather than getting stuck
+                        if (options.length === 0) {
+                            if (this.lane > 0 && !laneReservedForAmbulance(this.lane - 1) && laneClearForMerge(this.lane - 1, this.y, this.height, this)) options.push(-1);
+                            if (this.lane < config.lanes - 1 && !laneReservedForAmbulance(this.lane + 1) && laneClearForMerge(this.lane + 1, this.y, this.height, this)) options.push(1);
+                        }
+                        // Only excludes the immediately-following decision, not permanently
+                        this.previousLane = null;
+
+                        if (options.length > 0) {
+                            let dir = options[Math.floor(Math.random() * options.length)];
+                            let dist = 1;
+                            // Reckless drivers have a rare chance to dive two lanes at once
+                            if (this.type === 'reckless' && Math.random() < 0.05) {
+                                const twoLane = this.lane + dir * 2;
+                                if (twoLane >= 0 && twoLane < config.lanes &&
+                                    !laneReservedForAmbulance(twoLane) &&
+                                    laneClearForMerge(twoLane, this.y, this.height, this)) {
+                                    dist = 2;
+                                }
+                            }
+                            this.targetLane = this.lane + dir * dist;
+                            this.changingState = 'indicator';
+                            // Distance-based warning: covers roughly the same road distance
+                            // regardless of how fast this vehicle is currently moving on screen
+                            const screenSpeed = Math.max(0.1, currentSpeed - this.speedOffset);
+                            const baseIndicatorFrames = Math.max(LANE_CHANGE_INDICATOR_MIN, Math.min(LANE_CHANGE_INDICATOR_MAX,
+                                Math.round(LANE_CHANGE_WARNING_DISTANCE / screenSpeed)));
+                            // Reckless signals for only 75% as long as a normal car's warning
+                            this.indicatorTimer = this.type === 'reckless' ? Math.round(baseIndicatorFrames * 0.75) : baseIndicatorFrames;
+                        }
+                    }
+                }
+
+                if (this.changingState === 'indicator') {
+                    this.indicatorTimer--;
+                    if (this.indicatorTimer <= 0) {
+                        this.changingState = 'moving';
+                        this.previousLane = this.lane; // remember where we came from to block an immediate reversal
+                        this.lane = this.targetLane;
+                    }
+                }
+
+                if (this.changingState === 'moving') {
+                    let destX = ROAD_BORDER_LEFT + this.lane * this.laneWidth + (this.laneWidth - this.width) / 2;
+                    let gap = destX - this.x;
+                    if (Math.abs(gap) > 0.5) {
+                        this.x += Math.sign(gap) * this.laneChangeSpeed;
+                    } else {
+                        this.x = destX;
+                        this.changingState = 'none';
+                        if (this.type === 'reckless') {
+                            this.changeLaneTimer = Math.floor(Math.random() * 150) + 150; // matches constructor's widened range
+                        } else {
+                            this.isLaneChanger = false;
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                if (this.type === 'truck') {
+                    drawScaledVehicle(this.x, this.y, this.width, this.height, () => drawPixelTruck(ctx, 0, 0, this.color));
+                } else if (this.type === 'ambulance') {
+                    drawScaledVehicle(this.x, this.y, this.width, this.height, () => drawPixelAmbulance(ctx, 0, 0));
+                } else {
+                    drawScaledVehicle(this.x, this.y, this.width, this.height, () => drawPixelCar(ctx, 0, 0, this.color, false, 0));
+                }
+
+                // Blinking amber turn signals
+                if (this.changingState === 'indicator') {
+                    let blink = Math.floor(Date.now() / 150) % 2 === 0;
+                    if (blink) {
+                        ctx.fillStyle = '#ffa502';
+                        let offsetSide = this.targetLane < this.lane ? 1 : this.width - 3;
+                        ctx.fillRect(Math.floor(this.x) + offsetSide, Math.floor(this.y) + 2, 2, 2);
+                        ctx.fillRect(Math.floor(this.x) + offsetSide, Math.floor(this.y) + this.height - 4, 2, 2);
+                    }
+                }
+            }
+        }
+
+        // Low-res Particle System
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.05 + 0.03;
+                this.color = color;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.fillRect(Math.floor(this.x), Math.floor(this.y), 1, 1);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // Safety filter ensuring the road is never 100% blocked
+        // True while a lane is either counting down to an ambulance or currently has one on screen
+        function laneReservedForAmbulance(lane) {
+            return pendingAmbulances.some(pa => pa.lane === lane) ||
+                   vehicles.some(v => v.type === 'ambulance' && v.lane === lane);
+        }
+
+        function canSpawnAt(lane) {
+            // Lane is reserved while an ambulance warning is counting down in it
+            if (laneReservedForAmbulance(lane)) {
+                return false;
+            }
+
+            // Check vertical clear space in lane
+            for (let v of vehicles) {
+                const vH = v.type === 'truck' ? TRUCK_HEIGHT : Math.round(16 * CAR_SCALE);
+                if (v.lane === lane && v.y - vH < SPAWN_SAFETY_Y) {
+                    return false;
+                }
+            }
+
+            // Verify we don't block all lanes near the top of the screen
+            let topBlockedLanes = new Set();
+            for (let v of vehicles) {
+                if (v.y < SPAWN_SAFETY_Y) {
+                    topBlockedLanes.add(v.lane);
+                }
+            }
+
+            topBlockedLanes.add(lane);
+            if (topBlockedLanes.size >= config.lanes) {
+                return false; 
+            }
+
+            return true;
+        }
+
+        function calculateMultiplier() {
+            let mult = 1.0;
+            mult += 0.3; // always accelerating now, same bonus accelerating always had
+            if (config.lanes == 3) mult += 0.5;
+            else if (config.lanes == 4) mult += 0.1;
+            else if (config.lanes >= 5) mult -= 0.1 * (config.lanes - 4);
+            mult += 0.2; // trucks always enabled now, same bonus enabled always had
+            mult -= 0.1; // jump is mandatory now, same penalty it always had
+            if (selectNightMode.value === 'yes') mult += 0.2;
+
+            multiplier = Math.max(0.4, Math.round(mult * 10) / 10);
+            multiplierSpan.innerText = multiplier.toFixed(1) + 'x';
+        }
+
+        // --- Background music system ---
+        const MUSIC_BPM = 130;
+        let musicNextTime = 0;
+        let musicStep = 0;
+        let musicTimer = null;
+        // A-minor pentatonic scale (two octaves)
+        const musicScale = [110, 130.81, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 392.00];
+        // 16-step (16th-note) pattern: [kick, hat, bass_idx (-1=off), melody_idx (-1=off)]
+        const musicPattern = [
+            [1,1, 0,-1],[0,0,-1,-1],[0,1,-1, 4],[0,0,-1,-1],
+            [0,1, 2,-1],[0,0,-1,-1],[0,1,-1, 6],[0,0,-1,-1],
+            [1,1, 4,-1],[0,0,-1,-1],[0,1,-1, 2],[0,0,-1,-1],
+            [0,1, 3,-1],[0,0,-1,-1],[0,1,-1, 5],[0,0,-1,-1]
+        ];
+
+        function musicTick() {
+            if (!gameActive || !config.soundEnabled) return;
+            const ac = getAudio();
+            const stepDur = 60 / (MUSIC_BPM * 4); // 16th-note duration
+            const vol = config.soundVolume * 0.2;
+            while (musicNextTime < ac.currentTime + 0.3) {
+                const p = musicPattern[musicStep % 16];
+                const t = musicNextTime;
+                if (p[0]) { // kick drum
+                    const o = ac.createOscillator(), g = ac.createGain();
+                    o.frequency.setValueAtTime(100, t);
+                    o.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+                    g.gain.setValueAtTime(vol, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.15);
+                }
+                if (p[1]) { // hi-hat
+                    const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.04), ac.sampleRate);
+                    const d = buf.getChannelData(0);
+                    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+                    const src = ac.createBufferSource(), hpf = ac.createBiquadFilter(), g = ac.createGain();
+                    hpf.type = 'highpass'; hpf.frequency.value = 8000;
+                    g.gain.setValueAtTime(vol * 0.25, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+                    src.buffer = buf; src.connect(hpf); hpf.connect(g); g.connect(ac.destination); src.start(t);
+                }
+                if (p[2] >= 0) { // bass synth
+                    const o = ac.createOscillator(), g = ac.createGain();
+                    o.type = 'sawtooth'; o.frequency.value = musicScale[p[2]];
+                    g.gain.setValueAtTime(vol * 0.6, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + stepDur * 1.8);
+                    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + stepDur * 2);
+                }
+                if (p[3] >= 0) { // melody
+                    const o = ac.createOscillator(), g = ac.createGain();
+                    o.type = 'square'; o.frequency.value = musicScale[p[3]] * 2;
+                    g.gain.setValueAtTime(vol * 0.3, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + stepDur * 0.8);
+                    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + stepDur);
+                }
+                musicNextTime += stepDur;
+                musicStep++;
+            }
+            musicTimer = setTimeout(musicTick, 80);
+        }
+
+        function startMusic() {
+            stopMusic();
+            if (!config.soundEnabled) return;
+            const ac = getAudio();
+            musicNextTime = ac.currentTime + 0.05;
+            musicStep = 0;
+            musicTick();
+        }
+
+        function stopMusic() {
+            if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+        }
+
+        // Transition: Menu Screen to Game Screen
+        function launchGame() {
+            config.mode = 'accelerating'; // no longer a player choice
+            config.lanes = parseInt(selectLanes.value);
+            applyLaneLayout(config.lanes);
+            config.hasTrucks = true; // no longer a player choice
+            config.ability = 'jump'; // no longer a player choice
+            config.nightMode = selectNightMode.value === 'yes';
+            config.soundVolume = parseFloat(selectSound.value);
+            config.soundEnabled = config.soundVolume > 0;
+
+            calculateMultiplier();
+
+            score = 0;
+            jumpsUsed = 0;
+            ramsUsed = 0;
+            gameStartTime = Date.now();
+            currentSpeed = baseSpeed;
+            roadOffset = 0;
+            vehicles = [];
+            pendingAmbulances = [];
+            particles = [];
+
+            setPaused(false);
+            vKeys.up = false;
+            vKeys.down = false;
+            hHeldDir.left = false;
+            hHeldDir.right = false;
+            player = new Player();
+            gameActive = true;
+            pauseBtn.style.display = 'block';
+            abilityBar.style.display = config.ability !== 'none' ? 'block' : 'none';
+            abilityBar.classList.remove('ready', 'active');
+            abilityBarFill.style.width = '0%';
+            gameOverHud.style.display = 'none';
+            startMusic();
+
+            if (selectTilt.value === 'yes') {
+                enableTilt();
+            } else {
+                tiltEnabled = false;
+            }
+
+            // Hide menu, show game
+            menuView.classList.remove('active');
+            gameView.classList.add('active');
+            gameoverBtns.style.display = 'none'; // Hide gameover buttons during game
+            gameHud.style.display = 'block';
+        }
+
+        // Transition: Game Screen back to Menu Screen
+        function exitToMenu() {
+            gameActive = false;
+            stopMusic();
+            setPaused(false);
+            pauseBtn.style.display = 'none';
+            abilityBar.style.display = 'none';
+            gameoverBtns.style.display = 'none';
+            gameHud.style.display = 'none';
+            hudAmb.style.display = 'none';
+            gameOverHud.style.display = 'none';
+            gameView.classList.remove('active');
+            menuView.classList.add('active');
+        }
+
+        function saveScore() {
+            const timeSurvived = Math.max(0, Math.floor((Date.now() - gameStartTime) / 1000));
+            const now = new Date();
+            const entry = {
+                score: score,
+                timeSurvived: timeSurvived,
+                multiplier: multiplier,
+                mode: config.mode,
+                lanes: config.lanes,
+                ability: config.ability,
+                hasTrucks: config.hasTrucks,
+                jumpsUsed: jumpsUsed,
+                ramsUsed: ramsUsed,
+                date: now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+                time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                isLatest: true
+            };
+            let scores = JSON.parse(localStorage.getItem('highscores') || '[]');
+            scores.forEach(s => { s.isLatest = false; });
+            scores.push(entry);
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 10);
+            localStorage.setItem('highscores', JSON.stringify(scores));
+        }
+
+        function showLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('highscores') || '[]');
+            leaderboardList.innerHTML = '';
+            if (scores.length === 0) {
+                leaderboardList.innerHTML = '<p style="color:#718093;text-align:center;padding:20px 0;font-size:12px;">No scores yet.<br>Play a game first!</p>';
+            } else {
+                scores.forEach((entry, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'lb-entry' + (entry.isLatest ? ' latest' : '');
+                    const modeLabel = entry.mode === 'accelerating' ? 'Acc' : 'Const';
+                    const abilityLabel = { none: 'None', jump: 'Jump', ram: 'Ram' }[entry.ability] || entry.ability;
+                    const extras = [];
+                    if (entry.jumpsUsed > 0) extras.push(`${entry.jumpsUsed} jumps`);
+                    if (entry.ramsUsed > 0) extras.push(`${entry.ramsUsed} rammed`);
+                    if (entry.hasTrucks) extras.push('trucks');
+                    div.innerHTML =
+                        `<div><span class="lb-rank">#${i + 1}</span>&nbsp; <span class="lb-score">${entry.score} pts</span>&nbsp; <span style="color:#a0aec0">${entry.timeSurvived}s</span>&nbsp; <span style="color:#4a5568;font-size:10px">${entry.date} ${entry.time}</span></div>` +
+                        `<div class="lb-meta">${entry.lanes}L · ${modeLabel} · ${abilityLabel} · ${entry.multiplier.toFixed(1)}x${extras.length ? ' · ' + extras.join(' · ') : ''}</div>`;
+                    leaderboardList.appendChild(div);
+                });
+            }
+            menuView.classList.remove('active');
+            leaderboardView.classList.add('active');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+                if (gameActive && !gamePaused) player.useAbility();
+            }
+            // Prevent arrow keys from controlling slider/page — always
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+                e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowUp')   vKeys.up = true;
+            if (e.key === 'ArrowDown') vKeys.down = true;
+            // Lane-snap steering (Batch 48 — fully smooth): a press just marks the direction
+            // held; Player.update() glides continuously from the very first frame (no initial
+            // discrete jump to the next lane first). Release rounds to the nearest lane via
+            // snapToNearestLane() below.
+            if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') hHeldDir.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') hHeldDir.right = true;
+            if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && gameView.classList.contains('active') && gameActive) {
+                setPaused(!gamePaused);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp')   vKeys.up = false;
+            if (e.key === 'ArrowDown') vKeys.down = false;
+            if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') { hHeldDir.left = false; snapToNearestLane(); }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { hHeldDir.right = false; snapToNearestLane(); }
+            if ((e.key === ' ' || e.code === 'Space') && player && player.abilityState === 'jumping') {
+                player.jumpHeld = false;
+            }
+        });
+
+        // Mouse/touch hold on the ability bar mirrors spacebar hold-to-fly: press to take off,
+        // release to land early and keep whatever energy remains
+        function abilityBarPress() {
+            if (gameActive && !gamePaused && player) player.useAbility();
+        }
+        function abilityBarRelease() {
+            if (player && player.abilityState === 'jumping') player.jumpHeld = false;
+        }
+        abilityBar.addEventListener('mousedown', abilityBarPress);
+        abilityBar.addEventListener('mouseup', abilityBarRelease);
+        abilityBar.addEventListener('mouseleave', abilityBarRelease);
+        abilityBar.addEventListener('touchstart', (e) => { e.preventDefault(); abilityBarPress(); }, { passive: false });
+        abilityBar.addEventListener('touchend', (e) => { e.preventDefault(); abilityBarRelease(); }, { passive: false });
+
+
+        // Touch drag on canvas to steer (mobile, deferred): 1:1 finger-follow, sets the same
+        // `targetX` lane-snap destination keys use (Batch 44) so it doesn't fight the steering
+        // LERP in update() — a direct `player.x` write here would get pulled back every frame
+        let touchStartX = null;
+        let touchStartPlayerX = null;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!player) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartPlayerX = player.x;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (touchStartX === null || !player) return;
+            const rect = canvas.getBoundingClientRect();
+            const dx = (e.touches[0].clientX - touchStartX) * (canvas.width / rect.width);
+            const roadMin = ROAD_BORDER_LEFT;
+            const roadMax = ROAD_BORDER_RIGHT - player.width;
+            player.targetX = Math.max(roadMin, Math.min(roadMax, touchStartPlayerX + dx));
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            touchStartX = null;
+            touchStartPlayerX = null;
+        });
+
+        // Lane-snap target for arrow/A-D presses (Batch 44): if the car body is fully within
+        // its current lane, jump to the adjacent lane; if it's off-center, center first
+        // Called on key release (and safe to call any time) — rounds the car's ACTUAL current
+        // position to its nearest lane center. Movement while held is fully smooth/continuous
+        // (Batch 48, see Player.update()) with no discrete snapping at all, so this is the only
+        // place a lane-snap destination ever gets set — it's what brings the car to rest on a
+        // real lane once the key is released, whether that was a quick tap or a long glide.
+        function snapToNearestLane() {
+            if (!player) return;
+            const lw = Math.floor(ROAD_WIDTH / config.lanes);
+            const carCenterX = player.x + player.width / 2;
+            let lane = Math.round((carCenterX - ROAD_BORDER_LEFT - lw / 2) / lw);
+            lane = Math.max(0, Math.min(config.lanes - 1, lane));
+            const laneCenterX = ROAD_BORDER_LEFT + lane * lw + lw / 2;
+            player.targetX = laneCenterX - player.width / 2;
+        }
+
+        function checkCollision(r1, r2) {
+            return (
+                r1.x < r2.x + r2.width &&
+                r1.x + r1.width > r2.x &&
+                r1.y < r2.y + r2.height &&
+                r1.y + r1.height > r2.y
+            );
+        }
+
+        function explode(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function loop() {
+            // Run updates only if the game view is actively running
+            if (!gameView.classList.contains('active')) {
+                requestAnimationFrame(loop);
+                return;
+            }
+
+            // Pause: freeze last canvas frame untouched, skip all updates. The dark overlay
+            // and PAUSED text are now the #pauseHud DOM element sitting on top (see setPaused()),
+            // not redrawn here — this is what fixes the old bug where the canvas-drawn overlay
+            // recomposited on top of itself every frame and drifted to solid black
+            if (gamePaused) {
+                requestAnimationFrame(loop);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Sidewalk background
+            ctx.fillStyle = '#55b65a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Left side — 14 unique slots, each 24px tall: 0=tall grass, 1=bush, 2=tree
+            // Reduced density from the original 7 grass/4 bush/3 tree to 9/3/2 (Batch 16)
+            {
+                const LEFT_SLOTS = [0, 1, 0, 0, 2, 0, 1, 0, 0, 2, 0, 1, 0, 0]; // 14 entries
+                const tilePeriod = 24;
+                const numSlots = 14; // 336 / 24 = 14
+                const ro = Math.floor(roadOffset % 336);
+                const baseSlot = Math.floor(ro / tilePeriod);
+                const pixOff = ro % tilePeriod;
+                for (let ti = 0; pixOff - tilePeriod + ti * tilePeriod < canvas.height + tilePeriod; ti++) {
+                    const ly = pixOff - tilePeriod + ti * tilePeriod;
+                    // Slot identity must depend only on the tile's world-space position, not on
+                    // baseSlot+ti directly — that combination jumps by +2 every time pixOff wraps
+                    // past 0 (about every 24px of scroll), which was making tiles change type
+                    // mid-scroll ("flashing"). ti - baseSlot - 1 stays constant for a given
+                    // physical tile across the wrap (see CHANGELOG for the derivation).
+                    const slotOffset = ti - baseSlot - 1;
+                    const type = LEFT_SLOTS[((slotOffset % numSlots) + numSlots) % numSlots];
+                    if (type === 2) { // tree
+                        ctx.fillStyle = '#4e342e';
+                        ctx.fillRect(6, ly + 15, 3, 8);   // trunk
+                        ctx.fillStyle = '#1b5e20';
+                        ctx.fillRect(1, ly + 5, 13, 7);   // wide crown base
+                        ctx.fillRect(3, ly + 2, 9, 5);    // upper crown
+                        ctx.fillRect(5, ly + 0, 5, 3);    // top
+                        ctx.fillStyle = '#2d7d32';
+                        ctx.fillRect(2, ly + 10, 10, 5);  // mid-crown
+                    } else if (type === 1) { // bush
+                        ctx.fillStyle = '#2e7d32';
+                        ctx.fillRect(1, ly + 15, 12, 7);  // wide base
+                        ctx.fillRect(3, ly + 12, 9, 5);   // rounded top
+                        ctx.fillRect(5, ly + 10, 5, 4);   // peak
+                        ctx.fillStyle = '#43a047';
+                        ctx.fillRect(2, ly + 16, 9, 5);   // highlight layer
+                        ctx.fillRect(4, ly + 13, 6, 4);
+                    } else { // tall grass (type 0)
+                        ctx.fillStyle = '#2e7d32';
+                        ctx.fillRect(2, ly + 9, 1, 13);
+                        ctx.fillRect(6, ly + 7, 1, 15);
+                        ctx.fillRect(11, ly + 11, 1, 11);
+                        ctx.fillStyle = '#43a047';
+                        ctx.fillRect(4, ly + 8, 1, 14);
+                        ctx.fillRect(9, ly + 10, 1, 12);
+                        ctx.fillRect(13, ly + 12, 1, 10);
+                    }
+                }
+            }
+
+            // Curb tile height (shared by both sides)
+            let tileHeight = 8;
+
+            // Left curb (mirrored from right)
+            for (let ly = -tileHeight + Math.floor(roadOffset % (tileHeight * 2)); ly < canvas.height; ly += tileHeight * 2) {
+                ctx.fillStyle = '#718093';
+                ctx.fillRect(ROAD_BORDER_LEFT - 2, ly, 2, tileHeight);
+                ctx.fillStyle = '#f1f2f6';
+                ctx.fillRect(ROAD_BORDER_LEFT - 2, ly + tileHeight, 2, tileHeight);
+            }
+
+            // Right side curbs and hedges
+            ctx.fillStyle = '#55b65a';
+            ctx.fillRect(ROAD_BORDER_RIGHT, 0, SIDE_MARGIN, canvas.height);
+
+            // Right curb
+            for (let ly = -tileHeight + Math.floor(roadOffset % (tileHeight * 2)); ly < canvas.height; ly += tileHeight * 2) {
+                ctx.fillStyle = '#718093';
+                ctx.fillRect(ROAD_BORDER_RIGHT, ly, 2, tileHeight);
+                ctx.fillStyle = '#f1f2f6';
+                ctx.fillRect(ROAD_BORDER_RIGHT, ly + tileHeight, 2, tileHeight);
+            }
+
+            // Right side — natural solid hedge wall (Batch 16, replaces the flashing teal
+            // bush-square grid). Solid dark base plus overlapping organic foliage clumps
+            // using the same world-position slot formula as the left side, so tile identity
+            // never jumps mid-scroll. Base fill means there are never gaps between clumps —
+            // it always reads as one continuous hedge.
+            ctx.fillStyle = '#1e6f5c'; // Dark hedge base
+            ctx.fillRect(ROAD_BORDER_RIGHT + 4, 0, 14, canvas.height);
+            {
+                const RIGHT_SLOTS = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1]; // 14 entries, 2 clump variants
+                const tilePeriod = 24;
+                const numSlots = 14;
+                const ro = Math.floor(roadOffset % 336);
+                const baseSlot = Math.floor(ro / tilePeriod);
+                const pixOff = ro % tilePeriod;
+                for (let ti = 0; pixOff - tilePeriod + ti * tilePeriod < canvas.height + tilePeriod; ti++) {
+                    const ly = pixOff - tilePeriod + ti * tilePeriod;
+                    const slotOffset = ti - baseSlot - 1;
+                    const variant = RIGHT_SLOTS[((slotOffset % numSlots) + numSlots) % numSlots];
+                    if (variant === 1) { // fuller clump
+                        ctx.fillStyle = '#1f5f49';
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 4, ly + 6, 13, 15);
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 6, ly + 2, 9, 6);
+                        ctx.fillStyle = '#2a7359';
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 5, ly + 8, 6, 8);
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 11, ly + 12, 4, 6);
+                    } else { // smaller clump
+                        ctx.fillStyle = '#256b52';
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 6, ly + 9, 10, 11);
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 8, ly + 6, 6, 6);
+                        ctx.fillStyle = '#2f8065';
+                        ctx.fillRect(ROAD_BORDER_RIGHT + 7, ly + 11, 5, 6);
+                    }
+                }
+            }
+
+            // Central grey asphalt road
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(ROAD_BORDER_LEFT, 0, ROAD_WIDTH, canvas.height);
+
+            if (gameActive) {
+                // Keep road, curbs, and grasses in perfect, crisp scrolling sync
+                roadOffset = (roadOffset + currentSpeed) % 336; // 336 = LCM(16,24,28) — all tile periods divide evenly, no wrap jitter
+                
+                if (currentSpeed < maxSpeed) {
+                    currentSpeed += 0.0005;
+                }
+            }
+
+            // Procedural, pixel-perfect dashed road lane dividers
+            let laneWidth = Math.floor(ROAD_WIDTH / config.lanes);
+            let dashH = 12;
+            let dashG = 16;
+            let dashPeriod = dashH + dashG;
+
+            for (let i = 1; i < config.lanes; i++) {
+                let lx = ROAD_BORDER_LEFT + i * laneWidth;
+                for (let ly = -dashPeriod + Math.floor(roadOffset % dashPeriod); ly < canvas.height; ly += dashPeriod) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(lx, ly, 1, dashH); // Crisp 1px wide line blocks
+                }
+            }
+
+            if (gameActive) {
+                // Pending ambulance warnings: draw flashing danger zone, spawn when countdown ends
+                for (let i = pendingAmbulances.length - 1; i >= 0; i--) {
+                    const pa = pendingAmbulances[i];
+                    pa.timer--;
+                    if (pa.timer <= 0) {
+                        vehicles.push(new Vehicle(pa.lane, 'ambulance'));
+                        pendingAmbulances.splice(i, 1);
+                    } else {
+                        // Flashing red danger stripe in the incoming lane
+                        if (Math.floor(Date.now() / 200) % 2 === 0) {
+                            const lw = Math.floor(ROAD_WIDTH / config.lanes);
+                            const lx = ROAD_BORDER_LEFT + pa.lane * lw;
+                            ctx.fillStyle = 'rgba(255, 50, 50, 0.55)';
+                            ctx.fillRect(lx + 1, 0, lw - 2, canvas.height);
+                            // Danger bar at top of lane
+                            ctx.fillStyle = '#ff0000';
+                            ctx.fillRect(lx + 1, 0, lw - 2, 5);
+                            // White exclamation block
+                            const cx = lx + Math.floor(lw / 2) - 1;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(cx, 1, 2, 3);
+                            ctx.fillRect(cx, 5, 2, 1);
+                        }
+                    }
+                }
+
+                // Procedural spawning
+                let spawnChance = 0.015 + (currentSpeed * 0.0012);
+                if (Math.random() < spawnChance) {
+                    let lane = Math.floor(Math.random() * config.lanes);
+                    
+                    if (canSpawnAt(lane)) {
+                        let roll = Math.random();
+                        if (roll < 0.02) {
+                            // Queue ambulance with 3-second advance warning
+                            if (!pendingAmbulances.some(pa => pa.lane === lane)) {
+                                // Clear the lane so the ambulance has a straight run when it arrives
+                                vehicles = vehicles.filter(v => v.lane !== lane);
+                                // Warning scales down as game speeds up (2.5s base → 1s min)
+                                const warnFrames = Math.max(60, Math.round(150 * baseSpeed / currentSpeed));
+                                pendingAmbulances.push({lane, timer: warnFrames});
+                            }
+                        } else {
+                            let type;
+                            // Reckless share cut way down (was 0.23 of all spawns) — reckless
+                            // drivers are permanent lane-changers (re-roll forever, unlike
+                            // normal/truck which change once), so they alone made "most cars
+                            // change lanes repeatedly" feel true even after tuning normal/truck
+                            // down separately.
+                            if (roll < 0.12) {
+                                type = 'reckless';
+                            } else if (roll < 0.32) {
+                                type = 'truck';
+                            } else {
+                                type = 'normal';
+                            }
+                            vehicles.push(new Vehicle(lane, type));
+                        }
+                    }
+                }
+
+                player.update();
+
+                for (let i = vehicles.length - 1; i >= 0; i--) {
+                    if (!gameActive) break;
+                    let v = vehicles[i];
+                    v.update();
+                    v.draw();
+
+                    if (checkCollision(player, v)) {
+                        if (player.abilityState === 'jumping') {
+                            // immune over everything, including ambulances now
+                        } else if (v.type === 'ambulance') {
+                            // Ambulance = instant death (jump immunity handled above; ram still doesn't protect)
+                            explode(player.x + player.width/2, player.y + player.height/2, playerColor);
+                            explode(v.x + v.width/2, v.y + v.height/2, '#ff4757');
+                            explode(v.x + v.width/2, v.y + v.height/2, '#4f6ef7');
+                            gameActive = false;
+                            gameHud.style.display = 'none';
+                            hudAmb.style.display = 'none';
+                            abilityBar.style.display = 'none';
+                            goScore.textContent = `SCORE: ${score}`;
+                            gameOverHud.style.display = 'flex';
+                            stopMusic();
+                            playSound('crash');
+                            saveScore();
+                            gameoverBtns.style.display = 'flex';
+                        } else if (player.abilityState === 'ramming') {
+                            explode(v.x + v.width/2, v.y + v.height/2, v.color);
+                            vehicles.splice(i, 1);
+                            score += Math.round(15 * multiplier);
+                            ramsUsed++;
+                            playSound('ram');
+                            continue;
+                        } else {
+                            explode(player.x + player.width/2, player.y + player.height/2, playerColor);
+                            explode(v.x + v.width/2, v.y + v.height/2, v.color);
+                            gameActive = false;
+                            gameHud.style.display = 'none';
+                            hudAmb.style.display = 'none';
+                            abilityBar.style.display = 'none';
+                            goScore.textContent = `SCORE: ${score}`;
+                            gameOverHud.style.display = 'flex';
+                            stopMusic();
+                            playSound('crash');
+                            saveScore();
+                            gameoverBtns.style.display = 'flex';
+                        }
+                    }
+
+                    if (v.y > canvas.height) {
+                        vehicles.splice(i, 1);
+                        score += Math.round(10 * multiplier);
+                    }
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+
+                player.draw();
+
+                // Night mode: dark overlay with headlight glow in front of player
+                if (config.nightMode) {
+                    ctx.fillStyle = 'rgba(0, 5, 20, 0.72)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    const hx = player.x + player.width / 2;
+                    const grad = ctx.createRadialGradient(hx, player.y, 2, hx, player.y - 22, 68);
+                    grad.addColorStop(0, 'rgba(255, 255, 200, 0.42)');
+                    grad.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                // UI Display text (DOM overlay — crisp at any display size)
+                hudScore.textContent = `SCORE: ${score}`;
+                hudMult.textContent = `MULT:  ${multiplier.toFixed(1)}x`;
+
+                // Ambulance on-screen warning (DOM)
+                const ambulanceOnScreen = vehicles.some(v => v.type === 'ambulance');
+                hudAmb.style.display = (ambulanceOnScreen && Math.floor(Date.now() / 300) % 2 === 0) ? 'block' : 'none';
+
+                // Ability bar is now a DOM overlay (#abilityBar), updated in Player.update()
+
+            } else {
+                // Game Over — dark canvas overlay (text shown via DOM #gameOverHud)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        // Action hooks for transitions
+        startBtn.addEventListener('click', launchGame);
+        retryBtn.addEventListener('click', launchGame);
+        returnBtn.addEventListener('click', exitToMenu);
+        pauseBtn.addEventListener('click', () => { if (gameActive) setPaused(!gamePaused); });
+        resumeBtn.addEventListener('click', () => setPaused(false));
+        pauseMenuBtn.addEventListener('click', exitToMenu);
+        leaderboardBtn.addEventListener('click', showLeaderboard);
+        backBtn.addEventListener('click', () => {
+            leaderboardView.classList.remove('active');
+            menuView.classList.add('active');
+        });
+        clearBtn.addEventListener('click', () => {
+            localStorage.removeItem('highscores');
+            showLeaderboard();
+        });
+
+        // Pre-calculated updates
+        selectLanes.addEventListener('change', calculateMultiplier);
+        selectNightMode.addEventListener('change', calculateMultiplier);
+        selectSound.addEventListener('input', () => {
+            const pct = Math.round(parseFloat(selectSound.value) * 100);
+            document.getElementById('soundVolumeVal').textContent = pct + '%';
+            localStorage.setItem('soundVolume', selectSound.value);
+        });
+
+        // Init sound volume from localStorage
+        const savedVol = localStorage.getItem('soundVolume') || '0.7';
+        selectSound.value = savedVol;
+        document.getElementById('soundVolumeVal').textContent = Math.round(parseFloat(savedVol) * 100) + '%';
+
+        // Car color swatch picker
+        const swatches = document.querySelectorAll('.color-swatch');
+        swatches.forEach(swatch => {
+            if (swatch.dataset.color === playerColor) swatch.classList.add('selected');
+            swatch.addEventListener('click', () => {
+                swatches.forEach(s => s.classList.remove('selected'));
+                swatch.classList.add('selected');
+                playerColor = swatch.dataset.color;
+                localStorage.setItem('playerColor', playerColor);
+            });
+        });
+
+        // Inject tooltip icons from data-tip attributes
+        document.querySelectorAll('.setting-group[data-tip]').forEach(group => {
+            const label = group.querySelector('label');
+            if (!label) return;
+            const wrap = document.createElement('span');
+            wrap.className = 'tip-wrap';
+            const icon = document.createElement('span');
+            icon.className = 'tip-icon';
+            icon.textContent = 'ℹ';
+            const text = document.createElement('span');
+            text.className = 'tip-text';
+            text.textContent = group.dataset.tip;
+            wrap.appendChild(icon);
+            wrap.appendChild(text);
+            label.appendChild(wrap);
+            icon.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = wrap.classList.contains('open');
+                document.querySelectorAll('.tip-wrap.open').forEach(w => w.classList.remove('open'));
+                if (!isOpen) wrap.classList.add('open');
+            });
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.tip-wrap.open').forEach(w => w.classList.remove('open'));
+        });
+
+        calculateMultiplier();
+        loop();
+    </script>
+</body>
+</html>

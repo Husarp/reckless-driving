@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #090c12; }
+a { color: #f5b32a; }
+a:hover { color: #ffd76a; }
+</style>
+</helmet>
+<div style="min-height:100vh;background:#090c12;padding:40px 44px 64px;font-family:'IBM Plex Mono',monospace;color:#c7d0de">
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+    <div style="font-family:'Press Start 2P',monospace;font-size:16px;color:#f5b32a;letter-spacing:1px">SHIELD BUMP — FX LAYERS</div>
+    <div style="font-size:13px;color:#7d8798;max-width:800px;line-height:1.6;text-wrap:pretty">Ten independent sprite sheets. No car in any frame — every sheet is a transparent overlay you composite onto whatever vehicle is on screen, so nothing here breaks when the model or paint colour changes. The checkerboard is empty alpha. Dotted marks are anchor guides only, never drawn in engine.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:34px;font-size:11px;color:#5c6678">
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#eafaff;display:block"></span>SHIELD HOT</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#7fe3ff;display:block"></span>SHIELD MID</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#2f8fb8;display:block"></span>SHIELD TAIL</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#c8d2df;display:block"></span>GUARD METAL</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#b9a06a;display:block"></span>GUARD CANVAS</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#ffb02e;display:block"></span>SPARK</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#6b6f76;display:block"></span>DEBRIS / SMOKE</div>
+    <div style="display:flex;gap:8px;align-items:center"><span style="width:11px;height:11px;background:#783214;display:block"></span>EMBER</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:26px">
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">1 &middot; SPEED THRUSTER &mdash; 4-FRAME LOOP @ 80MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">The centre thruster from the jump FX page, reused as the sustained speed-up plume. Same 6px-wide tapered flame and same colour ramp, just held for the whole window instead of a burst. Anchor is the rear bumper centre, top row of the sheet — blit it directly below whatever sprite is playing.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+          <canvas ref="{{ refThrP }}" width="120" height="132" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refThrO }}" width="20" height="22" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripThr }}" as="fr" hint-placeholder-count="4">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:80px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">2 &middot; PUSH GUARD &mdash; EXTEND, 5 FRAMES @ 60MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">Guard only, anchored on its bottom row to the front bumper. 16px wide at the mount, 8px deep at full extension; frame 4 pushes one extra tip row and frame 5 snaps back. Two material takes — pick one, both are the same silhouette and anchor.</div>
+      </div>
+      <div style="display:flex;gap:26px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">A &middot; RIGID METAL GRILLE</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refGmP }}" width="140" height="77" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refGmO }}" width="20" height="11" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripGm }}" as="fr" hint-placeholder-count="5">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:80px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">B &middot; REINFORCED CANVAS GUARD</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refGfP }}" width="140" height="77" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refGfO }}" width="20" height="11" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripGf }}" as="fr" hint-placeholder-count="5">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:80px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">3 &middot; AIR RIPPLE &mdash; 4-FRAME LOOP @ 90MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">The "currently invincible" state cue. Three rings alive at once, each spawning at r=4 and dying at r=15, offset a third of a loop apart so one is always fresh. Front arc spans 140&deg;, side arcs are clipped to 50&deg; at 0.8&times; radius so the car never looks encircled. Brightness steps down with ring age; the oldest is dashed. Anchor is the front bumper centre — the dotted box shows a 14&times;24 footprint for scale, nothing more.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+          <canvas ref="{{ refRipP }}" width="240" height="204" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refRipO }}" width="40" height="34" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripRip }}" as="fr" hint-placeholder-count="4">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:120px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">4 &middot; IMPACT EXPLOSION &mdash; 3 VARIANTS, 12 FRAMES @ 45MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">Rebuilt bigger and messier: 64&times;64 instead of 32, and the fireball is a cluster of eleven overlapping lobes with dithered edges instead of a ring, so no frame reads as a circle and no two frames share a silhouette. Smoke is drawn first as 16&ndash;20 growing puffs, then the fire, then the spark rain on top. Particles only, centre-anchored on the contact point — no vehicle art, so it drops on top of any car at any size or colour, and your existing squash-and-darken pass handles the wreck underneath. Debris chunks are neutral grey; tint them from the hit vehicle's own colour at draw time if you want the paint to carry through (the Tweaks swatch previews that). Frames 8&ndash;12 are smoke and embers only, so they can keep playing over the wreck after the burst is gone.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">A &middot; RADIAL BURST &mdash; even 360&deg; spread, 38 sparks + 10 chunks + 16 smoke puffs</div>
+          <div style="display:flex;gap:5px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refXAP }}" width="192" height="192" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refXAO }}" width="64" height="64" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripXA }}" as="fr" hint-placeholder-count="12">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:5px;display:flex;flex-direction:column;gap:5px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#5c6678;letter-spacing:.4px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">B &middot; SIDE SHEAR &mdash; debris fanned one way, fireball shears sideways, bigger chunks</div>
+          <div style="display:flex;gap:5px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refXBP }}" width="192" height="192" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refXBO }}" width="64" height="64" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripXB }}" as="fr" hint-placeholder-count="12">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:5px;display:flex;flex-direction:column;gap:5px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#5c6678;letter-spacing:.4px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">C &middot; DOUBLE POP &mdash; small hit, much bigger second blast on frame 5, tall smoke column</div>
+          <div style="display:flex;gap:5px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refXCP }}" width="192" height="192" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refXCO }}" width="64" height="64" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripXC }}" as="fr" hint-placeholder-count="12">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:5px;display:flex;flex-direction:column;gap:5px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#5c6678;letter-spacing:.4px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">5 &middot; PUSH GUARD &mdash; RETRACT, 5 FRAMES @ 70MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">Plays when the bar empties. The guard loses its fill and drops to a bare outline before it pulls in, so "no longer solid" lands before "gone". Frame 4 leaves three flecks behind; frame 5 is an empty sheet — stop drawing the layer after it.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+          <canvas ref="{{ refRetP }}" width="140" height="77" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refRetO }}" width="20" height="11" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripRet }}" as="fr" hint-placeholder-count="5">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:80px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">6 &middot; TANK MUZZLE + TRACER &mdash; 6 FRAMES @ 40MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">Fires per contact. Muzzle flash on the bottom anchor row, a 1px tracer up the full sheet, then a hit spark at the top — stretch or clip the tracer to the real gap between barrel and target, it's a straight line by design. Explosion is not included: chain straight into any of the three variants above.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+          <canvas ref="{{ refTrcP }}" width="120" height="264" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refTrcO }}" width="20" height="44" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripTrc }}" as="fr" hint-placeholder-count="6">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:80px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">7 &middot; TANK ACTIVE CUE &mdash; 4-FRAME LOOP @ 90MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">The tank has no push-guard, so the sustained cue moves to the barrel: muzzle stays lit, heat ripples fire forward in a narrow 70&deg; cone, and a spent casing ejects on alternate frames. Anchored on the muzzle tip, so it works for any barrel length. Pair it with the same thruster loop from section 1.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+          <canvas ref="{{ refTcuP }}" width="168" height="132" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refTcuO }}" width="28" height="22" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripTcu }}" as="fr" hint-placeholder-count="4">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">8 &middot; SPEED AIR &mdash; 2 SHEETS, 4-FRAME SEAMLESS LOOPS @ 60MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">The "going faster" read, with no vehicle in either sheet. Standard practice for pixel racers: the streaks never touch the car &mdash; the anchor column stays empty and they run in the gap beside it, they are mostly gaps rather than lines, and they are near-white at low alpha so they read as air and not as paint. Lengths and speeds are mixed so the eye can't lock onto one line, and each loop returns to its start row exactly on frame 4, so it tiles at any speed you play it.</div>
+      </div>
+      <div style="display:flex;gap:26px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">A &middot; SIDE SLIPSTREAM &mdash; 10&times;32, MIRROR FOR THE OTHER FLANK</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-end">
+              <canvas ref="{{ refWndP }}" width="50" height="160" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refWndO }}" width="10" height="32" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripWnd }}" as="fr" hint-placeholder-count="4">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:60px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;color:#f5b32a;letter-spacing:1px">B &middot; REAR AIR WAKE &mdash; 24&times;16</div>
+          <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+            <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-start">
+              <canvas ref="{{ refWakP }}" width="120" height="80" style="image-rendering:pixelated;display:block"></canvas>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <canvas ref="{{ refWakO }}" width="24" height="16" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+              </div>
+            </div>
+            <sc-for list="{{ stripWak }}" as="fr" hint-placeholder-count="4">
+              <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+                <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+                <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:11px;color:#7d8798;line-height:1.55;max-width:340px">Anchored top-centre to the rear bumper, directly behind the thruster plume. Chevrons open backwards at roughly 30&deg; and lose a step of alpha every 4 rows, so the wake dies out before it reaches the bottom of the sheet.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px">
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">9 &middot; AMBIENT ROAD AIR &mdash; 32&times;32 TILE, 4-FRAME LOOP @ 60MS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.55;max-width:820px">Not tied to any vehicle: one tile that repeats across the whole road and scrolls with it, so the air reads as passing everywhere rather than only beside the player. 15 particles per tile &mdash; single motes and 2-4px streaks, a third of them warm dust rather than white air. The tile wraps on all four edges and steps 8px per frame, so it returns to frame 0 exactly and never seams against its neighbours. Play it at the road scroll speed; drop the alpha or the particle count on slower roads.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">
+        <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:8px;flex:none;display:flex;gap:10px;align-items:flex-start">
+          <canvas ref="{{ refAmbP }}" width="160" height="160" style="image-rendering:pixelated;display:block"></canvas>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+            <canvas ref="{{ refAmbO }}" width="32" height="32" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:7px;color:#3f4753;letter-spacing:.5px">1&times;</div>
+          </div>
+        </div>
+        <sc-for list="{{ stripAmb }}" as="fr" hint-placeholder-count="4">
+          <div style="background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;flex:none">
+            <canvas ref="{{ fr.ref }}" width="{{ fr.w }}" height="{{ fr.h }}" style="image-rendering:pixelated;display:block"></canvas>
+            <div style="font-size:8px;color:#5c6678;letter-spacing:.5px;text-align:center;width:96px;line-height:1.4">{{ fr.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ff9f1a">SHEET SUMMARY</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;font-size:11px;color:#7d8798;line-height:1.6">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="color:#c7d0de">Sizes and anchors</div>
+          <div>Thruster 20&times;22, anchor top-centre (rear bumper). Guard 20&times;11, anchor bottom-centre (front bumper). Ripple 40&times;34, anchor bottom-centre. Explosion 64&times;64, anchor centre. Tracer 20&times;44, anchor bottom-centre (muzzle). Tank cue 28&times;22, anchor bottom-centre. Slipstream 10&times;32, anchor right column against the flank &mdash; nothing is drawn on it; shear haze sits 1px clear, nearest streak 2px clear. Mirrored on the other side. Air wake 24&times;16, anchor top-centre (rear bumper). Ambient road air 32&times;32, no anchor &mdash; tiles on both axes across the full road.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="color:#c7d0de">Stacking</div>
+          <div>All ten are independent and can overlap freely. The ambient road tile runs underneath everything, always on. Sustained state = thruster loop + ripple loop (or tank cue). A hit spawns one explosion instance; several can run at once during the window without touching the loops.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="color:#c7d0de">Draw order</div>
+          <div>Ripples and thruster below the vehicle sprite, guard below it too so the nose silhouette stays intact, explosions and tracer above everything.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="color:#c7d0de">Timing</div>
+          <div>Guard extend 300ms, loops run until the bar empties, explosion 450ms per instance, guard retract 350ms, tracer 240ms. Impacts never gate the loops or the mode timer.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;shieldColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#eafaff&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#eafaff&quot;,&quot;#7fe3ff&quot;,&quot;#f5b32a&quot;,&quot;#2ee6b0&quot;],&quot;section&quot;:&quot;FX&quot;},&quot;debrisTint&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#6b6f76&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#6b6f76&quot;,&quot;#c94f4f&quot;,&quot;#b06fd6&quot;,&quot;#7fb069&quot;],&quot;section&quot;:&quot;FX&quot;},&quot;guardStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;metal&quot;,&quot;options&quot;:[&quot;metal&quot;,&quot;canvas&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;FX&quot;},&quot;frameMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:100,&quot;min&quot;:40,&quot;max&quot;:260,&quot;step&quot;:5,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;FX&quot;}}">
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.el = {};
+    this.refs2 = {};
+    this.keys = [];
+    this.tick = 0;
+    const add = k => {
+      this.keys.push(k);
+      this.refs2['ref_' + k] = n => { this.el[k] = n; if (n) this.paint(k); };
+    };
+    Object.keys(this.specs()).forEach(seq => {
+      const n = this.specs()[seq].n;
+      for (let i = 0; i < n; i++) add(seq + '_' + i);
+      add(seq + '_p');
+      add(seq + '_o');
+    });
+  }
+
+  specs() {
+    return {
+      thr: { w: 20, h: 22, n: 4, loop: true },
+      gm: { w: 20, h: 11, n: 5 },
+      gf: { w: 20, h: 11, n: 5 },
+      rip: { w: 40, h: 34, n: 4, loop: true },
+      xA: { w: 64, h: 64, n: 12 },
+      xB: { w: 64, h: 64, n: 12 },
+      xC: { w: 64, h: 64, n: 12 },
+      ret: { w: 20, h: 11, n: 5 },
+      trc: { w: 20, h: 44, n: 6 },
+      tcu: { w: 28, h: 22, n: 4, loop: true },
+      wnd: { w: 10, h: 32, n: 4, loop: true },
+      wak: { w: 24, h: 16, n: 4, loop: true },
+      amb: { w: 32, h: 32, n: 4, loop: true }
+    };
+  }
+
+  componentDidMount() { this.start(); }
+  componentDidUpdate() { this.start(); this.keys.forEach(k => this.paint(k)); }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  start() {
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.tick++;
+      this.keys.forEach(k => { const t = k.split('_')[1]; if (t === 'p' || t === 'o') this.paint(k); });
+    }, this.props.frameMs ?? 100);
+  }
+
+  strip(seq, labels, sc) {
+    const s = this.specs()[seq];
+    return labels.map((label, i) => ({
+      ref: this.refs2['ref_' + seq + '_' + i],
+      w: s.w * sc, h: s.h * sc,
+      label: (i + 1) + ' · ' + label
+    }));
+  }
+
+  renderVals() {
+    const X = ['CORE FLASH', 'FIREBALL OUT', 'FULL BLOOM', 'PEAK RAGGED', 'BREAK UP', 'FIRE DIES', 'SPARK RAIN', 'SMOKE BLOOM', 'SMOKE WIDE', 'EMBERS', 'SMOKE THINS', 'FADE'];
+    const G = ['MOUNT ROW', 'EXTEND 35%', 'EXTEND 70%', 'OVERSHOOT +1PX', 'LOCKED'];
+    const r = k => this.refs2['ref_' + k];
+    return {
+      stripThr: this.strip('thr', ['PLUME SHORT', 'PLUME LONG', 'PLUME MID', 'PLUME MAX'], 4),
+      stripGm: this.strip('gm', G, 4),
+      stripGf: this.strip('gf', G, 4),
+      stripRip: this.strip('rip', ['RING SPAWN', 'MID EXPAND', 'TAIL DASH', 'CYCLE OVER'], 3),
+      stripXA: this.strip('xA', X, 2),
+      stripXB: this.strip('xB', X, 2),
+      stripXC: this.strip('xC', ['SMALL HIT', 'FLASH', 'LULL', 'CHARGE', 'SECOND BLAST', 'FULL BLOOM', 'PEAK', 'BREAK UP', 'COLUMN UP', 'EMBERS', 'SMOKE TALL', 'FADE'], 2),
+      stripRet: this.strip('ret', ['GUARD LIT', 'FILL DROPS', 'OUTLINE ONLY', 'FLECKS', 'EMPTY'], 4),
+      stripTrc: this.strip('trc', ['MUZZLE + TRACER', 'TRACER FADE', 'HIT SPARK', 'SPARK OUT', 'MUZZLE COOL', 'CLEAR'], 3),
+      stripTcu: this.strip('tcu', ['MUZZLE HOT', 'HEAT RING', 'RING EXPAND', 'CASING EJECT'], 4),
+      refThrP: r('thr_p'), refThrO: r('thr_o'),
+      refGmP: r('gm_p'), refGmO: r('gm_o'),
+      refGfP: r('gf_p'), refGfO: r('gf_o'),
+      refRipP: r('rip_p'), refRipO: r('rip_o'),
+      refXAP: r('xA_p'), refXAO: r('xA_o'),
+      refXBP: r('xB_p'), refXBO: r('xB_o'),
+      refXCP: r('xC_p'), refXCO: r('xC_o'),
+      refRetP: r('ret_p'), refRetO: r('ret_o'),
+      refTrcP: r('trc_p'), refTrcO: r('trc_o'),
+      refTcuP: r('tcu_p'), refTcuO: r('tcu_o'),
+      stripWnd: this.strip('wnd', ['LONG PASS', 'GAP', 'MID PASS', 'CYCLE OVER'], 3),
+      stripWak: this.strip('wak', ['CHEVRON SPAWN', 'OPEN OUT', 'DUST FLECKS', 'CYCLE OVER'], 4),
+      refWndP: r('wnd_p'), refWndO: r('wnd_o'),
+      refWakP: r('wak_p'), refWakO: r('wak_o'),
+      stripAmb: this.strip('amb', ['TILE 0', 'SCROLL 8PX', 'SCROLL 16PX', 'SCROLL 24PX'], 3),
+      refAmbP: r('amb_p'), refAmbO: r('amb_o')
+    };
+  }
+
+  paint(k) {
+    const cv = this.el[k];
+    if (!cv) return;
+    const parts = k.split('_');
+    const seq = parts[0], tag = parts[1];
+    const s = this.specs()[seq];
+    const anim = tag === 'p' || tag === 'o';
+    let fr;
+    if (anim) {
+      const cycle = s.loop ? s.n : s.n + 3;
+      fr = this.tick % cycle;
+      if (!s.loop) fr = Math.min(fr, s.n - 1);
+    } else fr = +tag;
+
+    const S = cv.width / s.w;
+    const g = cv.getContext('2d');
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.save();
+    g.scale(S, S);
+    this.checker(g, s.w, s.h, S);
+    this.guides(g, seq, s);
+    if (seq === 'thr') this.drawThruster(g, s, fr);
+    else if (seq === 'gm') this.drawGuardSeq(g, s, 'metal', fr);
+    else if (seq === 'gf') this.drawGuardSeq(g, s, 'canvas', fr);
+    else if (seq === 'rip') this.drawRipple(g, s, fr);
+    else if (seq === 'ret') this.drawRetract(g, s, fr);
+    else if (seq === 'trc') this.drawTracer(g, s, fr);
+    else if (seq === 'tcu') this.drawTankCue(g, s, fr);
+    else if (seq === 'wnd') this.drawSlipstream(g, s, fr);
+    else if (seq === 'wak') this.drawAirWake(g, s, fr);
+    else if (seq === 'amb') this.drawAmbient(g, s, fr);
+    else this.drawExplosion(g, s, seq[1], fr);
+    g.restore();
+  }
+
+  // ---------- sheet background + anchor guides (never drawn in engine) ----------
+  checker(g, w, h, S) {
+    const c = S >= 3 ? 4 : 2;
+    for (let y = 0; y < h; y += c) {
+      for (let x = 0; x < w; x += c) {
+        g.fillStyle = ((x / c + y / c) % 2) ? '#0e1219' : '#12171f';
+        g.fillRect(x, y, Math.min(c, w - x), Math.min(c, h - y));
+      }
+    }
+  }
+
+  guides(g, seq, s) {
+    const dot = (x, y) => { g.fillStyle = '#2b323d'; g.fillRect(x, y, 1, 1); };
+    const cx = Math.floor(s.w / 2);
+    if (seq === 'thr') { for (let x = cx - 7; x <= cx + 6; x += 2) dot(x, 0); }
+    else if (seq === 'gm' || seq === 'gf' || seq === 'ret') { for (let x = cx - 7; x <= cx + 6; x += 2) dot(x, s.h - 1); }
+    else if (seq === 'rip') {
+      for (let x = cx - 7; x <= cx + 6; x += 2) dot(x, 17);
+      for (let y = 19; y < s.h; y += 2) { dot(cx - 7, y); dot(cx + 6, y); }
+    } else if (seq === 'trc' || seq === 'tcu') { for (let x = cx - 3; x <= cx + 2; x += 2) dot(x, s.h - 1); }
+    else if (seq === 'wnd') { for (let y = 0; y < s.h; y += 3) dot(s.w - 1, y); }
+    else if (seq === 'wak') { for (let x = cx - 7; x <= cx + 6; x += 2) dot(x, 0); }
+    else if (seq === 'amb') {
+      for (let x = 0; x < s.w; x += 4) { dot(x, 0); dot(x, s.h - 1); }
+      for (let y = 0; y < s.h; y += 4) { dot(0, y); dot(s.w - 1, y); }
+    }
+    else {
+      const cy = Math.floor(s.h / 2);
+      dot(cx - 2, cy); dot(cx + 2, cy); dot(cx, cy - 2); dot(cx, cy + 2);
+    }
+  }
+
+  // ---------- palette ----------
+  hot() { return this.props.shieldColor ?? '#eafaff'; }
+  mid() { const c = this.props.shieldColor ?? '#eafaff'; return c === '#eafaff' ? '#7fe3ff' : this.shade(c, -0.3); }
+  tail() { const c = this.props.shieldColor ?? '#eafaff'; return c === '#eafaff' ? '#2f8fb8' : this.shade(c, -0.6); }
+
+  shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = c => Math.max(0, Math.min(255, Math.round(c + (amt > 0 ? (255 - c) * amt : c * amt))));
+    const r = f((n >> 16) & 255), gg = f((n >> 8) & 255), b = f(n & 255);
+    return '#' + ((1 << 24) + (r << 16) + (gg << 8) + b).toString(16).slice(1);
+  }
+
+  rng(seed) { let s = seed * 7919 + 13; return () => ((s = (s * 1664525 + 1013904223) & 0x7fffffff) / 0x7fffffff); }
+
+  // ---------- 1. centre thruster (from the jump FX page) ----------
+  ramp(t) {
+    if (t < 0.14) return '#fffdf0';
+    if (t < 0.30) return '#ffe066';
+    if (t < 0.50) return '#ffb02e';
+    if (t < 0.70) return '#ff7a18';
+    if (t < 0.87) return '#ef4423';
+    return '#b3231a';
+  }
+
+  plume(g, x, w, y, len, f) {
+    const wob = [0, 1, 0, -1][f % 4];
+    for (let i = 0; i < len; i++) {
+      const t = (i + 0.5) / len;
+      let rw = Math.max(1, Math.round(w * (1 - t * 0.78)));
+      if (i > len * 0.45 && (i + f) % 2 === 0) rw = Math.max(1, rw - 1);
+      let rx = x + Math.floor((w - rw) / 2);
+      if (i > len * 0.55) rx += wob;
+      g.fillStyle = this.ramp(t);
+      g.fillRect(rx, y + i, rw, 1);
+    }
+    const coreLen = Math.max(2, Math.round(len * 0.4));
+    g.fillStyle = '#fff8d0';
+    g.fillRect(x + 1, y, Math.max(1, w - 2), 1);
+    for (let i = 1; i < coreLen; i++) {
+      g.fillStyle = i < coreLen - 1 ? '#ffe066' : '#ffb02e';
+      g.fillRect(x + Math.floor(w / 2) - 1, y + i, 2, 1);
+    }
+    if (f % 2 === 1) { g.fillStyle = '#ef4423'; g.fillRect(x + Math.floor(w / 2) + wob, y + len + 1, 1, 1); }
+    const haloLen = Math.max(2, Math.round(len * 0.45));
+    g.fillStyle = 'rgba(255,150,40,0.30)';
+    for (let i = 0; i < haloLen; i++) {
+      if ((i + f) % 2) continue;
+      const t = (i + 0.5) / len;
+      const rw = Math.max(1, Math.round(w * (1 - t * 0.78)));
+      const rx = x + Math.floor((w - rw) / 2);
+      g.fillRect(rx - 1, y + i, 1, 1);
+      g.fillRect(rx + rw, y + i, 1, 1);
+    }
+  }
+
+  drawThruster(g, s, f) {
+    const lens = [9, 12, 10, 14];
+    this.plume(g, 7, 6, 1, lens[f % 4], f % 4);
+  }
+
+  // ---------- 2/5. push guard ----------
+  guard(g, cx, noseY, mat, depth, mode) {
+    const rows = [16, 14, 12, 10, 7, 4, 2, 1];
+    const d = Math.max(0, Math.min(8, Math.round(depth)));
+    const metal = mat === 'metal';
+    for (let i = 0; i < d; i++) {
+      const w = rows[Math.min(i, 7)];
+      const x = cx - Math.floor(w / 2);
+      const y = noseY - 1 - i;
+      g.fillStyle = '#000000'; g.fillRect(x - 1, y, w + 2, 1);
+      if (mode === 'outline') { g.fillStyle = '#5d6878'; g.fillRect(x, y, w, 1); continue; }
+      if (mode === 'ghost') { g.fillStyle = i % 2 ? '#2b3038' : '#3d4550'; g.fillRect(x, y, w, 1); continue; }
+      if (metal) {
+        g.fillStyle = i === 0 ? '#5d6878' : '#c8d2df';
+        g.fillRect(x, y, w, 1);
+        if (i > 0 && i < 3) { g.fillStyle = '#000000'; for (let sx = x + 2; sx < x + w - 1; sx += 4) g.fillRect(sx, y, 1, 1); }
+        if (i === d - 1) { g.fillStyle = '#eef4fa'; g.fillRect(x + 1, y, Math.max(1, w - 2), 1); }
+      } else {
+        g.fillStyle = i === 0 ? '#8a7444' : '#b9a06a';
+        g.fillRect(x, y, w, 1);
+        if (i === 2 || i === 4) { g.fillStyle = '#8a7444'; g.fillRect(x + 1, y, w - 2, 1); }
+        g.fillStyle = '#c8d2df'; g.fillRect(x, y, 1, 1); g.fillRect(x + w - 1, y, 1, 1);
+      }
+    }
+    if (d > 0 && mode !== 'ghost') {
+      g.fillStyle = metal || mode === 'outline' ? '#8f98a3' : '#8a7444';
+      g.fillRect(cx - 3, noseY - 1, 6, 1);
+    }
+  }
+
+  drawGuardSeq(g, s, mat, f) {
+    const cx = Math.floor(s.w / 2), noseY = s.h - 1;
+    const depth = [1, 3, 5, 8, 7][f];
+    this.guard(g, cx, noseY, mat, depth, 'solid');
+    if (f === 0) { g.fillStyle = this.hot(); g.fillRect(cx - 6, noseY - 2, 12, 1); }
+    if (f === 3) {
+      g.fillStyle = '#fffdf0';
+      g.fillRect(cx - 9, noseY - 3, 1, 1); g.fillRect(cx + 8, noseY - 3, 1, 1);
+      g.fillStyle = '#ffb02e';
+      g.fillRect(cx - 10, noseY - 5, 1, 1); g.fillRect(cx + 9, noseY - 5, 1, 1);
+    }
+  }
+
+  drawRetract(g, s, f) {
+    const cx = Math.floor(s.w / 2), noseY = s.h - 1;
+    const modes = ['solid', 'ghost', 'outline', 'outline', null];
+    const depths = [7, 7, 6, 2, 0];
+    const mat = this.props.guardStyle ?? 'metal';
+    if (modes[f]) this.guard(g, cx, noseY, mat, depths[f], modes[f]);
+    if (f === 3) {
+      g.fillStyle = '#5d6878';
+      g.fillRect(cx - 6, noseY - 5, 1, 1); g.fillRect(cx + 5, noseY - 6, 1, 1); g.fillRect(cx - 1, noseY - 7, 1, 1);
+    }
+  }
+
+  // ---------- 3. air ripple ----------
+  arc(g, cx, cy, r, a0, a1, color, dash) {
+    const seen = {};
+    for (let a = a0; a <= a1; a += 2) {
+      const rad = a * Math.PI / 180;
+      const x = Math.round(cx + Math.cos(rad) * r), y = Math.round(cy + Math.sin(rad) * r);
+      const key = x + ',' + y;
+      if (seen[key]) continue;
+      seen[key] = 1;
+      if (dash && ((x + y) % 2)) continue;
+      g.fillStyle = color; g.fillRect(x, y, 1, 1);
+    }
+  }
+
+  drawRipple(g, s, f) {
+    const cx = Math.floor(s.w / 2), noseY = 17, midY = noseY + 11;
+    for (let k = 0; k < 3; k++) {
+      const p = ((f + k * 1.34) % 4) / 4;
+      const r = 4 + p * 11;
+      const col = p < 0.34 ? this.hot() : p < 0.7 ? this.mid() : this.tail();
+      const dash = p >= 0.7;
+      this.arc(g, cx, noseY - 1, r, -160, -20, col, dash);
+      this.arc(g, cx, midY, r * 0.8, 155, 205, col, dash);
+      this.arc(g, cx, midY, r * 0.8, -25, 25, col, dash);
+    }
+  }
+
+  // ---------- 4. impact explosion, particles only ----------
+  parts(v) {
+    const R = this.rng(v === 'A' ? 11 : v === 'B' ? 23 : 37);
+    const list = [];
+    const ns = v === 'B' ? 30 : 38;
+    for (let i = 0; i < ns; i++) {
+      const a = v === 'B' ? -190 + R() * 130 : R() * 360;
+      list.push({ k: 's', a, sp: 2.2 + R() * 3.4, born: v === 'C' ? (R() < 0.5 ? 0 : 4) : Math.floor(R() * 2), life: 4 + Math.floor(R() * 4) });
+    }
+    const nc = v === 'B' ? 12 : 10;
+    for (let i = 0; i < nc; i++) {
+      const a = v === 'B' ? -175 + R() * 140 : R() * 360;
+      list.push({ k: 'c', a, sp: 1.3 + R() * 2, born: v === 'C' ? 4 : Math.floor(R() * 2), sz: v === 'B' ? 2 + Math.floor(R() * 2) : 1 + Math.floor(R() * 3), spin: R() < 0.5 ? 1 : -1 });
+    }
+    const nk = v === 'C' ? 20 : 16;
+    for (let i = 0; i < nk; i++) {
+      list.push({
+        k: 'k',
+        a: v === 'C' ? -90 + (R() - 0.5) * 70 : R() * 360,
+        sp: 0.5 + R() * 1.6,
+        born: 2 + Math.floor(R() * 6),
+        drift: (R() - 0.5) * 1.7
+      });
+    }
+    for (let i = 0; i < 14; i++) list.push({ k: 'e', a: R() * 360, sp: 0.8 + R() * 2.2, born: 5 + Math.floor(R() * 5), life: 3 + Math.floor(R() * 3) });
+    return list;
+  }
+
+  // ragged fire built from overlapping lobes — no arcs, no cross, dithered edges
+  fireball(g, cx, cy, R0, seed, decay) {
+    const rnd = this.rng(seed);
+    const lobes = 11;
+    for (let i = 0; i < lobes; i++) {
+      const a = (i / lobes) * Math.PI * 2 + rnd() * 0.9;
+      const d = R0 * (0.1 + rnd() * 0.72);
+      const r = Math.max(1, Math.round(R0 * (0.24 + rnd() * 0.34)));
+      const x = Math.round(cx + Math.cos(a) * d), y = Math.round(cy + Math.sin(a) * d * 0.88);
+      const t = Math.min(0.99, ((d + r) / (R0 * 1.25)) * 0.58 + decay);
+      this.lump(g, x, y, r, t, rnd);
+    }
+  }
+
+  // explosion-only ramp: wider yellow and orange bands, red only at the very tail
+  fireRamp(t) {
+    if (t < 0.14) return '#fffdf0';
+    if (t < 0.30) return '#fff2a8';
+    if (t < 0.50) return '#ffe066';
+    if (t < 0.74) return '#ffb02e';
+    if (t < 0.90) return '#ff7a18';
+    if (t < 0.97) return '#ef4423';
+    return '#b3231a';
+  }
+
+  lump(g, x, y, r, t, rnd) {
+    g.fillStyle = this.fireRamp(t);
+    for (let dy = -r; dy <= r; dy++) {
+      const half = Math.round(Math.sqrt(Math.max(0, r * r - dy * dy)));
+      if (half <= 0) continue;
+      const jl = rnd() < 0.45 ? 1 : 0, jr = rnd() < 0.45 ? 1 : 0;
+      const w = half * 2 - jl - jr;
+      if (w > 0) g.fillRect(x - half + jl, y + dy, w, 1);
+    }
+    if (r > 2) {
+      g.fillStyle = this.fireRamp(Math.max(0, t - 0.28));
+      const ir = r - 2;
+      for (let dy = -ir; dy <= ir; dy++) {
+        const half = Math.round(Math.sqrt(Math.max(0, ir * ir - dy * dy)));
+        if (half > 0) g.fillRect(x - half, y + dy, half * 2, 1);
+      }
+    }
+  }
+
+  smokePuff(g, x, y, r, col, seed) {
+    const rnd = this.rng(seed);
+    g.fillStyle = col;
+    for (let dy = -r; dy <= r; dy++) {
+      const half = Math.round(Math.sqrt(Math.max(0, r * r - dy * dy)) * (0.75 + rnd() * 0.5));
+      for (let dx = -half; dx <= half; dx++) {
+        if (Math.abs(dx) > half - 1 && rnd() < 0.5) continue;
+        g.fillRect(x + dx, y + dy, 1, 1);
+      }
+    }
+  }
+
+  drawExplosion(g, s, v, f) {
+    const cx = Math.floor(s.w / 2), cy = Math.floor(s.h / 2);
+    const debris = this.props.debrisTint ?? '#6b6f76';
+    const seed = v === 'A' ? 5 : v === 'B' ? 9 : 17;
+    const all = this.parts(v);
+
+    all.forEach((p, i) => {
+      if (p.k !== 'k') return;
+      const t = f - p.born;
+      if (t < 0 || t > 9) return;
+      const rad = p.a * Math.PI / 180;
+      const d = p.sp * t * (1 - t * 0.045);
+      const x = Math.round(cx + Math.cos(rad) * d + p.drift * t);
+      const y = Math.round(cy + Math.sin(rad) * d - t * 0.7);
+      const r = Math.min(6, 1 + Math.round(t * 0.7));
+      const col = t < 3 ? '#7c8189' : t < 5 ? '#5c6067' : t < 7 ? '#43474d' : '#2f333a';
+      this.smokePuff(g, x, y, r, col, seed + i * 13 + t);
+    });
+
+    const prof = v === 'C'
+      ? { 0: [5, 0], 1: [9, 0.02], 2: [7, 0.18], 4: [13, 0], 5: [18, 0.04], 6: [20, 0.12], 7: [14, 0.26] }
+      : { 0: [7, 0], 1: [14, 0], 2: [19, 0.04], 3: [21, 0.1], 4: [17, 0.18], 5: [12, 0.3] };
+    if (prof[f]) {
+      const R0 = prof[f][0], decay = prof[f][1];
+      const ox = v === 'B' ? -Math.round(f * 1.3) : 0;
+      const oy = v === 'C' && f >= 4 ? -3 : 0;
+      this.fireball(g, cx + ox, cy + oy, R0, seed + f * 7, decay);
+      if (f <= 1) {
+        const rnd = this.rng(seed + 99);
+        g.fillStyle = '#fffdf0';
+        for (let i = 0; i < 5; i++) {
+          const a = rnd() * Math.PI * 2, dd = rnd() * 4;
+          g.fillRect(Math.round(cx + Math.cos(a) * dd) - 1, Math.round(cy + Math.sin(a) * dd) - 1, 2 + Math.floor(rnd() * 3), 2 + Math.floor(rnd() * 3));
+        }
+      }
+    }
+
+    all.forEach(p => {
+      const t = f - p.born;
+      if (t < 0) return;
+      const rad = p.a * Math.PI / 180;
+      const d = p.sp * t * (1 - t * 0.04);
+      const x = Math.round(cx + Math.cos(rad) * d), y = Math.round(cy + Math.sin(rad) * d);
+      if (p.k === 's') {
+        if (t > p.life) return;
+        g.fillStyle = ['#fffdf0', '#fff2a8', '#ffe066', '#ffe066', '#ffb02e', '#ff7a18', '#ef4423'][Math.min(6, t)];
+        g.fillRect(x, y, 1, 1);
+        if (t <= 2 && p.sp > 4.2) {
+          g.fillStyle = '#ffb02e';
+          g.fillRect(Math.round(cx + Math.cos(rad) * (d - p.sp)), Math.round(cy + Math.sin(rad) * (d - p.sp)), 1, 1);
+        }
+      } else if (p.k === 'c') {
+        if (t > 9) return;
+        g.fillStyle = '#0a0c10';
+        g.fillRect(x - 1, y - 1, p.sz + 1, p.sz + 1);
+        g.fillStyle = t < 3 ? this.shade(debris, 0.14) : t < 6 ? debris : this.shade(debris, -0.35);
+        g.fillRect(x - 1 + (p.spin > 0 ? 1 : 0), y - 1, p.sz, p.sz);
+      } else if (p.k === 'e') {
+        if (t > p.life) return;
+        g.fillStyle = t < 1 ? '#ffb02e' : t < 2 ? '#a8451c' : '#783214';
+        g.fillRect(x, y, 1, 1);
+      }
+    });
+  }
+
+  // ---------- 6. tank tracer ----------
+  drawTracer(g, s, f) {
+    const cx = Math.floor(s.w / 2), mzY = s.h - 1;
+    if (f <= 1) {
+      g.fillStyle = f === 0 ? '#fffdf0' : '#ffe066';
+      g.fillRect(cx, 2, 1, mzY - 3);
+      if (f === 1) { g.fillStyle = '#ffb02e'; for (let y = 4; y < mzY - 2; y += 3) g.fillRect(cx, y, 1, 1); }
+    }
+    if (f <= 2) {
+      const bright = f === 0;
+      g.fillStyle = bright ? '#fffdf0' : f === 1 ? '#ffe066' : '#ffb02e';
+      g.fillRect(cx - 2, mzY - 2, 5, 1);
+      if (bright) { g.fillRect(cx - 1, mzY - 4, 2, 2); g.fillRect(cx - 4, mzY - 1, 2, 1); g.fillRect(cx + 3, mzY - 1, 2, 1); }
+    }
+    if (f >= 1 && f <= 3) {
+      const t = f - 1;
+      g.fillStyle = ['#fffdf0', '#ffe066', '#ef4423'][t];
+      g.fillRect(cx - 1, 1, 2, 2);
+      if (t < 2) {
+        g.fillStyle = '#ffb02e';
+        g.fillRect(cx - 3, 0, 1, 1); g.fillRect(cx + 2, 0, 1, 1);
+        g.fillRect(cx - 2 - t, 3 + t, 1, 1); g.fillRect(cx + 2 + t, 3 + t, 1, 1);
+      }
+    }
+    if (f === 4) { g.fillStyle = '#ef4423'; g.fillRect(cx, mzY - 2, 1, 1); }
+  }
+
+  // ---------- 7. tank active cue ----------
+  drawTankCue(g, s, f) {
+    const cx = Math.floor(s.w / 2), mzY = s.h - 1;
+    for (let k = 0; k < 3; k++) {
+      const p = ((f + k * 1.34) % 4) / 4;
+      const r = 3 + p * 10;
+      const col = p < 0.34 ? this.hot() : p < 0.7 ? this.mid() : this.tail();
+      this.arc(g, cx, mzY - 1, r, -125, -55, col, p >= 0.7);
+    }
+    g.fillStyle = f % 2 ? '#fffdf0' : '#ffe066';
+    g.fillRect(cx - 1, mzY - 2, 2, 1);
+    g.fillStyle = '#ef4423';
+    g.fillRect(cx - 1, mzY - 1 + 0, 2, 1);
+    if (f % 2 === 0) { g.fillStyle = '#b9a06a'; g.fillRect(cx + 5 + f, mzY - 4 - f, 1, 1); }
+    if (f === 3) { g.fillStyle = '#8a7444'; g.fillRect(cx - 7, mzY - 6, 1, 1); }
+  }
+
+  // ---------- 8a. side slipstream ----------
+  // Streaks run down the sheet; anchor column (right edge) sits against the flank.
+  // Each streak advances (h + len) / 4 per frame, so frame 4 lands back on frame 0.
+  air(a) {
+    const q = a >= 0.7 ? 0.72 : a >= 0.45 ? 0.46 : a >= 0.25 ? 0.26 : 0.14;
+    return 'rgba(226,242,255,' + q + ')';
+  }
+
+  drawSlipstream(g, s, f) {
+    const streaks = [
+      { x: 7, len: 15, a: 0.75, ph: 0 },
+      { x: 6, len: 9, a: 0.5, ph: 11 },
+      { x: 5, len: 20, a: 0.6, ph: 24 },
+      { x: 4, len: 6, a: 0.3, ph: 5 },
+      { x: 3, len: 13, a: 0.4, ph: 18 },
+      { x: 1, len: 8, a: 0.24, ph: 29 },
+      { x: 0, len: 5, a: 0.16, ph: 13 }
+    ];
+    streaks.forEach(st => {
+      const span = s.h + st.len;
+      const head = ((st.ph + f * span / 4) % span) - st.len;
+      for (let i = 0; i < st.len; i++) {
+        const y = Math.round(head - i);
+        if (y < 0 || y >= s.h) continue;
+        const t = i / st.len;
+        if (t > 0.55 && (y + st.ph) % 2 === 0) continue;
+        g.fillStyle = this.air(st.a * (1 - t * 0.8));
+        g.fillRect(st.x, y, 1, 1);
+      }
+      const hy = Math.round(head);
+      if (hy >= 0 && hy < s.h && st.a >= 0.4) { g.fillStyle = 'rgba(255,255,255,0.85)'; g.fillRect(st.x, hy, 1, 1); }
+    });
+    for (let y = (f * 3) % 4; y < s.h; y += 4) { g.fillStyle = 'rgba(226,242,255,0.14)'; g.fillRect(s.w - 2, y, 1, 1); }
+  }
+
+  // ---------- 9. ambient road air (tiles in both axes, scrolls 8px/frame) ----------
+  drawAmbient(g, s, f) {
+    const R = this.rng(21);
+    const n = 15;
+    for (let i = 0; i < n; i++) {
+      const x = Math.floor(R() * s.w);
+      const y0 = Math.floor(R() * s.h);
+      const len = R() < 0.45 ? 1 : 2 + Math.floor(R() * 3);
+      const a = 0.16 + R() * 0.5;
+      const dust = R() < 0.3;
+      const head = (y0 + f * 8) % s.h;
+      for (let k = 0; k < len; k++) {
+        const y = ((head - k) % s.h + s.h) % s.h;
+        const t = len === 1 ? 0 : k / len;
+        g.fillStyle = dust ? 'rgba(139,127,106,' + (a * (1 - t * 0.6)).toFixed(2) + ')' : this.air(a * (1 - t * 0.7));
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+
+  // ---------- 8b. rear air wake ----------
+  drawAirWake(g, s, f) {
+    const cx = Math.floor(s.w / 2);
+    for (let k = 0; k < 4; k++) {
+      const y0 = (k * 4 + f) % 16;
+      const spread = 3 + Math.round(y0 * 0.55);
+      const a = 0.62 - y0 * 0.035;
+      if (a <= 0.05) continue;
+      for (let d = 2; d <= spread; d++) {
+        const y = y0 + Math.round((d - 2) * 0.55);
+        if (y >= s.h) continue;
+        if (d > spread - 2 && (d + y0) % 2 === 0) continue;
+        g.fillStyle = this.air(a);
+        g.fillRect(cx - 1 - d, y, 1, 1);
+        g.fillRect(cx + d, y, 1, 1);
+      }
+    }
+    const R = this.rng(f + 3);
+    for (let i = 0; i < 4; i++) {
+      const x = Math.round(R() * (s.w - 1)), y = 6 + Math.round(R() * (s.h - 7));
+      g.fillStyle = y > 11 ? 'rgba(139,127,106,0.28)' : 'rgba(139,127,106,0.45)';
+      g.fillRect(x, y, 1, 1);
+    }
+  }
+}
+</script>
+</body>
+</html>

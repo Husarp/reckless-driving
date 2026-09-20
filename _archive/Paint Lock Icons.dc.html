@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_design_doc_mode" content="canvas">
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #12161f; }
+  a { color: #2ee6b0; }
+  a:hover { color: #f5b32a; }
+  svg { shape-rendering: crispEdges; }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:22px;padding:34px;font-family:'DotGothic16','Courier New',monospace;color:#e8e6df">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:4px;color:#f5b32a">PAINT LOCK STATES</div>
+    <div style="font-family:'Silkscreen',monospace;font-size:19px;color:#fff;letter-spacing:1px">Five locked-swatch treatments</div>
+    <div style="font-size:13px;color:#9aa3b2;max-width:620px;text-wrap:pretty">All glyphs are 12&times;12 pixel grids drawn as SVG rects with crisp edges, so they scale like the rest of the art. Amber border = affordable, slate border = can't afford yet. Each row shows the real 28px size; the tile at the right is the same markup at 3&times;.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:18px">
+
+    <!-- 1a -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:12px;background:#171c27;border:2px solid #232b3b;box-shadow:3px 3px 0 #000;padding:18px;width:560px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;background:#2ee6b0;color:#12161f;padding:3px 6px">1a</div>
+        <div style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff;letter-spacing:1px">PLATE</div>
+      </div>
+      <div style="font-size:12px;color:#9aa3b2">Bone-white plate, dark lock. Refines the current icon: smaller plate, real keyhole, 1px night inset so it sits on the paint instead of floating.</div>
+      <div style="display:flex;align-items:flex-end;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">PAINT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div style="width:28px;height:28px;border:3px solid #fff;box-shadow:0 0 0 2px #2ee6b0;background:#4a75a0"></div>
+            <sc-for list="{{ items }}" as="c" hint-placeholder-count="9">
+              <div style="position:relative;width:28px;height:28px;border:3px solid {{ c.border }};background:{{ c.color }}">
+                <div style="position:absolute;inset:4px;background:#e8e6df;box-shadow:inset 0 0 0 1px #12161f;display:flex;align-items:center;justify-content:center">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="#12161f"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#e8e6df"></rect></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="zoom:3">
+          <div style="position:relative;width:28px;height:28px;border:3px solid #f5b32a;background:#9b59b6">
+            <div style="position:absolute;inset:4px;background:#e8e6df;box-shadow:inset 0 0 0 1px #12161f;display:flex;align-items:center;justify-content:center">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#12161f"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#e8e6df"></rect></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1b -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:12px;background:#171c27;border:2px solid #232b3b;box-shadow:3px 3px 0 #000;padding:18px;width:560px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;background:#2ee6b0;color:#12161f;padding:3px 6px">1b</div>
+        <div style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff;letter-spacing:1px">SCRIM</div>
+      </div>
+      <div style="font-size:12px;color:#9aa3b2">No plate. A night scrim darkens the paint and the lock is an open outline, so the colour reads through the body and keyhole. Cheapest visual weight of the five.</div>
+      <div style="display:flex;align-items:flex-end;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">PAINT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div style="width:28px;height:28px;border:3px solid #fff;box-shadow:0 0 0 2px #2ee6b0;background:#4a75a0"></div>
+            <sc-for list="{{ items }}" as="c" hint-placeholder-count="9">
+              <div style="position:relative;width:28px;height:28px;border:3px solid {{ c.border }};background:{{ c.color }}">
+                <div style="position:absolute;inset:0;background:rgba(9,12,18,.62);display:flex;align-items:center;justify-content:center">
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="#e8e6df"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="1"></rect><rect x="2" y="10" width="8" height="1"></rect><rect x="2" y="6" width="1" height="4"></rect><rect x="9" y="6" width="1" height="4"></rect><rect x="5" y="7" width="2" height="2"></rect></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="zoom:3">
+          <div style="position:relative;width:28px;height:28px;border:3px solid #f5b32a;background:#9b59b6">
+            <div style="position:absolute;inset:0;background:rgba(9,12,18,.62);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="#e8e6df"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="1"></rect><rect x="2" y="10" width="8" height="1"></rect><rect x="2" y="6" width="1" height="4"></rect><rect x="9" y="6" width="1" height="4"></rect><rect x="5" y="7" width="2" height="2"></rect></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1c -->
+    <div id="1c" style="display:flex;flex-direction:column;gap:12px;background:#171c27;border:2px solid #232b3b;box-shadow:3px 3px 0 #000;padding:18px;width:560px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;background:#2ee6b0;color:#12161f;padding:3px 6px">1c</div>
+        <div style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff;letter-spacing:1px">CORNER BADGE</div>
+      </div>
+      <div style="font-size:12px;color:#9aa3b2">Swatch stays a swatch, dimmed to 45%; a 12px lock chip hangs off the corner and takes the state colour (amber affordable, slate not). Best colour readability, most fiddly at 28px.</div>
+      <div style="display:flex;align-items:flex-end;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">PAINT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:11px">
+            <div style="width:28px;height:28px;border:3px solid #fff;box-shadow:0 0 0 2px #2ee6b0;background:#4a75a0"></div>
+            <sc-for list="{{ items }}" as="c" hint-placeholder-count="9">
+              <div style="position:relative;width:28px;height:28px;border:3px solid #47506a">
+                <div style="position:absolute;inset:0;background:{{ c.color }};opacity:.45"></div>
+                <div style="position:absolute;right:-6px;bottom:-6px;width:14px;height:14px;background:#12161f;box-shadow:inset 0 0 0 1px {{ c.border }};display:flex;align-items:center;justify-content:center">
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="{{ c.tint }}"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="2" fill="#12161f"></rect></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="zoom:3">
+          <div style="position:relative;width:28px;height:28px;border:3px solid #47506a">
+            <div style="position:absolute;inset:0;background:#9b59b6;opacity:.45"></div>
+            <div style="position:absolute;right:-6px;bottom:-6px;width:14px;height:14px;background:#12161f;box-shadow:inset 0 0 0 1px #f5b32a;display:flex;align-items:center;justify-content:center">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="#f5b32a"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="2" fill="#12161f"></rect></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1d -->
+    <div id="1d" style="display:flex;flex-direction:column;gap:12px;background:#171c27;border:2px solid #232b3b;box-shadow:3px 3px 0 #000;padding:18px;width:560px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;background:#2ee6b0;color:#12161f;padding:3px 6px">1d</div>
+        <div style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff;letter-spacing:1px">HAZARD TAPE</div>
+      </div>
+      <div style="font-size:12px;color:#9aa3b2">Roadwork hatching over the paint with a small dark lock plate on top. Loudest of the five and the most on-theme for a driving game.</div>
+      <div style="display:flex;align-items:flex-end;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">PAINT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div style="width:28px;height:28px;border:3px solid #fff;box-shadow:0 0 0 2px #2ee6b0;background:#4a75a0"></div>
+            <sc-for list="{{ items }}" as="c" hint-placeholder-count="9">
+              <div style="position:relative;width:28px;height:28px;border:3px solid {{ c.border }};background:{{ c.color }}">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(9,12,18,.8) 0 3px,rgba(9,12,18,0) 3px 6px);display:flex;align-items:center;justify-content:center">
+                  <div style="width:16px;height:16px;background:#12161f;display:flex;align-items:center;justify-content:center">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="#e8e6df"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="zoom:3">
+          <div style="position:relative;width:28px;height:28px;border:3px solid #f5b32a;background:#9b59b6">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(9,12,18,.8) 0 3px,rgba(9,12,18,0) 3px 6px);display:flex;align-items:center;justify-content:center">
+              <div style="width:16px;height:16px;background:#12161f;display:flex;align-items:center;justify-content:center">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="#e8e6df"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1e -->
+    <div id="1e" style="display:flex;flex-direction:column;gap:12px;background:#171c27;border:2px solid #232b3b;box-shadow:3px 3px 0 #000;padding:18px;width:560px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;background:#2ee6b0;color:#12161f;padding:3px 6px">1e</div>
+        <div style="font-family:'Silkscreen',monospace;font-size:12px;color:#fff;letter-spacing:1px">SHACKLE STATE</div>
+      </div>
+      <div style="font-size:12px;color:#9aa3b2">The glyph carries the state instead of the border: shut grey lock when you can't afford it, sprung amber shackle when you can. Reads at a glance without a colour key.</div>
+      <div style="display:flex;align-items:flex-end;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">PAINT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div style="width:28px;height:28px;border:3px solid #fff;box-shadow:0 0 0 2px #2ee6b0;background:#4a75a0"></div>
+            <sc-for list="{{ affordable }}" as="c" hint-placeholder-count="5">
+              <div style="position:relative;width:28px;height:28px;border:3px solid #f5b32a;background:{{ c.color }}">
+                <div style="position:absolute;inset:0;background:rgba(9,12,18,.5);display:flex;align-items:center;justify-content:center">
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="#f5b32a"><rect x="5" y="1" width="4" height="1"></rect><rect x="9" y="2" width="1" height="3"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+                </div>
+              </div>
+            </sc-for>
+            <sc-for list="{{ tooDear }}" as="c" hint-placeholder-count="4">
+              <div style="position:relative;width:28px;height:28px;border:3px solid #47506a;background:{{ c.color }}">
+                <div style="position:absolute;inset:0;background:rgba(9,12,18,.72);display:flex;align-items:center;justify-content:center">
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="#6d7789"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;zoom:3">
+          <div style="position:relative;width:28px;height:28px;border:3px solid #f5b32a;background:#9b59b6">
+            <div style="position:absolute;inset:0;background:rgba(9,12,18,.5);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="#f5b32a"><rect x="5" y="1" width="4" height="1"></rect><rect x="9" y="2" width="1" height="3"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+            </div>
+          </div>
+          <div style="position:relative;width:28px;height:28px;border:3px solid #47506a;background:#ffd700">
+            <div style="position:absolute;inset:0;background:rgba(9,12,18,.72);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="#6d7789"><rect x="4" y="2" width="4" height="1"></rect><rect x="3" y="3" width="1" height="2"></rect><rect x="8" y="3" width="1" height="2"></rect><rect x="2" y="5" width="8" height="6"></rect><rect x="5" y="7" width="2" height="3" fill="#12161f"></rect></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;coins&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:150,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0,&quot;max&quot;:500,&quot;step&quot;:10,&quot;unit&quot;:&quot;coins&quot;}}">
+class Component extends DCLogic {
+  colors() {
+    return [
+      { color: '#e74c3c', cost: 80 },
+      { color: '#2ecc71', cost: 80 },
+      { color: '#f39c12', cost: 120 },
+      { color: '#9b59b6', cost: 150 },
+      { color: '#e91e63', cost: 150 },
+      { color: '#00bcd4', cost: 180 },
+      { color: '#f1f2f6', cost: 200 },
+      { color: '#ffd700', cost: 250 },
+      { color: '#2c3e50', cost: 100 }
+    ];
+  }
+  renderVals() {
+    const coins = this.props.coins ?? 150;
+    const list = this.colors().map(c => {
+      const aff = coins >= c.cost;
+      return { ...c, aff, border: aff ? '#f5b32a' : '#47506a', tint: aff ? '#f5b32a' : '#9aa3b2' };
+    });
+    return {
+      items: list,
+      affordable: list.filter(c => c.aff),
+      tooDear: list.filter(c => !c.aff)
+    };
+  }
+}
+
+</script>
+</body>
+</html>

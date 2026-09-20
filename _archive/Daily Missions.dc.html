@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+<style>
+html, body { margin:0; padding:0; background:#12161f; }
+a { color:#2ee6b0; text-decoration:none; }
+a:hover { color:#f5b32a; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+@keyframes mGlow { 0%,100% { box-shadow:0 0 0 0 rgba(46,230,176,0); } 50% { box-shadow:0 0 0 5px rgba(46,230,176,.14); } }
+@keyframes popIn { from { transform:scale(.9); } to { transform:scale(1); } }
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#12161f"/><rect x="18" y="24" width="30" height="16" fill="#2ee6b0"/><rect x="18" y="44" width="30" height="16" fill="#4f6ef7"/><rect x="18" y="64" width="30" height="16" fill="#8e46c4"/><rect x="54" y="24" width="30" height="16" fill="#ffd700"/><rect x="54" y="44" width="30" height="16" fill="#f5b32a"/><rect x="54" y="64" width="30" height="16" fill="#e63946"/></svg></template>
+<div style="min-height:100vh;background:#12161f;color:#e8e6df;font-family:'DotGothic16','Courier New',monospace;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 14px 40px;box-sizing:border-box">
+
+  <div style="width:100%;max-width:880px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;justify-content:space-between;border:2px dashed #232b3b;padding:10px;box-sizing:border-box">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#4d5670">MOCKUP CONTROLS &mdash; NOT PART OF THE SCREEN</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ dayTabs }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.on }}" style="background:{{ t.bg }};color:{{ t.fg }};border:2px solid {{ t.bd }};font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;padding:6px 9px;cursor:pointer">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:100%;max-width:880px;background:#171c27;border:2px solid #232b3b;box-shadow:0 18px 40px rgba(0,0,0,.5);box-sizing:border-box;display:flex;flex-direction:column">
+
+    <div style="position:relative;background:#171c27;border-bottom:2px dashed #232b3b;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="font-family:'Silkscreen',monospace;font-size:16px;color:#fff;text-shadow:2px 2px 0 #e63946;letter-spacing:1px">DAILY MISSIONS</div>
+      <span onMouseEnter="{{ tipIn }}" onMouseLeave="{{ tipOut }}" style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789;border:2px solid #2b3446;background:#12161f;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0">?</span>
+      <sc-if value="{{ tipShow }}">
+        <div style="position:absolute;left:14px;top:52px;z-index:20;width:302px;max-width:calc(100% - 28px);background:#0b0e14;border:2px solid #47506a;box-shadow:3px 3px 0 rgba(0,0,0,.6);padding:11px;display:flex;flex-direction:column;gap:8px;pointer-events:none;box-sizing:border-box">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a">REWARDS GROW AS YOU GO</div>
+          <div style="font-size:12px;color:#e8e6df;text-wrap:pretty">Three coin missions and three XP missions. Inside each pair of three, every mission you claim pays more than the last.</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-family:'VT323',monospace;font-size:20px;line-height:1;color:#e8e6df">100</span>
+            <span style="color:#4d5670">&rarr;</span>
+            <span style="font-family:'VT323',monospace;font-size:20px;line-height:1;color:#f5b32a">200</span>
+            <span style="color:#4d5670">&rarr;</span>
+            <span style="font-family:'VT323',monospace;font-size:20px;line-height:1;color:#2ee6b0">400</span>
+          </div>
+          <div style="font-size:11px;color:#9aa3b2;text-wrap:pretty">Coins and XP count separately, so finishing all six pays 700 coins and 700 XP.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:16px;align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:2px">
+          <div style="width:14px;height:14px;border:2px solid #2ee6b0;background:#0f2a24;box-sizing:border-box;flex-shrink:0"><div style="width:6px;height:4px;background:#2ee6b0;margin:3px auto 0"></div></div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#2ee6b0">XP MISSIONS</span>
+        </div>
+        <sc-for list="{{ xpMissions }}" as="m" hint-placeholder-count="3">
+          <div style="background:#1b2130;border:2px solid {{ m.frame }};padding:12px;display:flex;flex-direction:column;gap:11px;box-sizing:border-box;min-width:0">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <div style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:{{ m.title }};line-height:1.4;text-wrap:pretty">{{ m.name }}</div>
+                <div style="font-size:11px;color:#6d7789;text-wrap:pretty">{{ m.hint }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                <div style="display:flex;align-items:center;gap:5px;background:#12161f;border:2px solid {{ m.chipBd }};padding:4px 7px">
+                  <span style="width:10px;height:10px;border:2px solid #2ee6b0;background:#0f2a24;box-sizing:border-box;flex-shrink:0"></span>
+                  <span style="font-family:'VT323',monospace;font-size:18px;color:#2ee6b0;line-height:1">{{ m.reward }}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;gap:3px;height:14px">
+                <sc-for list="{{ m.segs }}" as="s" hint-placeholder-count="10">
+                  <div style="flex:1;background:{{ s.bg }};border:{{ s.bd }};box-sizing:border-box"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+                <span style="font-family:'VT323',monospace;font-size:18px;color:{{ m.numFg }};line-height:1">{{ m.cur }}<span style="color:#6d7789">/{{ m.goal }}</span></span>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">{{ m.unit }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ m.isReady }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ m.on }}" style="width:100%;background:#2ee6b0;border:2px solid #fff;box-shadow:3px 3px 0 #000;color:#0c2a22;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;padding:10px 0;cursor:pointer;animation:mGlow 1.8s ease-in-out infinite" style-active="transform:translate(2px,2px);box-shadow:1px 1px 0 #000">CLAIM</button>
+            </sc-if>
+            <sc-if value="{{ m.isOpen }}">
+              <div style="width:100%;background:#12161f;border:2px solid #2b3446;color:#4d5670;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;text-align:center;padding:10px 0;box-sizing:border-box">IN PROGRESS</div>
+            </sc-if>
+            <sc-if value="{{ m.isDone }}">
+              <div style="width:100%;background:#0f2a24;border:2px solid #2ee6b0;color:#2ee6b0;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;text-align:center;padding:10px 0;box-sizing:border-box;animation:popIn .18s steps(3,end)">&#10003; CLAIMED</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:2px">
+          <div style="width:14px;height:14px;background:#f5b32a;border:2px solid #8a6410;box-sizing:border-box;flex-shrink:0"><div style="width:4px;height:6px;background:#8a6410;margin:2px auto 0"></div></div>
+          <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#f5b32a">COIN MISSIONS</span>
+        </div>
+        <sc-for list="{{ coinMissions }}" as="m" hint-placeholder-count="3">
+          <div style="background:#1b2130;border:2px solid {{ m.frame }};padding:12px;display:flex;flex-direction:column;gap:11px;box-sizing:border-box;min-width:0">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <div style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:{{ m.title }};line-height:1.4;text-wrap:pretty">{{ m.name }}</div>
+                <div style="font-size:11px;color:#6d7789;text-wrap:pretty">{{ m.hint }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                <div style="display:flex;align-items:center;gap:5px;background:#12161f;border:2px solid {{ m.chipBd }};padding:4px 7px">
+                  <span style="width:10px;height:10px;background:#ffd700;border:2px solid #8a6410;box-sizing:border-box;flex-shrink:0"></span>
+                  <span style="font-family:'VT323',monospace;font-size:18px;color:#f5b32a;line-height:1">{{ m.reward }}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;gap:3px;height:14px">
+                <sc-for list="{{ m.segs }}" as="s" hint-placeholder-count="10">
+                  <div style="flex:1;background:{{ s.bg }};border:{{ s.bd }};box-sizing:border-box"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+                <span style="font-family:'VT323',monospace;font-size:18px;color:{{ m.numFg }};line-height:1">{{ m.cur }}<span style="color:#6d7789">/{{ m.goal }}</span></span>
+                <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">{{ m.unit }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ m.isReady }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ m.on }}" style="width:100%;background:#f5b32a;border:2px solid #fff;box-shadow:3px 3px 0 #000;color:#2b1c00;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;padding:10px 0;cursor:pointer" style-active="transform:translate(2px,2px);box-shadow:1px 1px 0 #000">CLAIM</button>
+            </sc-if>
+            <sc-if value="{{ m.isOpen }}">
+              <div style="width:100%;background:#12161f;border:2px solid #2b3446;color:#4d5670;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;text-align:center;padding:10px 0;box-sizing:border-box">IN PROGRESS</div>
+            </sc-if>
+            <sc-if value="{{ m.isDone }}">
+              <div style="width:100%;background:#241d0d;border:2px solid #5c4415;color:#f5b32a;font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;text-align:center;padding:10px 0;box-sizing:border-box;animation:popIn .18s steps(3,end)">&#10003; CLAIMED</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+
+    <div style="position:relative;border-top:2px dashed #232b3b;padding:14px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:stretch">
+      <div style="flex:1;min-width:90px;background:#12161f;border:2px solid #2b3446;padding:6px;text-align:center">
+        <div style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789">MISSIONS DONE</div>
+        <div style="font-family:'VT323',monospace;font-size:20px;color:#f5b32a;line-height:1.1">148</div>
+      </div>
+      <div style="flex:1.2;min-width:96px;background:#12161f;border:2px solid #2b3446;padding:6px;text-align:center">
+        <div style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789">NEXT SET</div>
+        <div style="font-family:'VT323',monospace;font-size:20px;color:#e8e6df;line-height:1.1">07:42:15</div>
+      </div>
+      <div onMouseEnter="{{ sweepIn }}" onMouseLeave="{{ sweepOut }}" style="flex:1;min-width:90px;background:#12161f;border:2px solid #2b3446;padding:6px;text-align:center;cursor:help">
+        <div style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789">CLEAN SWEEPS</div>
+        <div style="font-family:'VT323',monospace;font-size:20px;color:#2ee6b0;line-height:1.1">9</div>
+      </div>
+      <sc-if value="{{ sweepShow }}">
+        <div style="position:absolute;right:14px;bottom:76px;z-index:20;width:262px;max-width:calc(100% - 28px);background:#0b0e14;border:2px solid #47506a;box-shadow:3px 3px 0 rgba(0,0,0,.6);padding:11px;display:flex;flex-direction:column;gap:6px;pointer-events:none;box-sizing:border-box">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#2ee6b0">CLEAN SWEEPS</div>
+          <div style="font-size:12px;color:#e8e6df;text-wrap:pretty">Days where you claimed all six missions before midnight.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="border-top:2px dashed #232b3b;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#f5b32a">CARD STATES &mdash; REFERENCE</div>
+        <div style="font-size:12px;color:#6d7789">Every state one card can be in. Not part of the screen.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(236px,1fr));gap:12px">
+        <sc-for list="{{ stateDemo }}" as="m" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#9aa3b2">{{ m.label }}</div>
+            <div style="background:#1b2130;border:2px solid {{ m.frame }};padding:12px;display:flex;flex-direction:column;gap:11px;box-sizing:border-box;min-width:0">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                <div style="font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;color:{{ m.title }};line-height:1.4;text-wrap:pretty">{{ m.name }}</div>
+                <div style="display:flex;align-items:center;gap:5px;background:#12161f;border:2px solid #2b3446;padding:4px 7px;flex-shrink:0">
+                  <span style="width:10px;height:10px;background:#ffd700;border:2px solid #8a6410;box-sizing:border-box;flex-shrink:0"></span>
+                  <span style="font-family:'VT323',monospace;font-size:18px;color:#f5b32a;line-height:1">{{ m.reward }}</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;gap:3px;height:14px">
+                  <sc-for list="{{ m.segs }}" as="s" hint-placeholder-count="10">
+                    <div style="flex:1;background:{{ s.bg }};border:{{ s.bd }};box-sizing:border-box"></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+                  <span style="font-family:'VT323',monospace;font-size:18px;color:{{ m.numFg }};line-height:1">{{ m.cur }}<span style="color:#6d7789">/{{ m.goal }}</span></span>
+                  <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#6d7789">{{ m.unit }}</span>
+                </div>
+              </div>
+              <div style="width:100%;background:{{ m.footBg }};border:2px solid {{ m.footBd }};color:{{ m.footFg }};font-family:'Silkscreen',monospace;font-size:10px;letter-spacing:1px;text-align:center;padding:10px 0;box-sizing:border-box">{{ m.footLabel }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="border-top:2px dashed #232b3b;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#f5b32a">REWARD LADDER</div>
+        <div style="font-size:12px;color:#9aa3b2;text-wrap:pretty">Each category has its own ladder. The reward depends on how many you have already claimed in that category, not on which mission it is &mdash; so the third one is always worth the most.</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <div style="flex:1;min-width:250px;background:#12161f;border:2px solid #2b3446;padding:12px;display:flex;flex-direction:column;gap:9px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#2ee6b0">XP</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <sc-for list="{{ xpSpec }}" as="l" hint-placeholder-count="3">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:#1b2130;border:2px solid #2b3446;padding:7px 4px">
+                <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789">{{ l.n }}</span>
+                <span style="font-family:'VT323',monospace;font-size:22px;line-height:1;color:#2ee6b0">{{ l.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:1;min-width:250px;background:#12161f;border:2px solid #2b3446;padding:12px;display:flex;flex-direction:column;gap:9px">
+          <div style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:2px;color:#f5b32a">COINS</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <sc-for list="{{ coinSpec }}" as="l" hint-placeholder-count="3">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:#1b2130;border:2px solid #2b3446;padding:7px 4px">
+                <span style="font-family:'Silkscreen',monospace;font-size:7px;letter-spacing:1px;color:#6d7789">{{ l.n }}</span>
+                <span style="font-family:'VT323',monospace;font-size:22px;line-height:1;color:#f5b32a">{{ l.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:2px dashed #232b3b;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#f5b32a">VALUES THAT COME FROM GAME STATE</div>
+      <div style="background:#12161f;border:2px solid #2b3446;padding:12px;display:flex;flex-direction:column;gap:7px">
+        <sc-for list="{{ specRows }}" as="s" hint-placeholder-count="8">
+          <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+            <span style="font-family:'Silkscreen',monospace;font-size:8px;letter-spacing:1px;color:#2ee6b0;width:132px;flex-shrink:0">{{ s.key }}</span>
+            <span style="font-size:12px;color:#9aa3b2;flex:1;min-width:140px;text-wrap:pretty">{{ s.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;color:#6d7789;text-wrap:pretty">Layout rules: two columns at 880px, one column below 640px. XP missions always left, coins always right. Segment bar is always 10 blocks &mdash; fill <span style="color:#9aa3b2">round(cur / goal &times; 10)</span> of them, colours are fixed per index. Unclaimed missions are lost at midnight, same as the daily gift.</div>
+    </div>
+
+    <div style="background:#171c27;border-top:2px dashed #232b3b;padding:12px 16px">
+      <button style="width:100%;max-width:220px;background:#1b2130;border:2px solid #47506a;box-shadow:3px 3px 0 #000;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;padding:11px 0;cursor:pointer" style-active="transform:translate(2px,2px);box-shadow:1px 1px 0 #000">BACK</button>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;previewDay&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;fresh&quot;,&quot;mixed&quot;,&quot;all&quot;],&quot;default&quot;:&quot;mixed&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { claimed: {}, paid: {} };
+
+  // Fixed 10-step ramps. Coins run red -> orange -> yellow, XP purple -> blue -> green.
+  coinRamp = ['#e63946', '#eb5a3e', '#ef7139', '#f38a34', '#f59c2e', '#f5b32a', '#f8c024', '#fbcd1e', '#ffd700', '#ffe14d'];
+  xpRamp = ['#8e46c4', '#7d51d6', '#6b5ee6', '#5a68ef', '#4f6ef7', '#3f8ae0', '#33a5cc', '#2bbfb4', '#2ed6a0', '#2ee6b0'];
+
+  ladder = [100, 200, 400];
+
+  segs(cur, goal, accent) {
+    const ramp = accent === 'coin' ? this.coinRamp : this.xpRamp;
+    const n = Math.max(0, Math.min(10, Math.round((cur / goal) * 10)));
+    return Array.from({ length: 10 }, (_, i) => i < n
+      ? { bg: ramp[i], bd: 'none' }
+      : { bg: '#12161f', bd: '1px solid #2b3446' });
+  }
+
+  mission(m, accent, nextTierIndex) {
+    const done = !!this.state.claimed[m.id];
+    const ready = m.cur >= m.goal && !done;
+    const acc = accent === 'coin' ? '#f5b32a' : '#2ee6b0';
+    const tier = done ? this.state.paid[m.id] : this.ladder[Math.min(nextTierIndex, 2)];
+    return Object.assign({}, m, {
+      segs: this.segs(m.cur, m.goal, accent),
+      isOpen: m.cur < m.goal,
+      isReady: ready,
+      isDone: done,
+      reward: '+' + tier,
+      chipBd: ready ? acc : '#2b3446',
+      frame: ready ? acc : '#47506a',
+      title: m.cur >= m.goal ? '#fff' : '#e8e6df',
+      numFg: m.cur >= m.goal ? acc : '#e8e6df',
+      on: () => this.setState(s => ({
+        claimed: Object.assign({}, s.claimed, { [m.id]: true }),
+        paid: Object.assign({}, s.paid, { [m.id]: tier })
+      }))
+    });
+  }
+
+  get day() { return this.state.day ?? this.props.previewDay ?? 'mixed'; }
+
+  data() {
+    const d = this.day;
+    const coins = [
+      { id: 'c1', name: 'SCORE 1,200 IN ONE RUN', hint: 'Best run today counts.', cur: 780, goal: 1200, unit: 'SCORE' },
+      { id: 'c2', name: 'SMASH 15 CARS', hint: 'Any car, any lane.', cur: 15, goal: 15, unit: 'WRECKS' },
+      { id: 'c3', name: 'DRIVE 3,000 M', hint: 'Distance adds up across runs.', cur: 1150, goal: 3000, unit: 'METRES' }
+    ];
+    const xp = [
+      { id: 'x1', name: 'SURVIVE 90 SECONDS', hint: 'One run, no crash.', cur: 90, goal: 90, unit: 'SECONDS' },
+      { id: 'x2', name: 'CLEAR 8 NEAR MISSES', hint: 'Pass within one car width.', cur: 3, goal: 8, unit: 'MISSES' },
+      { id: 'x3', name: 'FINISH 3 RUNS', hint: 'Crashing still counts.', cur: 2, goal: 3, unit: 'RUNS' }
+    ];
+    if (d === 'fresh') { coins.forEach(m => { m.cur = 0; }); xp.forEach(m => { m.cur = 0; }); }
+    if (d === 'all') { coins.forEach(m => { m.cur = m.goal; }); xp.forEach(m => { m.cur = m.goal; }); }
+    return { coins, xp };
+  }
+
+  tab(label, active, on) {
+    return { label, on, bg: active ? '#2ee6b0' : '#1b2130', fg: active ? '#0c2a22' : '#9aa3b2', bd: active ? '#ffffff' : '#47506a' };
+  }
+
+  demo(label, cur, goal, footLabel, footBg, footBd, footFg, frame, reward) {
+    return {
+      label, name: 'SMASH 15 CARS', cur, goal, unit: 'WRECKS', reward,
+      segs: this.segs(cur, goal, 'coin'), footLabel, footBg, footBd, footFg, frame,
+      title: cur >= goal ? '#fff' : '#e8e6df', numFg: cur >= goal ? '#f5b32a' : '#e8e6df'
+    };
+  }
+
+  renderVals() {
+    const { coins, xp } = this.data();
+    const coinClaimed = coins.filter(m => this.state.claimed[m.id]).length;
+    const xpClaimed = xp.filter(m => this.state.claimed[m.id]).length;
+    const cm = coins.map(m => this.mission(m, 'coin', coinClaimed));
+    const xm = xp.map(m => this.mission(m, 'xp', xpClaimed));
+    const set = v => () => this.setState({ day: v, claimed: {}, paid: {} });
+    const names = ['1ST CLAIM', '2ND CLAIM', '3RD CLAIM'];
+    return {
+      coinMissions: cm, xpMissions: xm,
+      doneCount: cm.concat(xm).filter(m => m.cur >= m.goal).length,
+      tipShow: !!this.state.tip,
+      tipIn: () => this.setState({ tip: true }),
+      tipOut: () => this.setState({ tip: false }),
+      sweepShow: !!this.state.sweep,
+      sweepIn: () => this.setState({ sweep: true }),
+      sweepOut: () => this.setState({ sweep: false }),
+      coinSpec: this.ladder.map((v, i) => ({ n: names[i], v })),
+      xpSpec: this.ladder.map((v, i) => ({ n: names[i], v })),
+      dayTabs: [
+        this.tab('FRESH DAY', this.day === 'fresh', set('fresh')),
+        this.tab('MID DAY', this.day === 'mixed', set('mixed')),
+        this.tab('ALL COMPLETE', this.day === 'all', set('all'))
+      ],
+      stateDemo: [
+        this.demo('1 — NOT STARTED', 0, 15, 'IN PROGRESS', '#12161f', '#2b3446', '#4d5670', '#47506a', '+100'),
+        this.demo('2 — IN PROGRESS', 9, 15, 'IN PROGRESS', '#12161f', '#2b3446', '#4d5670', '#47506a', '+100'),
+        this.demo('3 — READY TO CLAIM', 15, 15, 'CLAIM', '#f5b32a', '#ffffff', '#2b1c00', '#f5b32a', '+200'),
+        this.demo('4 — CLAIMED', 15, 15, '✓ CLAIMED', '#241d0d', '#5c4415', '#f5b32a', '#47506a', '+200')
+      ],
+      specRows: [
+        { key: 'mission.name', note: 'Silkscreen 10px uppercase, one short imperative line. Wraps to two lines at most.' },
+        { key: 'mission.hint', note: 'DotGothic16 11px, one clause. Optional — the card holds without it.' },
+        { key: 'mission.cur / .goal', note: 'Drives the segment bar and the VT323 counter. Clamp cur to goal on display.' },
+        { key: 'mission.unit', note: 'Silkscreen 8px label at the right of the counter row.' },
+        { key: 'claimedInCategory', note: 'Count of already-claimed missions in this category. Picks the ladder tier the next claim pays.' },
+        { key: 'mission.paidAmount', note: 'Store the tier at the moment of claiming, so a claimed card keeps showing what it actually paid.' },
+        { key: 'mission.claimed', note: 'Swaps the CLAIM button for the claimed strip. Card frame drops back to #47506a.' },
+        { key: 'cleanSweeps', note: 'Lifetime count of days where all 6 were claimed. Shown in the footer tile.' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

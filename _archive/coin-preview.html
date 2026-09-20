@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Coin sprite</title>
+<style>
+  body { margin:0; background:#0f1420; color:#cfd6e4; font-family:monospace; display:flex; gap:40px; align-items:center; justify-content:center; height:100vh; }
+  canvas { image-rendering: pixelated; background:#1a2133; }
+  figure { margin:0; text-align:center; }
+  figcaption { margin-top:10px; font-size:11px; letter-spacing:1px; color:#7b8598; }
+</style>
+</head>
+<body>
+  <figure><canvas id="a" width="16" height="16" style="width:320px;height:320px"></canvas><figcaption>16&times;16 @ 20&times;</figcaption></figure>
+  <figure><canvas id="b" width="16" height="16" style="width:64px;height:64px"></canvas><figcaption>@ 4&times;</figcaption></figure>
+  <figure><canvas id="c" width="16" height="16" style="width:16px;height:16px"></canvas><figcaption>native</figcaption></figure>
+<script>
+const COIN_SIZE = 16;
+// Rounder than a plain octagon: the corner steps ease off (5,3,2,1,1) instead of
+// marching in one pixel a row, so the silhouette reads as a struck disc.
+const COIN_INSETS = [5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5];
+function coinRowSpan(y) {
+    const inset = COIN_INSETS[y];
+    return [inset, COIN_SIZE - 1 - inset];
+}
+function drawPixelCoin(gctx, x, y, shine) {
+    const px = (cx, cy, w, hh) => gctx.fillRect(Math.floor(x) + cx, Math.floor(y) + cy, w, hh || 1);
+    for (let r = 0; r < COIN_SIZE; r++) {
+        const [a, b] = coinRowSpan(r);
+        gctx.fillStyle = '#000000';
+        px(a, r, b - a + 1);
+    }
+    for (let r = 1; r < COIN_SIZE - 1; r++) {
+        const [a, b] = coinRowSpan(r);
+        const [pa, pb] = coinRowSpan(r - 1);
+        const [na, nb] = coinRowSpan(r + 1);
+        const l = Math.max(a, pa, na) + 1;
+        const rr = Math.min(b, pb, nb) - 1;
+        if (rr < l) continue;
+        gctx.fillStyle = '#e6a417';
+        px(l, r, rr - l + 1);
+    }
+    for (let r = 3; r < COIN_SIZE - 3; r++) {
+        const [a, b] = coinRowSpan(r);
+        gctx.fillStyle = '#f7c948';
+        px(a + 3, r, (b - 3) - (a + 3) + 1);
+    }
+    gctx.fillStyle = '#ffe08a';
+    px(5, 1, 5); px(3, 2, 2); px(2, 3, 1); px(2, 4, 1); px(1, 5, 1); px(1, 6, 1); px(1, 7, 1);
+    gctx.fillStyle = '#a8690f';
+    px(6, 14, 5); px(11, 13, 2); px(13, 12, 1); px(13, 11, 1); px(14, 10, 1); px(14, 9, 1); px(14, 8, 1);
+    gctx.fillStyle = '#8a5408';       // front-on car: roof, cabin pillars, wide body, wheels
+    px(5, 3, 6);
+    px(4, 4, 8); px(4, 5, 8);
+    for (let r = 6; r <= 10; r++) px(3, r, 10);
+    px(3, 11, 2); px(11, 11, 2);
+    gctx.fillStyle = '#f7c948';       // windscreen and headlights punched back to the face
+    px(5, 4, 6); px(5, 5, 6);
+    px(4, 8, 2); px(10, 8, 2);
+    if (shine) {
+        gctx.fillStyle = 'rgba(255,255,255,0.55)';
+        px(4, 4, 1); px(5, 3, 2); px(3, 5, 1);
+    }
+}
+['a','b','c'].forEach(id => drawPixelCoin(document.getElementById(id).getContext('2d'), 0, 0, true));
+</script>
+</body>
+</html>

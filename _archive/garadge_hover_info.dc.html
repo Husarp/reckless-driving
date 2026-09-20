@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #10141f; }
+</style>
+</helmet>
+
+<section style="padding: 56px; background: #10141f; font-family: 'DotGothic16', monospace; min-height: 100vh; box-sizing: border-box;">
+  <div id="1a" style="display: flex; flex-direction: column; gap: 26px; width: fit-content;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 2px; color: #10141f; background: #2ee6b0; padding: 4px 7px;">1A</div>
+      <div style="font-family: 'Silkscreen', monospace; font-size: 11px; letter-spacing: 2px; color: #e8e6df;">GARAGE — CAR HOVER CARD</div>
+      <div style="font-family: 'DotGothic16', monospace; font-size: 12px; color: #6b7488;">hover a tile</div>
+    </div>
+
+    <div style="position: relative; background: #161b28; border: 2px solid #2a3245; padding: 18px; width: 420px; box-sizing: border-box;">
+      <div style="font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 2px; color: #c060ff; margin-bottom: 12px;">EPIC</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+        <sc-for list="{{ cars }}" as="car" hint-placeholder-count="3">
+          <div onMouseEnter="{{ car.enter }}" onMouseLeave="{{ leave }}" style="background: #1b2130; border: 2px solid #47506a; padding: 8px 6px 9px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; min-height: 118px; box-sizing: border-box;" style-hover="border-color: #2ee6b0;">
+            <div style="font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: #c060ff;">EPIC</div>
+            <div style="height: 54px; display: flex; align-items: center; justify-content: center;">{{ car.sprite }}</div>
+            <div style="font-family: 'Silkscreen', monospace; font-size: 8px; color: #fff; text-align: center; letter-spacing: .5px; line-height: 1.3;">{{ car.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ hovered }}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; top: 100%; margin-top: 12px; width: 300px; z-index: 5; pointer-events: none; left: {{ cardLeft }}">
+          <div style="display: flex; align-items: stretch; background: #1b2130; border: 2px solid #6f7a96; box-shadow: 5px 5px 0 rgba(0,0,0,.6);">
+
+            <div style="width: 62px; flex-shrink: 0; background: #121722; border-right: 2px solid #2a3245; display: flex; align-items: center; justify-content: center; padding: 10px 8px;">{{ hovered.spriteBig }}</div>
+
+            <div style="flex: 1; min-width: 0; padding: 12px 13px 13px;">
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1.5px; color: #c060ff;">EPIC</div>
+              <div style="font-family: 'Silkscreen', monospace; font-size: 12px; letter-spacing: .5px; color: #fff; line-height: 1.25;">{{ hovered.label }}</div>
+              <div style="font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: #2ee6b0;">{{ hovered.state }}</div>
+            </div>
+
+            <div style="height: 2px; background: #2a3245; margin: 12px 0 11px;"></div>
+
+            <div style="display: grid; grid-template-columns: auto auto auto; justify-content: space-between; gap: 6px;">
+              <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+                <div style="font-family: 'Silkscreen', monospace; font-size: 6px; letter-spacing: 1px; color: #6b7488;">RUNS</div>
+                <div style="font-family: 'VT323', monospace; font-size: 21px; line-height: .9; color: #e8e6df;">{{ hovered.runs }}</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+                <div style="font-family: 'Silkscreen', monospace; font-size: 6px; letter-spacing: 1px; color: #6b7488;">BEST SCORE</div>
+                <div style="font-family: 'VT323', monospace; font-size: 21px; line-height: .9; color: #f5b32a;">{{ hovered.best }}</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+                <div style="font-family: 'Silkscreen', monospace; font-size: 6px; letter-spacing: 1px; color: #6b7488;">SURVIVED</div>
+                <div style="font-family: 'VT323', monospace; font-size: 21px; line-height: .9; color: #2ee6b0;">{{ hovered.survival }}</div>
+              </div>
+            </div>
+
+            <div style="height: 2px; background: #2a3245; margin: 12px 0 11px;"></div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                  <div style="font-family: 'Silkscreen', monospace; font-size: 6px; letter-spacing: 1px; color: #9aa3b2;">BASE MULT</div>
+                  <div style="font-family: 'VT323', monospace; font-size: 16px; line-height: 1; color: #fff;">{{ hovered.mult }}</div>
+                </div>
+                <div style="height: 6px; background: #10141f; border: 1px solid #2a3245;">
+                  <div style="height: 100%; background: #c060ff; width: {{ hovered.multBar }}"></div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                  <div style="font-family: 'Silkscreen', monospace; font-size: 6px; letter-spacing: 1px; color: #9aa3b2;">TOP SPEED</div>
+                  <div style="font-family: 'VT323', monospace; font-size: 16px; line-height: 1; color: #fff;">{{ hovered.speed }}</div>
+                </div>
+                <div style="height: 6px; background: #10141f; border: 1px solid #2a3245;">
+                  <div style="height: 100%; background: #2ee6b0; width: {{ hovered.speedBar }}"></div>
+                </div>
+              </div>
+            </div>
+
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="max-width: 420px; margin-top: 210px; font-family: 'DotGothic16', monospace; font-size: 12px; line-height: 1.6; color: #6b7488;">
+      Top speed is a placeholder (198 KM/H for every car) until per-car speed exists. Runs / best score / best survival need per-car tracking — see Car Hover Stats Spec.md.
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:560,&quot;height&quot;:520}}">
+const CAR_COLORS = { a: '#e63946', b: '#4d9fff', c: '#f5b32a' };
+
+// L = sprite length in game pixels (GARAGE_CARS `h`), width fixed at 14 like the game's sprites.
+// `box` is the slot it must fit inside; scale is derived so long cars (ROAD TRAIN, h 60) shrink
+// to fit rather than overflow — same fit-to-slot rule the real canvas sprite will use.
+function pixelCar(color, key, L, box) {
+  const scale = Math.min(box[0] / 14, box[1] / L);
+  const px = (x, y, w, h, bg, part) => React.createElement('div', {
+    key: key + '-' + part,
+    style: { position: 'absolute', left: x * scale, top: y * scale, width: w * scale, height: h * scale, background: bg }
+  });
+  return React.createElement('div', {
+    key: key,
+    style: { position: 'relative', width: 14 * scale, height: L * scale }
+  }, [
+    px(0, 3, 3, 5, '#0c0f17', 'wfl'), px(11, 3, 3, 5, '#0c0f17', 'wfr'),
+    px(0, L - 8, 3, 5, '#0c0f17', 'wrl'), px(11, L - 8, 3, 5, '#0c0f17', 'wrr'),
+    px(2, 0, 10, L, color, 'body'),
+    px(3, 2, 8, 4, '#cfe6ff', 'wind'),
+    px(3, 8, 8, L - 13, 'rgba(0,0,0,.28)', 'roof'),
+    px(3, L - 5, 8, 3, '#cfe6ff', 'rear'),
+    px(2, 0, 1, L, 'rgba(255,255,255,.18)', 'hl'),
+    px(11, 0, 1, L, 'rgba(0,0,0,.35)', 'sh')
+  ]);
+}
+
+class Component extends DCLogic {
+  state = { hover: 1 };
+
+  renderVals() {
+    const defs = [
+      { label: 'MONSTER TRUCK', color: CAR_COLORS.a, len: 28, runs: 47, best: '128,400', survival: '3:42', mult: '×1.6', multPct: 60, state: 'EQUIPPED' },
+      { label: 'ROAD TRAIN', color: CAR_COLORS.b, len: 60, runs: 12, best: '84,150', survival: '2:07', mult: '×2.0', multPct: 100, state: 'OWNED' },
+      { label: 'GT3', color: CAR_COLORS.c, len: 26, runs: 0, best: '—', survival: '—', mult: '×1.1', multPct: 20, state: 'NEVER DRIVEN' }
+    ];
+
+    const cars = defs.map((d, i) => Object.assign({}, d, {
+      sprite: pixelCar(d.color, 'tile' + i, d.len, [40, 54]),
+      enter: () => this.setState({ hover: i })
+    }));
+
+    const h = this.state.hover;
+    const cur = h === null ? null : defs[h];
+    const hovered = cur ? {
+      label: cur.label,
+      state: cur.state,
+      runs: cur.runs === 0 ? '—' : String(cur.runs),
+      best: cur.best,
+      survival: cur.survival,
+      mult: cur.mult,
+      multBar: cur.multPct + '%',
+      speed: '198 KM/H',
+      speedBar: '72%',
+      spriteBig: pixelCar(cur.color, 'card' + h, cur.len, [46, 190])
+    } : null;
+
+    // Tile grid: 420 card, 18px padding each side, 3 cols, 10px gaps.
+    const pitch = (420 - 36 - 20) / 3 + 10;
+    const center = 18 + (h || 0) * pitch + (pitch - 10) / 2;
+    const left = Math.max(4, Math.min(center - 28, 420 - 300 - 4));
+
+    return { cars, hovered, leave: () => {}, cardLeft: left + 'px' };
+  }
+}
+
+</script>
+</body>
+</html>

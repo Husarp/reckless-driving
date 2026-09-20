@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #0c0f16; font-family: 'Pixelify Sans', monospace; }
+  a { color: #2ee6b0; }
+  a:hover { color: #f5b32a; }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; background: transparent; }
+</style>
+</helmet>
+
+<section style="display:flex; flex-direction:column; gap:34px; padding:40px; background:#0c0f16; color:#e8e6df;">
+
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-family:'Silkscreen',monospace; font-size:10px; letter-spacing:4px; color:#2ee6b0;">BATCH 75 &mdash; FINAL</div>
+    <div style="font-family:'Silkscreen',monospace; font-size:22px; color:#fff; letter-spacing:1px;">LEVEL WIDGET + TWO PICKUPS</div>
+    <div style="font-size:14px; color:#9aa3b2; max-width:660px; text-wrap:pretty;">Locked from your picks: ring badge with XP readout, bolt capsule nitro, upgrade arrow score boost. Coin pickup is parked.</div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="display:flex; align-items:baseline; gap:12px; border-bottom:2px solid #232b3b; padding-bottom:8px;">
+      <div style="font-family:'Silkscreen',monospace; font-size:13px; color:#fff; letter-spacing:2px;">PLAYER LEVEL</div>
+      <div style="font-size:13px; color:#6d7789;">top-right corner</div>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start;">
+      <div id="2a" style="display:flex; flex-direction:column; gap:12px; width:330px; background:#171c27; border:2px solid #2ee6b0; padding:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="font-family:'Silkscreen',monospace; font-size:9px; background:#2ee6b0; color:#12161f; padding:2px 6px;">2a</div>
+          <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#fff; letter-spacing:1px;">RING + XP READOUT</div>
+        </div>
+        <div style="background:#5a5f66; padding:16px 14px; display:flex; justify-content:flex-end;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:1px;">
+              <div style="font-family:'Silkscreen',monospace; font-size:7px; color:#e6e2d6; letter-spacing:2px; text-shadow:1px 1px 0 #000; opacity:.8;">XP</div>
+              <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#fff; text-shadow:1px 1px 0 #000;">{{ xpCurrent }}</div>
+              <div style="font-family:'VT323',monospace; font-size:13px; color:#e6e2d6; text-shadow:1px 1px 0 #000; opacity:.75;">{{ xpOf }}</div>
+            </div>
+            <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
+              <canvas data-sprite="ring" style="position:absolute; inset:0; width:48px; height:48px;"></canvas>
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Silkscreen',monospace; font-size:15px; color:#fff; text-shadow:1px 1px 0 #000;">{{ level }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:13px; color:#9aa3b2; text-wrap:pretty;">XP sits left of the ring so the whole widget still hugs the right edge. Ring is plotted cell by cell, so it stays true pixel art at any fill.</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; width:300px; background:#171c27; border:2px solid #232b3b; padding:16px;">
+        <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#f5b32a; letter-spacing:1px;">LEVEL CURVE</div>
+        <div style="font-family:'VT323',monospace; font-size:16px; color:#e8e6df; line-height:1.5;">req(L) = 1000 + (L&minus;1) &times; 50</div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <sc-for list="{{ curve }}" as="row" hint-placeholder-count="6">
+            <div style="display:flex; justify-content:space-between; gap:10px; font-family:'VT323',monospace; font-size:15px; border-bottom:1px solid #232b3b; padding-bottom:2px;">
+              <span style="color:#6d7789;">{{ row.label }}</span>
+              <span style="color:#fff;">{{ row.req }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:13px; color:#9aa3b2; text-wrap:pretty;">Score earned in a run feeds XP. The ring fills against the current level's requirement, not a lifetime total.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="display:flex; align-items:baseline; gap:12px; border-bottom:2px solid #232b3b; padding-bottom:8px;">
+      <div style="font-family:'Silkscreen',monospace; font-size:13px; color:#fff; letter-spacing:2px;">PICKUPS</div>
+      <div style="font-size:13px; color:#6d7789;">sprite at 4&times;, then the active-state HUD chip</div>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:18px;">
+
+      <div id="2b" style="display:flex; flex-direction:column; gap:12px; width:330px; background:#171c27; border:2px solid #2ee6b0; padding:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="font-family:'Silkscreen',monospace; font-size:9px; background:#2ee6b0; color:#12161f; padding:2px 6px;">2b</div>
+          <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#fff; letter-spacing:1px;">NITRO &mdash; BOLT CAPSULE</div>
+        </div>
+        <div style="background:#5a5f66; padding:14px; display:flex; align-items:center; justify-content:center; gap:20px;">
+          <div style="width:4px; height:72px; background:#e6e2d6; opacity:.55;"></div>
+          <canvas data-sprite="nitroB" style="width:72px; height:72px;"></canvas>
+          <div style="width:4px; height:72px; background:#e6e2d6; opacity:.55;"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; background:rgba(9,12,18,.78); border:2px solid #2b3446; padding:4px 8px; align-self:flex-start;">
+          <canvas data-sprite="nitroBmini" style="width:14px; height:14px;"></canvas>
+          <div style="width:52px; height:6px; background:#12161f;"><div style="width:64%; height:100%; background:#4f6ef7;"></div></div>
+          <div style="font-family:'VT323',monospace; font-size:13px; color:#4f6ef7;">3.1s</div>
+        </div>
+        <div style="font-size:13px; color:#9aa3b2; text-wrap:pretty;">Bolt is now a proper forked zigzag with a highlight down its leading edge, not a straight line. Blue keeps it clear of the red crash colour and the amber coins.</div>
+      </div>
+
+      <div id="2c" style="display:flex; flex-direction:column; gap:12px; width:330px; background:#171c27; border:2px solid #2ee6b0; padding:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="font-family:'Silkscreen',monospace; font-size:9px; background:#2ee6b0; color:#12161f; padding:2px 6px;">2c</div>
+          <div style="font-family:'Silkscreen',monospace; font-size:10px; color:#fff; letter-spacing:1px;">SCORE &mdash; UPGRADE ARROW</div>
+        </div>
+        <div style="background:#5a5f66; padding:14px; display:flex; align-items:center; justify-content:center; gap:20px;">
+          <div style="width:4px; height:72px; background:#e6e2d6; opacity:.55;"></div>
+          <canvas data-sprite="scoreC" style="width:72px; height:72px;"></canvas>
+          <div style="width:4px; height:72px; background:#e6e2d6; opacity:.55;"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; background:rgba(9,12,18,.78); border:2px solid #2b3446; padding:4px 8px; align-self:flex-start;">
+          <canvas data-sprite="scoreCmini" style="width:14px; height:14px;"></canvas>
+          <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#2ee6b0;">&times;2</div>
+          <div style="width:44px; height:6px; background:#12161f;"><div style="width:41%; height:100%; background:#2ee6b0;"></div></div>
+          <div style="font-family:'VT323',monospace; font-size:13px; color:#2ee6b0;">8s</div>
+        </div>
+        <div style="font-size:13px; color:#9aa3b2; text-wrap:pretty;">Multiplier value lives in the HUD chip rather than the sprite, so the same art covers &times;2, &times;3 and &times;5.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:10px; border-top:2px solid #232b3b; padding-top:20px; max-width:680px;">
+    <div style="font-family:'Silkscreen',monospace; font-size:11px; color:#f5b32a; letter-spacing:2px;">PARKED</div>
+    <div style="font-size:14px; color:#9aa3b2; text-wrap:pretty;">Coin pickup: dropped all three. Your existing 16&times;16 struck-disc coin is better than anything I drew, so the pickup should just use <span style="font-family:'VT323',monospace; color:#e8e6df;">drawPixelCoin</span> at whatever scale suits, with the <span style="font-family:'VT323',monospace; color:#e8e6df;">+25</span> floating label above it. No new art needed.</div>
+    <div style="font-size:14px; color:#9aa3b2; text-wrap:pretty;">Daily letter: still waiting on the reward model (straight cash, or car draw with cash compensation on a duplicate). The draw version needs a reveal screen, so I would rather design sprite and reveal together.</div>
+  </div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;playerLevel&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:12,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:1,&quot;max&quot;:99,&quot;section&quot;:&quot;Level widget&quot;},&quot;levelProgress&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:62,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;section&quot;:&quot;Level widget&quot;}}">
+const P = {
+  night:'#12161f', border:'#2b3446', red:'#e63946', amber:'#f5b32a', mint:'#2ee6b0',
+  blue:'#4f6ef7', cream:'#e6e2d6', dark:'#1a1f28', steel:'#8f98a3', deep:'#2b3038'
+};
+
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const cl = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (amt >= 0) { r += (255 - r) * amt; g += (255 - g) * amt; b += (255 - b) * amt; }
+  else { r *= (1 + amt); g *= (1 + amt); b *= (1 + amt); }
+  return 'rgb(' + cl(r) + ',' + cl(g) + ',' + cl(b) + ')';
+}
+
+function stamp(c, rows, oy, col) {
+  c.fillStyle = col;
+  for (let y = 0; y < rows.length; y++)
+    for (let x = 0; x < rows[y].length; x++)
+      if (rows[y][x] === '1') c.fillRect(x, y + oy, 1, 1);
+}
+
+// A real forked bolt: slants down-left, kinks right, tapers to a point.
+const BOLT = [
+  '........1111....',
+  '.......1111.....',
+  '......1111......',
+  '.....1111.......',
+  '....11111111....',
+  '.......111111...',
+  '........1111....',
+  '.......111......',
+  '......111.......',
+  '.....111........',
+  '....11..........'
+];
+const BOLT_EDGE = [
+  '........1.......',
+  '.......1........',
+  '......1.........',
+  '.....1..........',
+  '....1...........',
+  '.......1........',
+  '........1.......',
+  '.......1........',
+  '......1.........',
+  '.....1..........',
+  '....1...........'
+];
+
+function nitroB(c) {
+  // capsule shell
+  c.fillStyle = '#000'; c.fillRect(1, 2, 14, 12); c.fillRect(2, 1, 12, 14);
+  c.fillStyle = P.deep; c.fillRect(2, 3, 12, 10); c.fillRect(3, 2, 10, 12);
+  c.fillStyle = shade(P.deep, .28); c.fillRect(3, 2, 10, 1); c.fillRect(2, 3, 1, 10);
+  c.fillStyle = shade(P.deep, -.45); c.fillRect(3, 13, 10, 1); c.fillRect(13, 3, 1, 10);
+  // bolt: black keyline first so it reads against the dark shell, then fill, then highlight
+  stamp(c, BOLT, 3, '#000');
+  stamp(c, BOLT, 2, P.blue);
+  stamp(c, BOLT_EDGE, 2, shade(P.blue, .55));
+  // rivets
+  c.fillStyle = P.steel; c.fillRect(1, 7, 1, 2); c.fillRect(14, 7, 1, 2);
+}
+
+function scoreC(c) {
+  c.fillStyle = '#000';
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5);
+    if (d <= 7.6 && d >= 4.4) c.fillRect(x, y, 1, 1);
+  }
+  c.fillStyle = P.mint;
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5);
+    if (d <= 7.0 && d >= 5.0) c.fillRect(x, y, 1, 1);
+  }
+  c.fillStyle = P.mint;
+  c.fillRect(7, 4, 2, 8);
+  c.fillRect(6, 5, 4, 1); c.fillRect(5, 6, 6, 1);
+  c.fillStyle = shade(P.mint, .5); c.fillRect(7, 4, 1, 7);
+}
+
+const SPRITES = { nitroB, scoreC, nitroBmini: nitroB, scoreCmini: scoreC };
+
+class Component extends DCLogic {
+  componentDidMount() { this.paint(); }
+  componentDidUpdate() { this.paint(); }
+
+  paint() {
+    document.querySelectorAll('[data-sprite]').forEach(cv => {
+      const key = cv.getAttribute('data-sprite');
+      if (key === 'ring') { this.paintRing(cv); return; }
+      const fn = SPRITES[key];
+      if (!fn) return;
+      cv.width = 16; cv.height = 16;
+      const c = cv.getContext('2d');
+      c.clearRect(0, 0, 16, 16);
+      fn(c);
+    });
+  }
+
+  paintRing(cv) {
+    const S = 24;
+    cv.width = S; cv.height = S;
+    const c = cv.getContext('2d');
+    c.clearRect(0, 0, S, S);
+    const cx = S / 2, cy = S / 2, p = this.pct() / 100;
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      const dx = x + .5 - cx, dy = y + .5 - cy;
+      const d = Math.hypot(dx, dy);
+      if (d > 11.2 || d < 8.2) continue;
+      let a = Math.atan2(dx, -dy) / (Math.PI * 2);
+      if (a < 0) a += 1;
+      c.fillStyle = a <= p ? P.mint : '#2b3446';
+      c.fillRect(x, y, 1, 1);
+    }
+    c.fillStyle = 'rgba(9,12,18,.85)';
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      if (Math.hypot(x + .5 - cx, y + .5 - cy) < 8.2) c.fillRect(x, y, 1, 1);
+    }
+  }
+
+  pct() {
+    const v = this.props.levelProgress;
+    return Math.max(0, Math.min(100, typeof v === 'number' ? v : 62));
+  }
+
+  // Level 1 needs 1000, each level after needs 50 more.
+  levelReq(l) { return 1000 + (l - 1) * 50; }
+
+  renderVals() {
+    const level = this.props.playerLevel ?? 12;
+    const pct = this.pct();
+    const req = this.levelReq(level);
+    const curve = [];
+    const shown = [...new Set([1, 2, 3, 4, level, level + 1])].filter(l => l >= 1).sort((a, b) => a - b);
+    for (const l of shown) {
+      curve.push({ label: 'LEVEL ' + l, req: this.levelReq(l).toLocaleString() });
+    }
+    return {
+      level: String(level),
+      curve,
+      xpCurrent: String(Math.round(req * pct / 100)),
+      xpOf: '/ ' + req
+    };
+  }
+}
+
+</script>
+</body>
+</html>

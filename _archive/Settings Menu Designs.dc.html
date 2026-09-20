@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #12161f; }
+  a { color: #f5b32a; text-decoration: none; }
+  a:hover { color: #ffd873; }
+  @keyframes caret { 0%,49% { opacity: 1; } 50%,100% { opacity: .1; } }
+</style>
+</helmet>
+<div style="min-height:100%;background:#12161f;color:#e8e6df;font-family:'DotGothic16',monospace;padding:56px 64px 96px;box-sizing:border-box">
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:900px;margin-bottom:44px">
+    <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:3px;color:#e63946">RECKLESS DRIVING — SETUP SCREEN</div>
+    <div style="font-family:'Silkscreen',monospace;font-size:32px;line-height:1.3;color:#fff">Three settings menus, one control kit</div>
+    <div style="font-size:16px;line-height:1.6;color:#9aa3b2;text-wrap:pretty">Same palette and fonts as the game. Everything is live — drag the sliders, flip the switches, change tabs. Options <a href="#1a">1a</a>, <a href="#1b">1b</a> and <a href="#1c">1c</a> share state, so a change in one shows up in the others. The kit on the right is the full widget set to pull from later.</div>
+  </div>
+
+  <section style="display:flex;flex-wrap:wrap;gap:44px;align-items:flex-start">
+
+    <!-- ========== 1a  STACK ========== -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1a</span>
+        <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">STACK — ONE LIST, PLAIN READ</span>
+      </div>
+
+      <div style="width:560px;background:#171c27;border:2px solid #232b3b;box-shadow:0 0 0 4px #12161f,0 18px 40px rgba(0,0,0,.5)">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:2px solid #232b3b;background:#1b2130">
+          <div style="font-family:'Silkscreen',monospace;font-size:16px;color:#fff;letter-spacing:1px">SETUP</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">MULTIPLIER</span>
+            <span style="font-family:'VT323',monospace;font-size:30px;line-height:.9;color:#f5b32a">{{ multText }}</span>
+          </div>
+        </div>
+
+        <div style="padding:6px 22px 18px">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0;border-bottom:1px dashed #232b3b">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">ROAD LANES</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">Fewer lanes, tighter traffic.</div></sc-if>
+            </div>
+            <div style="display:flex;align-items:center;gap:0;flex:none">
+              <div onClick="{{ lanesDown }}" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:14px;cursor:pointer;user-select:none" style-hover="background:#e63946;border-color:#e63946;color:#fff">-</div>
+              <div style="width:62px;height:34px;display:flex;align-items:center;justify-content:center;background:#0c1118;border:2px solid #2b3446;border-left:0;border-right:0;font-family:'VT323',monospace;font-size:26px;color:#2ee6b0">{{ v.lanes }}</div>
+              <div onClick="{{ lanesUp }}" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:14px;cursor:pointer;user-select:none" style-hover="background:#2ee6b0;border-color:#2ee6b0;color:#0c1118">+</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0;border-bottom:1px dashed #232b3b">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">CONTROL TYPE</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">How the car changes lane.</div></sc-if>
+            </div>
+            <div style="display:flex;background:#0c1118;border:2px solid #2b3446;flex:none">
+              <sc-for list="{{ segControl.options }}" as="o" hint-placeholder-count="2">
+                <div onClick="{{ o.onClick }}" style="padding:8px 14px;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ o.bg }};color:{{ o.fg }}">{{ o.text }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0;border-bottom:1px dashed #232b3b">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">SOUND</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">Engine, crashes, sirens.</div></sc-if>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;width:230px;flex:none">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">VOLUME</span>
+                <span style="font-family:'VT323',monospace;font-size:22px;line-height:.9;color:#2ee6b0">{{ sdSound.text }}</span>
+              </div>
+              <div onPointerDown="{{ sdSound.onDown }}" style="position:relative;height:20px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;touch-action:none">
+                <div style="position:absolute;top:0;left:0;bottom:0;background:{{ sdSound.fill }};width:{{ sdSound.pct }}"></div>
+                <div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:0 3px;pointer-events:none">
+                  <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="9">
+                    <div style="width:2px;background:rgba(232,230,223,.16)"></div>
+                  </sc-for>
+                </div>
+                <div style="position:absolute;top:-4px;width:12px;height:24px;margin-left:-6px;background:#e8e6df;box-shadow:0 0 0 2px #12161f;pointer-events:none;left:{{ sdSound.pct }}"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0;border-bottom:1px dashed #232b3b">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">NIGHT MODE</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">Headlights only. +0.2×</div></sc-if>
+            </div>
+            <div onClick="{{ tgNight.onClick }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;flex:none">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;width:26px;text-align:right;color:{{ tgNight.fg }}">{{ tgNight.text }}</span>
+              <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgNight.track }}">
+                <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgNight.knob }};left:{{ tgNight.knobX }}"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0;border-bottom:1px dashed #232b3b">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">SKIP CRASH ANIMATION</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">Straight to the summary.</div></sc-if>
+            </div>
+            <div onClick="{{ tgSkip.onClick }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;flex:none">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;width:26px;text-align:right;color:{{ tgSkip.fg }}">{{ tgSkip.text }}</span>
+              <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgSkip.track }}">
+                <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgSkip.knob }};left:{{ tgSkip.knobX }}"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:#e8e6df">DIFFICULTY</div>
+              <sc-if value="{{ hints }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#6d7789">Traffic density and speed ramp.</div></sc-if>
+            </div>
+            <div style="display:flex;background:#0c1118;border:2px solid #2b3446;flex:none">
+              <sc-for list="{{ segDiff.options }}" as="o" hint-placeholder-count="3">
+                <div onClick="{{ o.onClick }}" style="padding:8px 13px;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ o.bg }};color:{{ o.fg }}">{{ o.text }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="display:flex;gap:12px;padding:16px 22px;border-top:2px solid #232b3b;background:#1b2130">
+          <div style="flex:none;padding:13px 20px;background:transparent;border:2px solid #47506a;color:#9aa3b2;font-family:'Silkscreen',monospace;font-size:12px;cursor:pointer;user-select:none" style-hover="border-color:#e8e6df;color:#e8e6df">BACK</div>
+          <div style="flex:1;padding:13px 20px;text-align:center;background:#e63946;border:2px solid #e63946;color:#fff;font-family:'Silkscreen',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;user-select:none;box-shadow:0 4px 0 #7d1f27" style-hover="background:#ff4d5b;border-color:#ff4d5b" style-active="transform:translateY(3px);box-shadow:0 1px 0 #7d1f27">START RUN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 1b  TABS ========== -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1b</span>
+        <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">CONSOLE — TAB RAIL</span>
+      </div>
+
+      <div style="width:620px;background:#171c27;border:2px solid #232b3b;box-shadow:0 0 0 4px #12161f,0 18px 40px rgba(0,0,0,.5);display:flex;flex-direction:column">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid #232b3b">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:10px;height:10px;background:#e63946"></div>
+            <div style="font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:2px;color:#fff">SETTINGS</div>
+          </div>
+          <div style="font-family:'VT323',monospace;font-size:20px;color:#6d7789">esc to close<span style="animation:caret 1s steps(1) infinite">_</span></div>
+        </div>
+
+        <div style="display:flex;min-height:360px">
+
+          <div style="width:150px;flex:none;border-right:2px solid #232b3b;background:#141924;display:flex;flex-direction:column">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+              <div onClick="{{ t.onClick }}" style="padding:16px 14px;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;user-select:none;border-bottom:1px solid #1b2130;display:flex;align-items:center;gap:9px;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.mark }}">{{ t.text }}</div>
+            </sc-for>
+          </div>
+
+          <div style="flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:4px">
+
+            <sc-if value="{{ isRace }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">ROAD LANES</span>
+                    <span style="font-family:'VT323',monospace;font-size:26px;line-height:.9;color:#2ee6b0">{{ v.lanes }}</span>
+                  </div>
+                  <div style="display:flex;gap:5px">
+                    <sc-for list="{{ laneCells }}" as="c" hint-placeholder-count="8">
+                      <div onClick="{{ c.onClick }}" style="flex:1;height:38px;cursor:pointer;display:flex;align-items:end;justify-content:center;padding-bottom:4px;font-family:'VT323',monospace;font-size:15px;background:{{ c.bg }};color:{{ c.fg }};border:2px solid {{ c.bd }}">{{ c.n }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">DIFFICULTY</span>
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;color:#f5b32a">{{ diffBonus }}</span>
+                  </div>
+                  <div style="display:flex;background:#0c1118;border:2px solid #2b3446">
+                    <sc-for list="{{ segDiff.options }}" as="o" hint-placeholder-count="3">
+                      <div onClick="{{ o.onClick }}" style="flex:1;text-align:center;padding:10px 0;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ o.bg }};color:{{ o.fg }}">{{ o.text }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div onClick="{{ tgNight.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:#1b2130;border:2px solid #232b3b;cursor:pointer;user-select:none">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">NIGHT MODE</span>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ tgNight.fg }}">{{ tgNight.text }}</span>
+                    <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgNight.track }}">
+                      <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgNight.knob }};left:{{ tgNight.knobX }}"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isControls }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">INPUT</span>
+                  <sc-for list="{{ radioControl }}" as="r" hint-placeholder-count="3">
+                    <div onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:12px;padding:11px 13px;cursor:pointer;user-select:none;background:{{ r.bg }};border:2px solid {{ r.bd }}">
+                      <div style="width:14px;height:14px;flex:none;border:2px solid #47506a;background:{{ r.dot }}"></div>
+                      <div style="display:flex;flex-direction:column;gap:2px">
+                        <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ r.fg }}">{{ r.text }}</span>
+                        <span style="font-size:12px;color:#6d7789">{{ r.sub }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div onClick="{{ tgMulti.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:#1b2130;border:2px solid #232b3b;cursor:pointer;user-select:none">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">HOLD FOR MULTI-LANE</span>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ tgMulti.fg }}">{{ tgMulti.text }}</span>
+                    <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgMulti.track }}">
+                      <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgMulti.knob }};left:{{ tgMulti.knobX }}"></div>
+                    </div>
+                  </div>
+                </div>
+                <div onClick="{{ tgTilt.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:#1b2130;border:2px solid #232b3b;cursor:pointer;user-select:none">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">TILT STEERING</span>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ tgTilt.fg }}">{{ tgTilt.text }}</span>
+                    <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgTilt.track }}">
+                      <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgTilt.knob }};left:{{ tgTilt.knobX }}"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isAudio }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:22px">
+                <sc-for list="{{ audioSliders }}" as="s" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline">
+                      <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">{{ s.label }}</span>
+                      <span style="font-family:'VT323',monospace;font-size:24px;line-height:.9;color:#2ee6b0">{{ s.text }}</span>
+                    </div>
+                    <div onPointerDown="{{ s.onDown }}" style="position:relative;height:22px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;touch-action:none">
+                      <div style="position:absolute;top:0;left:0;bottom:0;background:{{ s.fill }};width:{{ s.pct }}"></div>
+                      <div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:0 3px;pointer-events:none">
+                        <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="9">
+                          <div style="width:2px;background:rgba(232,230,223,.16)"></div>
+                        </sc-for>
+                      </div>
+                      <div style="position:absolute;top:-4px;width:12px;height:26px;margin-left:-6px;background:#e8e6df;box-shadow:0 0 0 2px #12161f;pointer-events:none;left:{{ s.pct }}"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isVisual }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">PIXEL SCALE</span>
+                  <div style="display:flex;background:#0c1118;border:2px solid #2b3446">
+                    <sc-for list="{{ segQuality.options }}" as="o" hint-placeholder-count="3">
+                      <div onClick="{{ o.onClick }}" style="flex:1;text-align:center;padding:10px 0;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ o.bg }};color:{{ o.fg }}">{{ o.text }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">SCREEN SHAKE</span>
+                    <span style="font-family:'VT323',monospace;font-size:24px;line-height:.9;color:#2ee6b0">{{ sdShake.text }}</span>
+                  </div>
+                  <div onPointerDown="{{ sdShake.onDown }}" style="position:relative;height:22px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;touch-action:none">
+                    <div style="position:absolute;top:0;left:0;bottom:0;background:{{ sdShake.fill }};width:{{ sdShake.pct }}"></div>
+                    <div style="position:absolute;top:-4px;width:12px;height:26px;margin-left:-6px;background:#e8e6df;box-shadow:0 0 0 2px #12161f;pointer-events:none;left:{{ sdShake.pct }}"></div>
+                  </div>
+                </div>
+                <div onClick="{{ tgSkip.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:#1b2130;border:2px solid #232b3b;cursor:pointer;user-select:none">
+                  <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">SKIP CRASH ANIMATION</span>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ tgSkip.fg }}">{{ tgSkip.text }}</span>
+                    <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ tgSkip.track }}">
+                      <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ tgSkip.knob }};left:{{ tgSkip.knobX }}"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-top:2px solid #232b3b;background:#1b2130">
+          <div style="display:flex;align-items:baseline;gap:9px">
+            <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">MULTIPLIER</span>
+            <span style="font-family:'VT323',monospace;font-size:28px;line-height:.9;color:#f5b32a">{{ multText }}</span>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="padding:12px 18px;border:2px solid #47506a;color:#9aa3b2;font-family:'Silkscreen',monospace;font-size:11px;cursor:pointer;user-select:none" style-hover="border-color:#e8e6df;color:#e8e6df">DEFAULTS</div>
+            <div style="padding:12px 26px;background:#2ee6b0;border:2px solid #2ee6b0;color:#0c1118;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;user-select:none;box-shadow:0 4px 0 #157a5e" style-hover="background:#5cf3c6" style-active="transform:translateY(3px);box-shadow:0 1px 0 #157a5e">APPLY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 1c  CARDS ========== -->
+    <div id="1c" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#e63946;color:#fff;padding:4px 7px">1c</span>
+        <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">CARDS — TILE GRID</span>
+      </div>
+
+      <div style="width:600px;background:#141924;border:2px solid #232b3b;box-shadow:0 0 0 4px #12161f,0 18px 40px rgba(0,0,0,.5);padding:20px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px">
+          <div style="font-family:'Silkscreen',monospace;font-size:15px;color:#fff;letter-spacing:1px">RUN SETUP</div>
+          <div style="font-family:'DotGothic16',monospace;font-size:14px;color:#6d7789">tap a tile to change it</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+          <div style="grid-column:span 2;background:#171c27;border:2px solid #232b3b;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px">
+              <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">ROAD LANES</span>
+              <span style="font-family:'VT323',monospace;font-size:28px;line-height:.9;color:#2ee6b0">{{ v.lanes }}</span>
+            </div>
+            <div style="display:flex;gap:5px">
+              <sc-for list="{{ laneCells }}" as="c" hint-placeholder-count="8">
+                <div onClick="{{ c.onClick }}" style="flex:1;height:44px;cursor:pointer;display:flex;align-items:end;justify-content:center;padding-bottom:5px;font-family:'VT323',monospace;font-size:16px;background:{{ c.bg }};color:{{ c.fg }};border:2px solid {{ c.bd }}">{{ c.n }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-for list="{{ cardToggles }}" as="c" hint-placeholder-count="4">
+            <div onClick="{{ c.onClick }}" style="display:flex;flex-direction:column;justify-content:space-between;gap:14px;padding:16px;cursor:pointer;user-select:none;min-height:104px;background:{{ c.bg }};border:2px solid {{ c.bd }}">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;color:{{ c.fg }}">{{ c.label }}</div>
+                <div style="font-size:13px;line-height:1.4;color:#6d7789;text-wrap:pretty">{{ c.sub }}</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;color:{{ c.chipFg }}">{{ c.chip }}</span>
+                <div style="position:relative;width:46px;height:24px;border:2px solid #12161f;background:{{ c.track }}">
+                  <div style="position:absolute;top:3px;width:16px;height:14px;transition:left .1s steps(3);background:{{ c.knob }};left:{{ c.knobX }}"></div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="grid-column:span 2;background:#171c27;border:2px solid #232b3b;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#e8e6df">SOUND</span>
+              <span style="font-family:'VT323',monospace;font-size:24px;line-height:.9;color:#2ee6b0">{{ sdSound.text }}</span>
+            </div>
+            <div onPointerDown="{{ sdSound.onDown }}" style="position:relative;height:24px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;touch-action:none">
+              <div style="position:absolute;top:0;left:0;bottom:0;background:{{ sdSound.fill }};width:{{ sdSound.pct }}"></div>
+              <div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:0 3px;pointer-events:none">
+                <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="9">
+                  <div style="width:2px;background:rgba(232,230,223,.16)"></div>
+                </sc-for>
+              </div>
+              <div style="position:absolute;top:-4px;width:12px;height:28px;margin-left:-6px;background:#e8e6df;box-shadow:0 0 0 2px #12161f;pointer-events:none;left:{{ sdSound.pct }}"></div>
+            </div>
+          </div>
+
+          <div style="grid-column:span 2;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;background:#0c1118;border:2px solid #2b3446">
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <span style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789">SCORE MULTIPLIER</span>
+              <span style="font-family:'VT323',monospace;font-size:32px;line-height:.9;color:#f5b32a">{{ multText }}</span>
+            </div>
+            <div style="padding:13px 28px;background:#e63946;border:2px solid #e63946;color:#fff;font-family:'Silkscreen',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;user-select:none;box-shadow:0 4px 0 #7d1f27" style-hover="background:#ff4d5b;border-color:#ff4d5b" style-active="transform:translateY(3px);box-shadow:0 1px 0 #7d1f27">DRIVE</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== KIT ========== -->
+    <div id="1k" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Silkscreen',monospace;font-size:10px;background:#232b3b;color:#8f99ab;padding:4px 7px">KIT</span>
+        <span style="font-family:'Silkscreen',monospace;font-size:13px;color:#fff">CONTROL SET</span>
+      </div>
+
+      <div style="width:380px;background:#171c27;border:2px solid #232b3b;box-shadow:0 0 0 4px #12161f;padding:22px;display:flex;flex-direction:column;gap:26px">
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">SWITCHES</div>
+          <sc-for list="{{ kitSwitches }}" as="k" hint-placeholder-count="3">
+            <div onClick="{{ k.onClick }}" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+              <span style="font-size:14px;color:#9aa3b2">{{ k.label }}</span>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-family:'Silkscreen',monospace;font-size:9px;width:24px;text-align:right;color:{{ k.fg }}">{{ k.text }}</span>
+                <div style="position:relative;width:52px;height:26px;border:2px solid #12161f;background:{{ k.track }}">
+                  <div style="position:absolute;top:3px;width:18px;height:16px;transition:left .1s steps(3);background:{{ k.knob }};left:{{ k.knobX }}"></div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <div onClick="{{ tgHaptics.onClick }}" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+            <span style="font-size:14px;color:#9aa3b2">Checkbox</span>
+            <div style="width:22px;height:22px;border:2px solid #47506a;display:flex;align-items:center;justify-content:center;background:{{ tgHaptics.track }}">
+              <span style="font-family:'Silkscreen',monospace;font-size:11px;color:#0c1118;opacity:{{ tgHaptics.checkOpacity }}">X</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">SLIDERS</div>
+          <sc-for list="{{ kitSliders }}" as="s" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:14px;color:#9aa3b2">{{ s.label }}</span>
+                <span style="font-family:'VT323',monospace;font-size:20px;line-height:.9;color:#2ee6b0">{{ s.text }}</span>
+              </div>
+              <div onPointerDown="{{ s.onDown }}" style="position:relative;height:20px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;touch-action:none">
+                <div style="position:absolute;top:0;left:0;bottom:0;background:{{ s.fill }};width:{{ s.pct }}"></div>
+                <div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:0 3px;pointer-events:none">
+                  <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="9">
+                    <div style="width:2px;background:rgba(232,230,223,.16)"></div>
+                  </sc-for>
+                </div>
+                <div style="position:absolute;top:-4px;width:12px;height:24px;margin-left:-6px;background:#e8e6df;box-shadow:0 0 0 2px #12161f;pointer-events:none;left:{{ s.pct }}"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">SEGMENTED &amp; STEPPER</div>
+          <div style="display:flex;background:#0c1118;border:2px solid #2b3446">
+            <sc-for list="{{ segDiff.options }}" as="o" hint-placeholder-count="3">
+              <div onClick="{{ o.onClick }}" style="flex:1;text-align:center;padding:9px 0;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ o.bg }};color:{{ o.fg }}">{{ o.text }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:14px;color:#9aa3b2">Stepper</span>
+            <div style="display:flex">
+              <div onClick="{{ lanesDown }}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:13px;cursor:pointer;user-select:none" style-hover="background:#e63946;border-color:#e63946;color:#fff">-</div>
+              <div style="width:56px;height:32px;display:flex;align-items:center;justify-content:center;background:#0c1118;border:2px solid #2b3446;border-left:0;border-right:0;font-family:'VT323',monospace;font-size:24px;color:#2ee6b0">{{ v.lanes }}</div>
+              <div onClick="{{ lanesUp }}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:13px;cursor:pointer;user-select:none" style-hover="background:#2ee6b0;border-color:#2ee6b0;color:#0c1118">+</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">LIST &amp; DROPDOWN</div>
+          <sc-for list="{{ radioControl }}" as="r" hint-placeholder-count="3">
+            <div onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:11px;padding:9px 11px;cursor:pointer;user-select:none;background:{{ r.bg }};border:2px solid {{ r.bd }}">
+              <div style="width:12px;height:12px;flex:none;border:2px solid #47506a;background:{{ r.dot }}"></div>
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;color:{{ r.fg }}">{{ r.text }}</span>
+            </div>
+          </sc-for>
+          <div style="position:relative">
+            <div onClick="{{ toggleDd }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:#0c1118;border:2px solid #2b3446;cursor:pointer;user-select:none">
+              <span style="font-family:'Silkscreen',monospace;font-size:10px;color:#e8e6df">{{ v.cam }}</span>
+              <span style="font-family:'Silkscreen',monospace;font-size:9px;color:#6d7789">{{ ddCaret }}</span>
+            </div>
+            <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;left:0;right:0;z-index:5;background:#1b2130;border:2px solid #47506a;box-shadow:0 10px 24px rgba(0,0,0,.6)">
+                <sc-for list="{{ camOptions }}" as="c" hint-placeholder-count="3">
+                  <div onClick="{{ c.onClick }}" style="padding:10px 13px;font-family:'Silkscreen',monospace;font-size:10px;cursor:pointer;user-select:none;background:{{ c.bg }};color:{{ c.fg }}" style-hover="background:#e63946;color:#fff">{{ c.text }}</div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">CHIPS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.onClick }}" style="padding:7px 12px;font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;user-select:none;background:{{ c.bg }};border:2px solid {{ c.bd }};color:{{ c.fg }}">{{ c.text }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Silkscreen',monospace;font-size:9px;letter-spacing:2px;color:#6d7789;border-bottom:1px dashed #232b3b;padding-bottom:7px">BUTTONS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <div style="padding:12px 20px;background:#e63946;border:2px solid #e63946;color:#fff;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;user-select:none;box-shadow:0 4px 0 #7d1f27" style-hover="background:#ff4d5b;border-color:#ff4d5b" style-active="transform:translateY(3px);box-shadow:0 1px 0 #7d1f27">PRIMARY</div>
+            <div style="padding:12px 20px;background:#2ee6b0;border:2px solid #2ee6b0;color:#0c1118;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;user-select:none;box-shadow:0 4px 0 #157a5e" style-hover="background:#5cf3c6" style-active="transform:translateY(3px);box-shadow:0 1px 0 #157a5e">CONFIRM</div>
+            <div style="padding:12px 20px;border:2px solid #47506a;color:#9aa3b2;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;user-select:none" style-hover="border-color:#e8e6df;color:#e8e6df">OUTLINE</div>
+            <div style="padding:12px 20px;color:#6d7789;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;user-select:none" style-hover="color:#e8e6df">GHOST</div>
+            <div style="padding:12px 20px;background:#1b2130;border:2px solid #232b3b;color:#4d5670;font-family:'Silkscreen',monospace;font-size:11px;letter-spacing:1px;user-select:none">DISABLED</div>
+            <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#1b2130;border:2px solid #47506a;color:#e8e6df;font-family:'Silkscreen',monospace;font-size:13px;cursor:pointer;user-select:none" style-hover="border-color:#f5b32a;color:#f5b32a">?</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showHints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Setup menus&quot;}}">
+class Component extends DCLogic {
+  state = {
+    v: { lanes: 4, sound: .55, music: .3, shake: .7, night: true, tilt: false,
+         skip: false, multi: true, haptics: true, ghost: false, hud: true,
+         control: 'ARROWS', diff: 'RECKLESS', quality: 'CRISP', cam: 'CHASE' },
+    tab: 'RACE', dd: false,
+    chips: { RAIN: true, FOG: false, TRAFFIC: true, POLICE: false, NIGHT: false }
+  };
+
+  set(k, val) { this.setState(s => ({ v: { ...s.v, [k]: val } })); }
+  tog(k) { this.set(k, !this.state.v[k]); }
+
+  sw(k, label) {
+    const on = !!this.state.v[k];
+    return { label, on,
+      text: on ? 'ON' : 'OFF',
+      fg: on ? '#2ee6b0' : '#4d5670',
+      track: on ? '#2ee6b0' : '#2b3446',
+      knob: on ? '#0c1118' : '#6d7789',
+      knobX: on ? '28px' : '3px',
+      checkOpacity: on ? 1 : 0,
+      onClick: () => this.tog(k) };
+  }
+
+  sl(k, label, fmt, color) {
+    const val = this.state.v[k];
+    const grab = e => {
+      const el = e.currentTarget;
+      const apply = ev => {
+        const r = el.getBoundingClientRect();
+        let t = (ev.clientX - r.left) / r.width;
+        t = Math.min(1, Math.max(0, t));
+        this.set(k, Math.round(t * 100) / 100);
+      };
+      apply(e);
+      const up = () => { window.removeEventListener('pointermove', apply); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', apply);
+      window.addEventListener('pointerup', up);
+    };
+    return { label, pct: Math.round(val * 100) + '%', text: fmt(val),
+      fill: color || '#e63946', onDown: grab };
+  }
+
+  seg(k, opts) {
+    return { options: opts.map(o => {
+      const active = this.state.v[k] === o;
+      return { text: o, bg: active ? '#e63946' : 'transparent',
+        fg: active ? '#fff' : '#8f99ab', onClick: () => this.set(k, o) };
+    }) };
+  }
+
+  renderVals() {
+    const v = this.state.v;
+    const pct = x => Math.round(x * 100) + '%';
+
+    let mult = 1;
+    if (v.lanes === 3) mult += .5; else if (v.lanes === 4) mult += .1; else mult -= .1 * (v.lanes - 4);
+    if (v.night) mult += .2;
+    if (v.diff === 'SUICIDAL') mult += .8; else if (v.diff === 'RECKLESS') mult += .3;
+    mult = Math.max(1, Math.round(mult * 10) / 10);
+
+    const laneCells = [3,4,5,6,7,8,9,10].map(n => {
+      const on = n <= v.lanes;
+      const cur = n === v.lanes;
+      return { n, bg: cur ? '#e63946' : (on ? '#243046' : '#0c1118'),
+        fg: cur ? '#fff' : (on ? '#9aa3b2' : '#4d5670'),
+        bd: cur ? '#e63946' : '#1b2130',
+        onClick: () => this.set('lanes', n) };
+    });
+
+    const tabs = ['RACE','CONTROLS','AUDIO','VISUAL'].map(t => {
+      const a = this.state.tab === t;
+      return { text: t, bg: a ? '#171c27' : 'transparent', fg: a ? '#fff' : '#6d7789',
+        mark: a ? 'inset 4px 0 0 #e63946' : 'none',
+        onClick: () => this.setState({ tab: t }) };
+    });
+
+    const radioControl = [
+      { key: 'ARROWS', text: 'ARROWS / WASD', sub: 'Keyboard, one lane per press' },
+      { key: 'BUTTONS', text: 'STEERING BUTTONS', sub: 'On-screen zones, hold and drag' },
+      { key: 'TOUCH', text: 'MOVE TO STEER', sub: 'Car follows the pointer' }
+    ].map(o => {
+      const a = v.control === o.key;
+      return { text: o.text, sub: o.sub, bg: a ? '#243046' : '#1b2130',
+        bd: a ? '#e63946' : '#232b3b', dot: a ? '#e63946' : 'transparent',
+        fg: a ? '#fff' : '#9aa3b2', onClick: () => this.set('control', o.key) };
+    });
+
+    const camOptions = ['CHASE','FIXED','WIDE'].map(c => {
+      const a = v.cam === c;
+      return { text: c, bg: a ? '#243046' : 'transparent', fg: a ? '#fff' : '#9aa3b2',
+        onClick: () => { this.set('cam', c); this.setState({ dd: false }); } };
+    });
+
+    const chips = Object.keys(this.state.chips).map(k => {
+      const a = this.state.chips[k];
+      return { text: k, bg: a ? '#f5b32a' : 'transparent', bd: a ? '#f5b32a' : '#47506a',
+        fg: a ? '#12161f' : '#8f99ab',
+        onClick: () => this.setState(s => ({ chips: { ...s.chips, [k]: !s.chips[k] } })) };
+    });
+
+    const cardToggles = [
+      { k: 'night', label: 'NIGHT MODE', sub: 'Headlights only, black sky.', chip: '+0.2x' },
+      { k: 'tilt', label: 'TILT STEERING', sub: 'Phone gyro steers the car.', chip: 'MOBILE' },
+      { k: 'skip', label: 'SKIP CRASH', sub: 'Cut straight to the summary.', chip: 'FAST' },
+      { k: 'hud', label: 'SPEED HUD', sub: 'Live speed and lane readout.', chip: 'ON SCREEN' }
+    ].map(c => {
+      const s = this.sw(c.k, c.label);
+      return { ...s, label: c.label, sub: c.sub, chip: c.chip,
+        chipFg: s.on ? '#f5b32a' : '#4d5670',
+        bg: s.on ? '#1b2130' : '#171c27',
+        bd: s.on ? '#2ee6b0' : '#232b3b',
+        fg: s.on ? '#fff' : '#9aa3b2',
+        knobX: s.on ? '24px' : '3px' };
+    });
+
+    return {
+      v, ticks: [1,2,3,4,5,6,7,8,9],
+      hints: this.props.showHints ?? true,
+      multText: mult.toFixed(1) + 'x',
+      diffBonus: v.diff === 'SUICIDAL' ? '+0.8x' : (v.diff === 'RECKLESS' ? '+0.3x' : 'no bonus'),
+      lanesUp: () => this.set('lanes', Math.min(10, v.lanes + 1)),
+      lanesDown: () => this.set('lanes', Math.max(3, v.lanes - 1)),
+      laneCells, tabs, radioControl, camOptions, chips, cardToggles,
+      isRace: this.state.tab === 'RACE',
+      isControls: this.state.tab === 'CONTROLS',
+      isAudio: this.state.tab === 'AUDIO',
+      isVisual: this.state.tab === 'VISUAL',
+      ddOpen: this.state.dd,
+      ddCaret: this.state.dd ? '^' : 'v',
+      toggleDd: () => this.setState(s => ({ dd: !s.dd })),
+      tgNight: this.sw('night'), tgSkip: this.sw('skip'), tgTilt: this.sw('tilt'),
+      tgMulti: this.sw('multi'), tgHaptics: this.sw('haptics'),
+      segControl: this.seg('control', ['ARROWS','BUTTONS']),
+      segDiff: this.seg('diff', ['CALM','RECKLESS','SUICIDAL']),
+      segQuality: this.seg('quality', ['CRISP','SOFT','CRT']),
+      sdSound: this.sl('sound', 'SOUND', pct, '#e63946'),
+      sdShake: this.sl('shake', 'SCREEN SHAKE', pct, '#f5b32a'),
+      audioSliders: [
+        this.sl('sound', 'MASTER', pct, '#e63946'),
+        this.sl('music', 'MUSIC', pct, '#f5b32a'),
+        this.sl('shake', 'SIRENS', pct, '#2ee6b0')
+      ],
+      kitSwitches: [ this.sw('night', 'Switch — on'), this.sw('ghost', 'Switch — off'), this.sw('multi', 'Switch — bound') ],
+      kitSliders: [ this.sl('music', 'Slider', pct, '#e63946'), this.sl('shake', 'Slider — amber', pct, '#f5b32a') ]
+    };
+  }
+}
+</script>
+</body>
+</html>

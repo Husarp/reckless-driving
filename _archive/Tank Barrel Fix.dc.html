@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #090c12; }
+a { color: #f5b32a; }
+a:hover { color: #ffd76a; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#090c12;padding:40px 44px 64px;font-family:'IBM Plex Mono',monospace;color:#c7d0de">
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:26px">
+    <div style="font-family:'Press Start 2P',monospace;font-size:16px;color:#f5b32a;letter-spacing:1px">TANK &mdash; BARREL / TURRET JOINT</div>
+    <div style="font-size:13px;color:#7d8798;max-width:860px;line-height:1.6;text-wrap:pretty">Built on the Reckless Vehicles <b style="color:#c7d0de">pTank</b> skin &mdash; same 24&times;32 cell, same olive, same tracks, stowage bins and louvred engine deck. Only the front of the hull, the gun and the turret row move. Zoom is 9&times; nearest-neighbour, true 1:1 underneath.</div>
+  </div>
+
+  <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px 22px;display:flex;flex-direction:column;gap:14px;width:300px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#ff6b6b">NOW &mdash; THE PROBLEM</div>
+      <canvas ref="{{ refCur }}" width="216" height="288" style="image-rendering:pixelated;background:#12161d;border:1px solid #1b2230;align-self:center"></canvas>
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center">
+        <canvas ref="{{ refCur1 }}" width="24" height="32" style="image-rendering:pixelated"></canvas>
+        <span style="font-size:11px;color:#7d8798">1:1</span>
+      </div>
+      <div style="font-size:12px;color:#7d8798;line-height:1.6;text-wrap:pretty">The shaft is <b style="color:#c7d0de">fillRect(11,2,2,9)</b> &mdash; it ends at y=11, exactly where the turret's black outline starts. Abutting, never overlapping, so that outline reads as a cut across the gun.<br><br>Worse, the hull front is at y=2 as well, so <b style="color:#c7d0de">no part of the barrel clears the hull</b>. It's a dark line lying on the deck, and the <b style="color:#c7d0de">4&times;2</b> collar at y=8 becomes the thing your eye calls the barrel root.</div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px 22px;display:flex;flex-direction:column;gap:14px;width:300px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#4ade80">A &middot; LONG GUN</div>
+      <canvas ref="{{ refA }}" width="216" height="288" style="image-rendering:pixelated;background:#12161d;border:1px solid #1b2230;align-self:center"></canvas>
+      <div style="display:flex;gap:14px;align-items:center;justify-content:center">
+        <div style="display:flex;gap:7px;align-items:center"><canvas ref="{{ refA1 }}" width="24" height="32" style="image-rendering:pixelated"></canvas><span style="font-size:11px;color:#7d8798">OLIVE</span></div>
+        <div style="display:flex;gap:7px;align-items:center"><canvas ref="{{ refAg }}" width="24" height="32" style="image-rendering:pixelated"></canvas><span style="font-size:11px;color:#7d8798">GREY</span></div>
+      </div>
+      <div style="font-size:12px;color:#7d8798;line-height:1.6;text-wrap:pretty">Hull front back to y=7, turret down to y=13, gun tip at y=1 &mdash; <b style="color:#c7d0de">9px of barrel in free air</b>, 6px of it clear of the hull.<br><br>Shaft is drawn first and runs to y=18, under the turret. The old mid-barrel collar becomes a 6&times;2 mantlet straddling the turret face, and the shaft picks up a 1px black outline plus a 4px muzzle brake so it stays readable against traffic.<br><br><b style="color:#ff9f1a">Catch:</b> the mantlet is fixed grey metal, so on a grey paint job it sinks into the turret and the joint disappears.</div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px 22px;display:flex;flex-direction:column;gap:14px;width:300px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#4ade80">A2 &middot; PAINTED MANTLET</div>
+      <canvas ref="{{ refA2 }}" width="216" height="288" style="image-rendering:pixelated;background:#12161d;border:1px solid #1b2230;align-self:center"></canvas>
+      <div style="display:flex;gap:14px;align-items:center;justify-content:center">
+        <div style="display:flex;gap:7px;align-items:center"><canvas ref="{{ refA21 }}" width="24" height="32" style="image-rendering:pixelated"></canvas><span style="font-size:11px;color:#7d8798">OLIVE</span></div>
+        <div style="display:flex;gap:7px;align-items:center"><canvas ref="{{ refA2g }}" width="24" height="32" style="image-rendering:pixelated"></canvas><span style="font-size:11px;color:#7d8798">GREY</span></div>
+      </div>
+      <div style="font-size:12px;color:#7d8798;line-height:1.6;text-wrap:pretty">Identical to A in every pixel except the mantlet, which is now cast from the paint colour instead of grey metal: base <b style="color:#c7d0de">shade(c,.02)</b>, lit top row <b style="color:#c7d0de">shade(c,.34)</b>, and a 1px <b style="color:#c7d0de">shade(c,-.3)</b> edge on the right to match the turret's own shading.<br><br>It reads as an armoured casting bolted to the turret rather than a loose steel band, and it holds up on any paint &mdash; the joint is now defined by shading, not by a colour that only contrasts with olive.</div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px 22px;display:flex;flex-direction:column;gap:14px;width:300px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#4ade80">B &middot; LONGEST GUN</div>
+      <canvas ref="{{ refB }}" width="216" height="288" style="image-rendering:pixelated;background:#12161d;border:1px solid #1b2230;align-self:center"></canvas>
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center">
+        <canvas ref="{{ refB1 }}" width="24" height="32" style="image-rendering:pixelated"></canvas>
+        <span style="font-size:11px;color:#7d8798">1:1</span>
+      </div>
+      <div style="font-size:12px;color:#7d8798;line-height:1.6;text-wrap:pretty">Same construction, pushed as far as the cell allows: hull front at y=10, turret at y=15, tip at y=0 &mdash; <b style="color:#c7d0de">12px of barrel</b>, 10px clear of the hull.<br><br>Unmistakable as a gun at 1:1 and the joint can't be misread. Cost: the hull is down to 22px, so the tank loses some of its heavy, blocky mass next to the Road Train. Cell and hitbox unchanged in both.</div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:30px;background:#101520;border:1px solid #212936;padding:20px 24px;font-size:12px;color:#7d8798;line-height:1.65;max-width:940px;text-wrap:pretty">
+    <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#f5b32a;margin-bottom:12px">DRAW-ORDER RULE</div>
+    Barrel first, turret over it, mantlet last. Today the barrel is drawn after the turret, which is why it can never overlap &mdash; it has to stop short to avoid painting over the roof plate. Flipping the order is most of the fix; the mantlet is what sells it; the length is what makes it read at speed.
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      refCur: el => this.cur = el, refCur1: el => this.cur1 = el,
+      refA: el => this.a = el, refA1: el => this.a1 = el, refAg: el => this.ag = el,
+      refA2: el => this.a2 = el, refA21: el => this.a21 = el, refA2g: el => this.a2g = el,
+      refB: el => this.b = el, refB1: el => this.b1 = el,
+    };
+  }
+
+  componentDidMount() { this.paint(); }
+  componentDidUpdate() { this.paint(); }
+
+  shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = v => Math.max(0, Math.min(255, Math.round(v + (amt > 0 ? (255 - v) * amt : v * amt))));
+    const r = f(n >> 16 & 255), g = f(n >> 8 & 255), b = f(n & 255);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // 1px outline that hugs the real silhouette instead of filling a black box
+  sil(g, spans) {
+    const on = new Set();
+    spans.forEach(s => { for (let i = 0; i < s[2]; i++) on.add((s[1] + i) + ',' + s[0]); });
+    g.fillStyle = '#000';
+    const d = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    on.forEach(k => {
+      const p = k.split(','), x = +p[0], y = +p[1];
+      d.forEach(o => { if (!on.has((x + o[0]) + ',' + (y + o[1]))) g.fillRect(x + o[0], y + o[1], 1, 1); });
+    });
+  }
+
+  // Reckless Vehicles pTank, verbatim
+  drawCurrent(g, c) {
+    const sh = a => this.shade(c, a);
+    const spans = [[1, 10, 4]];
+    for (let y = 2; y <= 9; y++) spans.push([y, 11, 2]);
+    for (let y = 2; y <= 29; y++) { spans.push([y, 3, 3], [y, 18, 3]); }
+    for (let y = 3; y <= 29; y++) spans.push([y, 6, 12]);
+    this.sil(g, spans);
+    g.fillStyle = '#22262c'; g.fillRect(3, 2, 3, 28); g.fillRect(18, 2, 3, 28);
+    g.fillStyle = '#3a3e46';
+    for (let ry = 3; ry < 30; ry += 2) { g.fillRect(3, ry, 3, 1); g.fillRect(18, ry, 3, 1); }
+    g.fillStyle = '#14171c'; g.fillRect(5, 2, 1, 28); g.fillRect(18, 2, 1, 28);
+    g.fillStyle = '#5b616b'; g.fillRect(3, 4, 2, 1); g.fillRect(19, 4, 2, 1); g.fillRect(3, 27, 2, 1); g.fillRect(19, 27, 2, 1);
+    g.fillStyle = c; g.fillRect(6, 3, 12, 27);
+    g.fillStyle = sh(.18); g.fillRect(6, 3, 3, 27);
+    g.fillStyle = sh(-.28); g.fillRect(16, 3, 2, 27);
+    g.fillStyle = sh(-.42); g.fillRect(6, 7, 12, 1);
+    g.fillStyle = sh(.3); g.fillRect(6, 3, 12, 1);
+    g.fillStyle = sh(-.35); g.fillRect(7, 24, 10, 6);
+    g.fillStyle = '#1a1f28';
+    for (let ry = 25; ry <= 29; ry += 2) g.fillRect(8, ry, 8, 1);
+    g.fillStyle = '#3a3e46'; g.fillRect(6, 20, 2, 3); g.fillRect(16, 20, 2, 3);
+    g.fillStyle = '#5b616b'; g.fillRect(6, 20, 2, 1); g.fillRect(16, 20, 2, 1);
+    g.fillStyle = '#000'; g.fillRect(9, 10, 6, 11); g.fillRect(8, 11, 8, 9);
+    g.fillStyle = sh(.06); g.fillRect(9, 11, 6, 9); g.fillRect(10, 12, 4, 7);
+    g.fillStyle = sh(.3); g.fillRect(9, 12, 2, 7);
+    g.fillStyle = sh(-.3); g.fillRect(14, 12, 1, 7);
+    g.fillStyle = '#1a1f28'; g.fillRect(11, 15, 3, 3);
+    g.fillStyle = '#2c3e50'; g.fillRect(11, 15, 2, 1);
+    g.fillStyle = '#2b2f36'; g.fillRect(11, 2, 2, 9);
+    g.fillStyle = '#5b616b'; g.fillRect(11, 2, 1, 9);
+    g.fillStyle = '#3a3e46'; g.fillRect(10, 1, 4, 1); g.fillRect(10, 8, 4, 2);
+    g.fillStyle = '#8a8f99'; g.fillRect(10, 8, 4, 1);
+    g.fillStyle = '#ffeaa7'; g.fillRect(6, 4, 2, 1); g.fillRect(16, 4, 2, 1);
+    g.fillStyle = '#ff4757'; g.fillRect(7, 29, 2, 1); g.fillRect(15, 29, 2, 1);
+  }
+
+  // dy = how far the hull front is pulled back, tTop = turret top row, tipY = muzzle row
+  drawFix(g, c, dy, tTop, tipY, tint, frame) {
+    const sh = a => this.shade(c, a);
+    const spans = [[tipY, 10, 4], [tipY + 1, 10, 4]];
+    for (let y = tipY + 2; y < tTop - 2; y++) spans.push([y, 11, 2]);
+    for (let y = tTop - 2; y < tTop; y++) spans.push([y, 9, 6]);
+    for (let y = 2 + dy; y <= 29; y++) { spans.push([y, 3, 3], [y, 18, 3]); }
+    for (let y = 3 + dy; y <= 29; y++) spans.push([y, 6, 12]);
+    this.sil(g, spans);
+    g.fillStyle = '#22262c'; g.fillRect(3, 2 + dy, 3, 28 - dy); g.fillRect(18, 2 + dy, 3, 28 - dy);
+    g.fillStyle = '#3a3e46';
+    for (let ry = 3 + dy; ry < 30; ry += 2) { g.fillRect(3, ry, 3, 1); g.fillRect(18, ry, 3, 1); }
+    g.fillStyle = '#14171c'; g.fillRect(5, 2 + dy, 1, 28 - dy); g.fillRect(18, 2 + dy, 1, 28 - dy);
+    g.fillStyle = '#5b616b';
+    g.fillRect(3, 4 + dy, 2, 1); g.fillRect(19, 4 + dy, 2, 1); g.fillRect(3, 27, 2, 1); g.fillRect(19, 27, 2, 1);
+    // hull
+    g.fillStyle = c; g.fillRect(6, 3 + dy, 12, 27 - dy);
+    g.fillStyle = sh(.18); g.fillRect(6, 3 + dy, 3, 27 - dy);
+    g.fillStyle = sh(-.28); g.fillRect(16, 3 + dy, 2, 27 - dy);
+    g.fillStyle = sh(-.42); g.fillRect(6, 7 + dy, 12, 1);
+    g.fillStyle = sh(.3); g.fillRect(6, 3 + dy, 12, 1);
+    // engine deck + stowage, unchanged
+    g.fillStyle = sh(-.35); g.fillRect(7, 24, 10, 6);
+    g.fillStyle = '#1a1f28';
+    for (let ry = 25; ry <= 29; ry += 2) g.fillRect(8, ry, 8, 1);
+    g.fillStyle = '#3a3e46'; g.fillRect(6, 20, 2, 3); g.fillRect(16, 20, 2, 3);
+    g.fillStyle = '#5b616b'; g.fillRect(6, 20, 2, 1); g.fillRect(16, 20, 2, 1);
+    // barrel FIRST, running under the turret
+    const barBot = tTop + 5;
+    g.fillStyle = '#3a3e46'; g.fillRect(10, tipY, 4, 2);
+    g.fillStyle = '#8a8f99'; g.fillRect(10, tipY, 4, 1);
+    g.fillStyle = '#2b2f36'; g.fillRect(11, tipY + 2, 2, barBot - tipY - 2);
+    g.fillStyle = '#5b616b'; g.fillRect(11, tipY + 2, 1, barBot - tipY - 2);
+    // turret OVER the barrel
+    g.fillStyle = '#000'; g.fillRect(9, tTop - 1, 6, 11); g.fillRect(8, tTop, 8, 9);
+    g.fillStyle = sh(.06); g.fillRect(9, tTop, 6, 9); g.fillRect(10, tTop + 1, 4, 7);
+    g.fillStyle = sh(.3); g.fillRect(9, tTop + 1, 2, 7);
+    g.fillStyle = sh(-.3); g.fillRect(14, tTop + 1, 1, 7);
+    g.fillStyle = '#1a1f28'; g.fillRect(11, tTop + 4, 3, 3);
+    g.fillStyle = '#2c3e50'; g.fillRect(11, tTop + 4, 2, 1);
+    // mantlet LAST, bridging the seam
+    if (tint) {
+      // mantlet painted in the turret's own colour: lit top row, shaded right edge
+      g.fillStyle = sh(.02); g.fillRect(9, tTop - 2, 6, 2);
+      g.fillStyle = sh(.34); g.fillRect(9, tTop - 2, 6, 1);
+      g.fillStyle = sh(.3); g.fillRect(9, tTop - 1, 2, 1);
+      g.fillStyle = sh(-.3); g.fillRect(14, tTop - 1, 1, 1);
+    } else {
+      g.fillStyle = '#3a3e46'; g.fillRect(9, tTop - 2, 6, 2);
+      g.fillStyle = '#8a8f99'; g.fillRect(9, tTop - 2, 6, 1);
+    }
+    g.fillStyle = '#ffeaa7'; g.fillRect(6, 4 + dy, 2, 1); g.fillRect(16, 4 + dy, 2, 1);
+    g.fillStyle = '#ff4757'; g.fillRect(7, 29, 2, 1); g.fillRect(15, 29, 2, 1);
+  }
+
+  drawA(g, c) { this.drawFix(g, c, 4, 13, 1, false); }
+  drawA2(g, c) { this.drawFix(g, c, 4, 13, 1, true); }
+  drawB(g, c) { this.drawFix(g, c, 7, 15, 0, false); }
+
+  sheet(fn, c) {
+    const off = document.createElement('canvas');
+    off.width = 24; off.height = 32;
+    fn.call(this, off.getContext('2d'), c);
+    return off;
+  }
+
+  put(cv, off, s) {
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(off, 0, 0, 24 * s, 32 * s);
+  }
+
+  blit(big, small, fn, grey) {
+    const olive = this.sheet(fn, '#4f6b3a');
+    this.put(big, olive, 9);
+    this.put(small, olive, 1);
+    if (grey) this.put(grey, this.sheet(fn, '#8a8f99'), 1);
+  }
+
+  paint() {
+    this.blit(this.cur, this.cur1, this.drawCurrent);
+    this.blit(this.a, this.a1, this.drawA, this.ag);
+    this.blit(this.a2, this.a21, this.drawA2, this.a2g);
+    this.blit(this.b, this.b1, this.drawB);
+  }
+}
+</script>
+</body>
+</html>

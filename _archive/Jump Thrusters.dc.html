@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #090c12; }
+a { color: #f5b32a; }
+a:hover { color: #ffd76a; }
+</style>
+</helmet>
+<div style="min-height:100vh;background:#090c12;padding:40px;font-family:'IBM Plex Mono',monospace;color:#c7d0de">
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:32px">
+    <div style="font-family:'Press Start 2P',monospace;font-size:15px;color:#f5b32a;letter-spacing:1px">JUMP FX — THRUSTER OPTIONS</div>
+    <div style="font-size:13px;color:#7d8798;max-width:680px;text-wrap:pretty">Three unlockable propulsion looks on the real 14×24 sprite. Each runs the same 4-frame loop, but every frame has alternate shapes picked at random per cycle, so the loop never plays back identically. Mirroring flips occasionally, not every cycle.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px;display:flex;flex-direction:column;gap:14px;width:360px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#ff9f1a">1 · UNDERGLOW</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.5">Twin plumes under the rear wheels. No added width — cannot clip at lane edges.</div>
+      </div>
+      <div style="background:#0b0e14;border:1px solid #1a1f2a;display:flex;justify-content:center;padding:8px">
+        <canvas ref="{{ ref_a }}" width="208" height="340" style="image-rendering:pixelated"></canvas>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_a0 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 1</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_a1 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 2</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_a2 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 3</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px;display:flex;flex-direction:column;gap:14px;width:360px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#ff9f1a">2 · ROCKET PODS</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.5">Side canisters on the old wing footprint, each with a 4px-wide exhaust plume.</div>
+      </div>
+      <div style="background:#0b0e14;border:1px solid #1a1f2a;display:flex;justify-content:center;padding:8px">
+        <canvas ref="{{ ref_b }}" width="224" height="340" style="image-rendering:pixelated"></canvas>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_b0 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 1</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_b1 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 2</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_b2 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 3</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#101520;border:1px solid #212936;padding:20px;display:flex;flex-direction:column;gap:14px;width:360px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#ff9f1a">3 · CENTER THRUSTER</div>
+        <div style="font-size:12px;color:#7d8798;line-height:1.5">One long centered plume under the car. Fewest pixels, zero overlap risk.</div>
+      </div>
+      <div style="background:#0b0e14;border:1px solid #1a1f2a;display:flex;justify-content:center;padding:8px">
+        <canvas ref="{{ ref_c }}" width="208" height="384" style="image-rendering:pixelated"></canvas>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_c0 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 1</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_c1 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 2</div>
+        </div>
+        <div style="flex:1;background:#0b0e14;border:1px solid #1a1f2a;padding:6px;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <canvas ref="{{ ref_c2 }}" width="84" height="140" style="image-rendering:pixelated"></canvas>
+          <div style="font-size:9px;color:#5c6678;letter-spacing:.5px">RUN 3</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:28px;font-size:12px;color:#5c6678">The three small canvases are independent runs of the identical 4-frame loop — watch them drift apart as each rolls its own frame alternates.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;carColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#4f6ef7&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#4f6ef7&quot;,&quot;#ff4757&quot;,&quot;#2ee6b0&quot;,&quot;#f5b32a&quot;]},&quot;randomMirror&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Flames&quot;},&quot;mirrorEveryCycles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:5,&quot;min&quot;:1,&quot;max&quot;:12,&quot;step&quot;:1,&quot;unit&quot;:&quot;cycles&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flames&quot;},&quot;flickerMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:80,&quot;min&quot;:40,&quot;max&quot;:220,&quot;step&quot;:10,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flames&quot;}}">
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.el = {};
+    this.frame = 0;
+    this.mirror = {};
+    this.pick = {};
+    this.cycle = 0;
+    this.keys = [];
+    ['a', 'b', 'c'].forEach(g => {
+      this.keys.push(g);
+      for (let i = 0; i < 3; i++) this.keys.push(g + i);
+    });
+    this.refs2 = {};
+    this.keys.forEach(k => {
+      this.refs2['ref_' + k] = n => { this.el[k] = n; if (n) this.paintOne(k); };
+    });
+    this.roll(true);
+  }
+
+  // Per-frame alternates: each frame slot of the 4-frame loop has 3 shape variants.
+  // A fresh set is rolled every cycle, so the same loop never plays back identically.
+  alts() {
+    return [
+      { d: 0, taper: 0.78, ragged: 0.45 },
+      { d: 2, taper: 0.62, ragged: 0.30 },
+      { d: -1, taper: 0.88, ragged: 0.60 }
+    ];
+  }
+
+  roll(mirrorToo) {
+    this.keys.forEach(k => {
+      this.pick[k] = [0, 1, 2, 3].map(() => Math.floor(Math.random() * 3));
+      if (mirrorToo) this.mirror[k] = [Math.random() < 0.5, Math.random() < 0.5];
+      else if (!this.mirror[k]) this.mirror[k] = [Math.random() < 0.5, Math.random() < 0.5];
+    });
+  }
+
+  start() {
+    clearInterval(this.timer);
+    const ms = this.props.flickerMs ?? 80;
+    this.timer = setInterval(() => {
+      this.frame = (this.frame + 1) % 4;
+      if (this.frame === 0) {
+        this.cycle++;
+        // Mirror only flips every Nth cycle — flipping every loop read as jitter.
+        const every = this.props.mirrorEveryCycles ?? 5;
+        this.roll((this.props.randomMirror ?? true) && this.cycle % every === 0);
+      }
+      this.paintAll();
+    }, ms);
+    this.paintAll();
+  }
+
+  componentDidMount() { this.start(); }
+  componentDidUpdate() { this.start(); }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  renderVals() { return Object.assign({}, this.refs2); }
+
+  paintAll() { this.keys.forEach(k => this.paintOne(k)); }
+
+  paintOne(k) {
+    const cv = this.el[k];
+    if (!cv) return;
+    const kind = k[0];
+    const small = k.length > 1;
+    const S = small ? 3 : 8;
+    const c = cv.getContext('2d');
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, cv.width, cv.height);
+    c.save();
+    c.scale(S, S);
+    const ox = Math.round((cv.width / S - 14) / 2);
+    const oy = 3;
+    const alt = this.alts()[(this.pick[k] || [0, 0, 0, 0])[this.frame]];
+    this.drawFx(c, ox, oy, kind, this.frame, alt, this.mirror[k] || [false, false]);
+    this.drawCar(c, ox, oy);
+    c.restore();
+  }
+
+  drawCar(g, x, y) {
+    const color = this.props.carColor ?? '#4f6ef7';
+    g.fillStyle = '#000000';
+    g.fillRect(x + 1, y, 12, 24);
+    g.fillRect(x, y + 1, 14, 22);
+    g.fillStyle = '#111111';
+    g.fillRect(x, y + 4, 1, 5);
+    g.fillRect(x + 13, y + 4, 1, 5);
+    g.fillRect(x, y + 15, 1, 5);
+    g.fillRect(x + 13, y + 15, 1, 5);
+    g.fillStyle = color;
+    g.fillRect(x + 2, y + 2, 10, 20);
+    g.fillRect(x + 1, y + 3, 12, 18);
+    g.fillStyle = 'rgba(255,255,255,0.2)';
+    g.fillRect(x + 2, y + 3, 4, 18);
+    g.fillStyle = 'rgba(0,0,0,0.15)';
+    g.fillRect(x + 7, y + 3, 5, 18);
+    g.fillStyle = '#2c3e50';
+    g.fillRect(x + 3, y + 7, 8, 3);
+    g.fillStyle = '#ffffff';
+    g.fillRect(x + 4, y + 8, 1, 1);
+    g.fillStyle = '#2c3e50';
+    g.fillRect(x + 3, y + 17, 8, 2);
+    g.fillStyle = '#1e272e';
+    g.fillRect(x + 2, y + 10, 1, 7);
+    g.fillRect(x + 11, y + 10, 1, 7);
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    g.fillRect(x + 4, y + 3, 6, 1);
+    g.fillStyle = '#ffeaa7';
+    g.fillRect(x + 2, y + 1, 2, 1);
+    g.fillRect(x + 10, y + 1, 2, 1);
+    g.fillStyle = '#ff4757';
+    g.fillRect(x + 2, y + 22, 2, 1);
+    g.fillRect(x + 10, y + 22, 2, 1);
+  }
+
+  ramp(t) {
+    if (t < 0.14) return '#fffdf0';
+    if (t < 0.30) return '#ffe066';
+    if (t < 0.50) return '#ffb02e';
+    if (t < 0.70) return '#ff7a18';
+    if (t < 0.87) return '#ef4423';
+    return '#b3231a';
+  }
+
+  // Tapered pixel plume. mir flips it horizontally so a pair never reads as a stencil copy.
+  plume(g, x, w, y, len, f, v, mir) {
+    if (mir) { g.save(); g.translate(2 * x + w, 0); g.scale(-1, 1); }
+    const wob = [0, 1, 0, -1][f % 4];
+    for (let i = 0; i < len; i++) {
+      const t = (i + 0.5) / len;
+      let rw = Math.max(1, Math.round(w * (1 - t * v.taper)));
+      if (i > len * v.ragged && (i + f) % 2 === 0) rw = Math.max(1, rw - 1);
+      let rx = x + Math.floor((w - rw) / 2);
+      if (i > len * 0.55) rx += wob;
+      g.fillStyle = this.ramp(t);
+      g.fillRect(rx, y + i, rw, 1);
+    }
+    const coreLen = Math.max(2, Math.round(len * 0.4));
+    g.fillStyle = '#fff8d0';
+    g.fillRect(x + 1, y, Math.max(1, w - 2), 1);
+    for (let i = 1; i < coreLen; i++) {
+      g.fillStyle = i < coreLen - 1 ? '#ffe066' : '#ffb02e';
+      g.fillRect(x + Math.floor(w / 2) - (w > 4 ? 1 : 0), y + i, w > 4 ? 2 : 1, 1);
+    }
+    if (f % 2 === 1) {
+      g.fillStyle = '#ef4423';
+      g.fillRect(x + Math.floor(w / 2) + wob, y + len + 1, 1, 1);
+    }
+    const haloLen = Math.max(2, Math.round(len * 0.45));
+    g.fillStyle = 'rgba(255,150,40,0.30)';
+    for (let i = 0; i < haloLen; i++) {
+      if ((i + f) % 2) continue;
+      const t = (i + 0.5) / len;
+      const rw = Math.max(1, Math.round(w * (1 - t * v.taper)));
+      const rx = x + Math.floor((w - rw) / 2);
+      g.fillRect(rx - 1, y + i, 1, 1);
+      g.fillRect(rx + rw, y + i, 1, 1);
+    }
+    if (mir) g.restore();
+  }
+
+  drawFx(g, x, y, kind, f, v, mir) {
+    const L = base => Math.max(3, base + v.d);
+    if (kind === 'a') {
+      const lens = [5, 7, 6, 8];
+      [1, 9].forEach((bx, i) => {
+        this.plume(g, x + bx, 4, y + 24, L(lens[(f + i) % 4]), (f + i) % 4, v, mir[i]);
+      });
+    } else if (kind === 'b') {
+      const lens = [6, 8, 7, 10];
+      [-6, 14].forEach((px, i) => {
+        g.fillStyle = '#000000';
+        g.fillRect(x + px, y + 6, 6, 11);
+        g.fillStyle = '#c8d2df';
+        g.fillRect(x + px + 1, y + 7, 4, 9);
+        g.fillStyle = '#8d98a8';
+        g.fillRect(x + px + 4, y + 7, 1, 9);
+        g.fillStyle = '#5d6878';
+        g.fillRect(x + px + 1, y + 13, 4, 3);
+        g.fillStyle = '#ff4757';
+        g.fillRect(x + px + 1, y + 8, 4, 1);
+        g.fillStyle = '#2c3540';
+        g.fillRect(x + px + 1, y + 16, 4, 1);
+        this.plume(g, x + px + 1, 4, y + 17, L(lens[(f + i) % 4]), (f + i) % 4, v, mir[i]);
+      });
+    } else {
+      const lens = [8, 11, 9, 13];
+      this.plume(g, x + 4, 6, y + 24, L(lens[f % 4]) + 1, f % 4, v, mir[0]);
+    }
+  }
+}
+</script>
+</body>
+</html>

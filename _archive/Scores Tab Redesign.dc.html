@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #0b0e15; }
+  a { color: #2ee6b0; }
+  a:hover { color: #7bf0d0; }
+</style>
+</helmet>
+
+<div style="font-family: 'DotGothic16', monospace; background: #0b0e15; color: #e8e6df; padding: 44px; display: flex; flex-direction: column; gap: 40px; box-sizing: border-box; min-width: 1420px;">
+
+  <section style="display: flex; flex-direction: column; gap: 26px;">
+
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: 'Silkscreen', monospace; font-size: 15px; color: #fff; letter-spacing: 2px; text-shadow: 2px 2px 0 #e63946;">SCORES TAB — REDESIGN</span>
+      <span style="font-size: 13px; color: #6d7789;">two directions for the high-score entry, plus the performance-score model. Hover any number.</span>
+    </div>
+
+    <div style="display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start;">
+
+      <div id="1a" style="width: 660px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; background: #2ee6b0; color: #0b0e15; padding: 4px 7px; letter-spacing: 1px;">1a</span>
+          <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #fff; letter-spacing: 1px;">LEDGER</span>
+          <span style="font-size: 12px; color: #6d7789;">dense rows, hover-labelled numbers</span>
+        </div>
+
+        <div style="background: #171c27; border: 2px solid #232b3b; padding: 20px; box-shadow: 5px 5px 0 #05070c;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px dashed #232b3b; padding-bottom: 10px; margin-bottom: 14px;">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 14px; color: #fff; text-shadow: 2px 2px 0 #e63946; letter-spacing: 1px;">HIGH SCORES</span>
+            <span style="font-family: 'VT323', monospace; font-size: 17px; color: #f5b32a;" data-tip="PERFORMANCE SCORE — the weighted sum of every run below" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">142,806 <span style="font-family: 'Silkscreen', monospace; font-size: 8px; color: #6d7789;">PERF</span></span>
+          </div>
+
+          <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px;">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; padding: 4px 8px; background: #f5b32a; color: #12161f;">ALL</span>
+            <span style="font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; padding: 4px 8px; background: #1b2130; color: #6d7789;">3 LANE</span>
+            <span style="font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; padding: 4px 8px; background: #1b2130; color: #6d7789;">4 LANE</span>
+            <span style="font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; padding: 4px 8px; background: #1b2130; color: #6d7789;">5 LANE</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 34px 1fr auto 96px; align-items: stretch; gap: 12px; background: #1b2130; border-left: 4px solid #2b3446; padding: 9px 0 9px 9px; transition: background .12s;" style-hover="background: #212939;">
+
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;" data-tip="PLACE — your rank among all saved runs" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 12px; color: {{ r.accent }};">{{ r.placeLabel }}</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                  <div style="display: flex; align-items: baseline; gap: 8px;">
+                    <span style="font-family: 'VT323', monospace; font-size: 26px; line-height: .9; color: #fff;" data-tip="SCORE — final points for the run (base × multiplier)" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">{{ r.score }}</span>
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #2ee6b0; letter-spacing: .5px;" data-tip="CAR — the vehicle this run was driven in" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">{{ r.car }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 7px; font-family: 'VT323', monospace; font-size: 16px; color: #9aa3b2;">
+                    <span data-tip="LANES — road width this run was played on" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">{{ r.lanes }}<span style="font-family: 'Silkscreen', monospace; font-size: 8px; color: #6d7789;">L</span></span>
+                    <span style="color: #3a4256;">/</span>
+                    <span style="color: #e8e6df;">{{ r.time }}</span>
+                    <span style="color: #3a4256;">/</span>
+                    <span data-tip="MULTIPLIER — starting value (from settings) up to this run's speed cap" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}"><span style="color: #f5b32a;">{{ r.multStart }}</span><span style="color: #6d7789;"> → </span><span style="color: #f5b32a;">{{ r.multCap }}</span></span>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 3px; padding-right: 4px;" data-tip="WEIGHT — each place is worth 5% less than the one above it" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">
+                  <span style="font-family: 'VT323', monospace; font-size: 18px; color: #f5b32a;">{{ r.weight }}</span>
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">WEIGHT</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; background: #12161f; border-left: 2px solid #232b3b;" data-tip="PERF — what this run adds to your Performance Score (score × weight)" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">
+                  <span style="font-family: 'VT323', monospace; font-size: 22px; color: #2ee6b0; line-height: 1;">{{ r.perf }}</span>
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">PERF</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div id="1b" style="width: 660px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; background: #f5b32a; color: #0b0e15; padding: 4px 7px; letter-spacing: 1px;">1b</span>
+          <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #fff; letter-spacing: 1px;">DOSSIER</span>
+          <span style="font-size: 12px; color: #6d7789;">taller cards, every field permanently labelled</span>
+        </div>
+
+        <div style="background: #171c27; border: 2px solid #232b3b; padding: 20px; box-shadow: 5px 5px 0 #05070c;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px dashed #232b3b; padding-bottom: 10px; margin-bottom: 14px;">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 14px; color: #fff; text-shadow: 2px 2px 0 #e63946; letter-spacing: 1px;">HIGH SCORES</span>
+            <span style="font-family: 'Silkscreen', monospace; font-size: 8px; color: #6d7789; letter-spacing: 1px;">TOP 100 SAVED</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+              <div style="background: #1b2130; border: 2px solid #232b3b; border-left: 4px solid {{ r.accent }}; padding: 10px 12px; display: flex; flex-direction: column; gap: 9px;" style-hover="border-color: #47506a;">
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: {{ r.accent }}; letter-spacing: 1px;">{{ r.placeLabel }}</span>
+                  <span style="font-family: 'VT323', monospace; font-size: 25px; color: #fff; line-height: 1;" data-tip="SCORE — final points for the run (base × multiplier)" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">{{ r.score }}</span>
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">PTS</span>
+                  <span style="flex: 1;"></span>
+                  <span style="display: flex; flex-direction: column; align-items: flex-end;" data-tip="PERF — score × weight; this is what the run contributes to your Performance Score" onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">
+                    <span style="font-family: 'VT323', monospace; font-size: 20px; color: #2ee6b0; line-height: 1;">{{ r.perf }} <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789;">PERF</span></span>
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #f5b32a; letter-spacing: .5px;">WEIGHTED {{ r.weight }}</span>
+                  </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #232b3b; border: 1px solid #232b3b;">
+                  <div style="background: #12161f; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">CAR</span>
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #2ee6b0;">{{ r.car }}</span>
+                  </div>
+                  <div style="background: #12161f; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">TIME</span>
+                    <span style="font-family: 'VT323', monospace; font-size: 16px; color: #e8e6df; line-height: 1;">{{ r.time }}</span>
+                  </div>
+                  <div style="background: #12161f; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">LANES</span>
+                    <span style="font-family: 'VT323', monospace; font-size: 16px; color: #e8e6df; line-height: 1;">{{ r.lanes }}</span>
+                  </div>
+                  <div style="background: #12161f; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px;" data-tip="MULTIPLIER — start (settings) → cap (start + 1.0 at top speed). Peak is what you actually reached." onMouseEnter="{{ showTip }}" onMouseLeave="{{ hideTip }}">
+                    <span style="font-family: 'Silkscreen', monospace; font-size: 7px; color: #6d7789; letter-spacing: 1px;">MULT · PEAK {{ r.multPeak }}</span>
+                    <span style="font-family: 'VT323', monospace; font-size: 16px; line-height: 1;"><span style="color: #f5b32a;">{{ r.multStart }}</span><span style="color: #6d7789;"> → </span><span style="color: #f5b32a;">{{ r.multCap }}</span></span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div id="1c" style="width: 660px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; background: #e63946; color: #fff; padding: 4px 7px; letter-spacing: 1px;">1c</span>
+          <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #fff; letter-spacing: 1px;">PERFORMANCE SCORE</span>
+          <span style="font-size: 12px; color: #6d7789;">how the weighting works</span>
+        </div>
+
+        <div style="background: #171c27; border: 2px solid #232b3b; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+          <p style="margin: 0; font-size: 13px; line-height: 1.7; color: #9aa3b2; text-wrap: pretty;">Every saved run is worth 5% less than the run one place above it. Your best run counts in full; second place counts 95% as much, third 90%, and so on down the top 100. Performance Score is the sum of those weighted values, so a few great runs beat a long pile of average ones.</p>
+
+          <div style="font-family: 'VT323', monospace; font-size: 18px; color: #2ee6b0; background: #12161f; border: 2px dashed #2ee6b0; padding: 10px 12px; text-align: center;">weight = 0.95 ^ (place − 1)</div>
+
+          <div style="display: grid; grid-template-columns: 54px 1fr 1fr 1fr; gap: 1px; background: #232b3b; border: 1px solid #232b3b;">
+            <sc-for list="{{ ppTable }}" as="c" hint-placeholder-count="24">
+              <div style="background: {{ c.bg }}; padding: 6px 8px; font-family: {{ c.font }}; font-size: {{ c.size }}; color: {{ c.color }}; letter-spacing: {{ c.ls }};">{{ c.text }}</div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; border-top: 2px dashed #232b3b; padding-top: 12px;">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #fff; letter-spacing: 1px;">TOTAL PERFORMANCE</span>
+            <span style="font-family: 'VT323', monospace; font-size: 26px; color: #f5b32a;">142,806</span>
+          </div>
+
+          <p style="margin: 0; font-size: 12px; line-height: 1.7; color: #6d7789; text-wrap: pretty;">Full spec for handoff: <a href="Scores Tab Spec.md">Scores Tab Spec.md</a> — entry fields to store, hover-label copy, and the exact formulas.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div style="position: fixed; left: {{ tipX }}px; top: {{ tipY }}px; display: {{ tipDisplay }}; transform: translate(-50%, -100%); background: #0b0e15; border: 2px solid #47506a; color: #e8e6df; font-family: 'DotGothic16', monospace; font-size: 12px; line-height: 1.5; padding: 7px 9px; max-width: 260px; box-shadow: 3px 3px 0 rgba(0,0,0,.6); pointer-events: none; z-index: 50;">{{ tip }}</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const DATA = [
+  { score: 48920, car: 'NITRO COUPE', lanes: 4, time: '3m 12s', start: 1.6, peak: 2.4 },
+  { score: 44310, car: 'STOCK',       lanes: 3, time: '2m 47s', start: 1.4, peak: 2.4 },
+  { score: 39880, car: 'NITRO COUPE', lanes: 5, time: '2m 31s', start: 1.8, peak: 2.6 },
+  { score: 33150, car: 'HAULER',      lanes: 4, time: '2m 04s', start: 1.5, peak: 2.1 },
+  { score: 28640, car: 'STOCK',       lanes: 3, time: '1m 24s', start: 1.2, peak: 2.0 }
+];
+const ACCENTS = ['#f5b32a', '#c3cad8', '#b07a4a'];
+const CAP_BONUS = 1.0;
+
+class Component extends DCLogic {
+  state = { tip: '', tipX: 0, tipY: 0 };
+
+  showTip = (e) => {
+    const el = e.currentTarget.closest('[data-tip]');
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    this.setState({ tip: el.dataset.tip, tipX: r.left + r.width / 2, tipY: r.top - 8 });
+  };
+  hideTip = () => this.setState({ tip: '' });
+
+  renderVals() {
+    const rows = DATA.map((d, i) => {
+      const w = Math.pow(0.95, i);
+      return {
+        placeLabel: '#' + (i + 1),
+        accent: ACCENTS[i] || '#2b3446',
+        score: d.score.toLocaleString(),
+        car: d.car,
+        lanes: d.lanes,
+        time: d.time,
+        multStart: d.start.toFixed(1) + 'x',
+        multCap: (d.start + CAP_BONUS).toFixed(1) + 'x',
+        multPeak: d.peak.toFixed(1) + 'x',
+        weight: Math.round(w * 100) + '%',
+        perf: Math.round(d.score * w).toLocaleString()
+      };
+    });
+
+    const head = ['PLACE', 'WEIGHT', 'SCORE', 'COUNTS AS'].map((t, i) => ({
+      text: t, bg: '#1b2130', font: "'Silkscreen', monospace", size: '7px', color: '#6d7789', ls: '1px'
+    }));
+    const body = [];
+    DATA.forEach((d, i) => {
+      const w = Math.pow(0.95, i);
+      const cell = (text, color, mono) => ({
+        text, bg: '#12161f',
+        font: mono ? "'VT323', monospace" : "'Silkscreen', monospace",
+        size: mono ? '17px' : '9px', color, ls: mono ? '0' : '.5px'
+      });
+      body.push(
+        cell('#' + (i + 1), ACCENTS[i] || '#9aa3b2', false),
+        cell(Math.round(w * 100) + '%', '#f5b32a', true),
+        cell(d.score.toLocaleString(), '#e8e6df', true),
+        cell(Math.round(d.score * w).toLocaleString(), '#2ee6b0', true)
+      );
+    });
+
+    return {
+      rows,
+      ppTable: head.concat(body),
+      tip: this.state.tip,
+      tipX: this.state.tipX,
+      tipY: this.state.tipY,
+      tipDisplay: this.state.tip ? 'block' : 'none',
+      showTip: this.showTip,
+      hideTip: this.hideTip
+    };
+  }
+}
+
+</script>
+</body>
+</html>
