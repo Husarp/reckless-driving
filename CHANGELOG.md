@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.236.1 — 2026-09-21 20:40: Batch 455 — The snail's trail is real; Batch 454's "impossible" was wrong
+
+Direct correction, and it was right. Batch 454 claimed a trail behind the car could not exist and built a halo in its place. **That conclusion came from measuring the player at REST** — y 217 of a 260px canvas, one pixel behind the tail — and generalising from that single number.
+
+The player can drive forward. `PLAYER_MIN_Y` is **40**, so the real vertical range is **177px**, and at the top of it there is **178px of open road** behind the snail. The trail was never impossible. It is also better than a static effect would have been, because it only appears when you push forward — rewarding the aggressive position the game already wants to encourage.
+
+Measured after the fix: driven to y=40 at 238 km/h, the trail holds **27 points spanning 180px**, with 11 distinct x values through a lane change — it curves where you moved rather than sliding across as one rigid ribbon. That comes from it being road-anchored: each point is laid at the tail and then scrolls with the asphalt, so it stays where it was put.
+
+**Glowing but semi-transparent**, as specified: three stacked layers per point — a wide dim outer bloom at 0.22 alpha, a mid band at 0.45, and a bright core that only survives the first third. No layer is opaque, so the lane markings read straight through it.
+
+The halo stays on the snail itself — in the film the shell lights up as well as trailing — but is now much fainter, since the trail carries the effect.
+
 ## 2.236.0 — 2026-09-21 19:55: Batch 454 — GIANT SNAIL turbo glow
 
 The Turbo reference, built in the space that actually exists.
