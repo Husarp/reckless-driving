@@ -6,6 +6,23 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.241.1 — 2026-09-22 02:15: Batch 463 — Clicking a menu car now does exactly what ramming one does
+
+Direct correction. The easter egg had its own bespoke explosion and made the car vanish. Both were wrong: it should be the same outcome as a ram.
+
+It now calls **the same functions gameplay calls**, rather than something that looks similar:
+
+- `sbExplosionParts()` and `drawSbExplosionFrame()` — the real Shield Bump impact burst, 12 frames at 45ms, one of the three variants picked at random. Verified it queues a genuine 78-part variant.
+- `drawCrushedWreck()` — the car **stays on the road as a wreck**, greyed and darkened, with the same 4 debris spots (half embers) the ram branch generates. It no longer disappears.
+
+Two small things had to open up for this, both additive: `drawCrushedWreck()` takes an optional target context, because the menu scene draws to `menuCtx` rather than the gameplay canvas; and the wreck state lives outside `drawMenuScene()`, since the demo cars are rebuilt from `t` every frame.
+
+A wrecked demo car clears itself when its position wraps back to the top, so the road repopulates with a fresh car instead of accumulating permanent corpses. Verified: the wreck survives 40 frames untouched, then clears on the wrap.
+
+**The achievement was already there and does work** — ACT OF GOD is present in the secret list (22 secrets), tier `secret`, and unlocks on the click. What made it look absent is almost certainly that the running build is **2.227.0**, while the achievement shipped in 2.230.0.
+
+One genuine subtlety found while testing: clicking a car that happens to be drifting *behind* a difficulty tile does nothing, because the tile is a `<label>` and real controls are deliberately passed through. That is correct — a background car must never swallow a control — but it does mean the egg only fires over open road.
+
 ## 2.241.0 — 2026-09-22 01:30: Batch 462 — Level badge spins with momentum; the number is actually centred; air back to 120
 
 **Air particles return to 120 km/h.** Batch 461 lowered them to 75 on a misspoken instruction; the intent was always that air should *not* appear at lower speeds. Reverted.

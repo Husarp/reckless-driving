@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.1</span></div>
                 </div>
             </div>
         </div>
@@ -4332,7 +4332,9 @@
         let crushedWreckCanvas = null;
         let tankNativeCanvas = null;
         // direct feedback: the old crushed-wreck render (a `ctx.scale(1,0.22)` squash plus a flat `rgba(...)` RECTANGLE drawn over the whole flattened footprint) read as "not a car at all, just a rectangle" — both the extreme squash AND the rectangular overlay (which ignored the car's actual silhouette) contributed to that.
-        function drawCrushedWreck(v, dark) {
+        // `gctx` (Batch 463) so the menu's background scene can render a wreck too - it draws to menuCtx,
+        // not the gameplay canvas. Defaults to ctx, so every existing caller is unchanged.
+        function drawCrushedWreck(v, dark, gctx) {
             if (dark === undefined) dark = true;
             const pad = 6; // room for blur bleed past the sprite's own edges
             const bw = v.width + pad * 2, bh = v.height + pad * 2;
@@ -4356,7 +4358,7 @@
             }
             bctx.restore();
 
-            ctx.drawImage(crushedWreckCanvas, v.x - pad, v.y - pad);
+            (gctx || ctx).drawImage(crushedWreckCanvas, v.x - pad, v.y - pad);
         }
         function drawGenericJumpShadow(gctx, groundY, car, flightHeight) {
             const nativeW = (car.hitboxW ? 24 : 14) + 2;
@@ -10937,54 +10939,69 @@
             ];
             // Batch 444 easter egg: remember where each demo car was actually drawn, so the click
             // hit-test below matches what the player can see rather than recomputing positions from
-            // `t` and drifting a frame out of step. A car that was just blown up is skipped until its
-            // timer runs out; it comes back on its own as its y wraps around.
+            // `t` and drifting a frame out of step.
             menuDemoRects = demoCars.map(c => ({ x: c.x, y: c.y, w: PLAYER_WIDTH, h: PLAYER_HEIGHT }));
             demoCars.forEach((c, i) => {
-                if (t < (menuCarHiddenUntil[i] || 0)) return;
+                // Batch 463, direct correction: a clicked car no longer VANISHES behind a bespoke
+                // explosion. It does exactly what a rammed vehicle does - the real Shield Bump burst,
+                // then it stays on the road as a wreck. Same functions, not a lookalike.
+                if (menuWrecks[i]) {
+                    if (c.y < menuWrecks[i].lastY) { menuWrecks[i] = null; }   // wrapped to the top: fresh car
+                    else {
+                        menuWrecks[i].lastY = c.y;
+                        drawCrushedWreck({
+                            x: c.x, y: c.y, width: PLAYER_WIDTH, height: PLAYER_HEIGHT,
+                            drawBody: g => drawScaledVehicle(g, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT,
+                                (gg) => drawPixelCar(gg, 0, 0, c.color, false, 0))
+                        }, true, menuCtx);
+                        menuWrecks[i].debris.forEach(d => {
+                            menuCtx.fillStyle = d.ember ? 'rgba(120, 50, 20, 0.9)' : 'rgba(40, 38, 40, 0.9)';
+                            menuCtx.fillRect(Math.floor(c.x + d.dx), Math.floor(c.y + d.dy * PLAYER_HEIGHT), 2, 1);
+                        });
+                        return;
+                    }
+                }
                 drawScaledVehicle(menuCtx, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT, (g) => drawPixelCar(g, 0, 0, c.color, false, 0));
             });
-            drawMenuBooms(t);
+            // The real impact explosion, same renderer gameplay uses, just aimed at menuCtx.
+            for (let i = menuExplosions.length - 1; i >= 0; i--) {
+                const ex = menuExplosions[i];
+                const f = Math.floor((performance.now() - ex.start) / 45);
+                if (f > 11) { menuExplosions.splice(i, 1); continue; }
+                drawSbExplosionFrame(menuCtx, ex.cx, ex.cy, ex.v, f, ex.parts, ex.debrisTint);
+            }
         }
-        // --- Easter egg: click a car in the menu's background traffic and it goes up ---
+        // --- Easter egg: click a car in the menu's background traffic and it gets wrecked ---
         let menuDemoRects = [];
-        const menuCarHiddenUntil = [0, 0, 0];
-        let menuBooms = [];
-        const MENU_BOOM_MS = 620;
-        function drawMenuBooms(t) {
-            menuBooms = menuBooms.filter(b => t - b.t0 < MENU_BOOM_MS);
-            menuBooms.forEach(b => {
-                const k = (t - b.t0) / MENU_BOOM_MS;
-                if (k < .45) {
-                    menuCtx.fillStyle = 'rgba(255,224,138,' + (.85 - k) + ')';
-                    menuCtx.fillRect(b.x - 5, b.y - 5, 10, 10);
-                }
-                const r = 2 + k * 17;
-                menuCtx.fillStyle = k < .3 ? '#ffeaa7' : k < .62 ? '#ff7a2f' : '#6b6f78';
-                for (let i = 0; i < 12; i++) {
-                    const a = (i / 12) * Math.PI * 2 + b.seed;
-                    menuCtx.fillRect(Math.round(b.x + Math.cos(a) * r), Math.round(b.y + Math.sin(a) * r * .8), 2, 2);
-                }
-            });
-        }
+        const menuWrecks = [null, null, null];
+        let menuExplosions = [];
         // Listening on the document rather than on #menuCanvas: the canvas sits UNDER #menuBackdrop and
         // #menuOverlay, so a click on a background car never reaches the canvas itself. Clicks on real
         // controls are handed back untouched - a demo car drifting behind a button must not swallow it.
         document.addEventListener('click', (e) => {
             if (!menuView.classList.contains('active')) return;
-            if (e.target.closest('button, a, input, select, label, .mm-tab, .dev-menu-trigger')) return;
+            if (e.target.closest('button, a, input, select, label, .mm-tab, .dev-menu-trigger, .mm-level, .level-badge')) return;
             const r = menuCanvas.getBoundingClientRect();
             if (!r.width || !r.height) return;
             const cx = (e.clientX - r.left) * (menuCanvas.width / r.width);
             const cy = (e.clientY - r.top) * (menuCanvas.height / r.height);
-            const t = performance.now();
-            const hit = menuDemoRects.findIndex((d, i) => t >= (menuCarHiddenUntil[i] || 0)
+            const hit = menuDemoRects.findIndex((d, i) => !menuWrecks[i]
                 && cx >= d.x && cx <= d.x + d.w && cy >= d.y && cy <= d.y + d.h);
             if (hit < 0) return;
             const d = menuDemoRects[hit];
-            menuCarHiddenUntil[hit] = t + 2600;
-            menuBooms.push({ x: d.x + d.w / 2, y: d.y + d.h / 2, t0: t, seed: Math.random() * 6.28 });
-            playSound('crash');
+            // Exactly what the ramming branch builds for a kill: 4 debris spots, half of them embers.
+            menuWrecks[hit] = {
+                lastY: d.y,
+                debris: Array.from({ length: 4 }, () => ({ dx: Math.random() * d.w, dy: Math.random(), ember: Math.random() < 0.5 }))
+            };
+            const variant = Math.floor(Math.random() * 3);
+            menuExplosions.push({
+                cx: d.x + d.w / 2, cy: d.y + d.h / 2,
+                v: variant === 1 ? 'B' : variant === 2 ? 'C' : 'A',
+                parts: sbExplosionParts(variant === 1 ? 'B' : variant === 2 ? 'C' : 'A'),
+                debrisTint: '#c9d1d9', start: performance.now()
+            });
+            playSound('ram');
             unlockAchievement('act_of_god');
         });
 
@@ -13282,7 +13299,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.241.0';
+        const GAME_VERSION = '2.241.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
