@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.2.1 — 2026-09-22 15:20: Batch 475 — Popup font, ram points, calmer launches, HUD cap
+
+**The popup letters were too big and too thick.** They were `bold 8px Silkscreen` — the loudest thing this UI can say, block capitals nearly half a car tall. Now `10px VT323`, the game's other pixel face (the XP and rank text already use it): same family, but a narrow face that reads as writing rather than signage. Under the 3x backing store it rasterises at 30 device px, which VT323 is actually designed for. Applies to every popup — points, close calls, letters, word completions.
+
+**"I don't see any points for ramming cars with my ship" — correct, they did not exist.** The popups only covered passes and jump-overs. Every scoring kill now pops, on the car it killed, under the same SCORE POPUPS toggle: ram kills (`+N RAMMED`), tank shots (`+N DIRECT HIT`), and bumper launches (`+N BUMPED`).
+
+**Launched cars flew off in "very random directions."** The lateral kick (up to 3.8) could rival the upward one, so a side tap sent cars sailing across the whole road. The throw is mostly **up-screen** now — verified 5:1 vertical over lateral — with a modest sideways push away from the player and a calmer spin. It reads as being hit by something moving fast, which is what happened.
+
+**Fullscreen HUD capped at 1.5x.** Batch 433 deliberately removed the cap so the HUD would hold one proportion at every size — but at fullscreen with a high lane count the frame gets very wide, and the chips scaled right along with it into absurdity. There is a size past which bigger stops being readable and starts being ridiculous; the HUD now grows with the window up to 1.5x and then stops. (The pause/result panels were already fixed separately in Batch 469.)
+
+Also logged to PLAN.md, verbatim: "booster for special vehicles???" — with the open questions it raises (cosmetic flame on a no-ability special? attached to LAUNCH or the ship's ram? or folded into the effects system?).
+
 ## 3.2.0 — 2026-09-22 14:10: Batch 474 — Tutorial overhaul: build stats, special vehicles, section order, real explosion; score popups with a toggle; one scrollbar
 
 **HOW IT WAS BUILT — the requested statistics card**, in ABOUT after THE PRICES ARE REAL. Counted from the change log itself: **473 batches across 474 shipped versions, over 2,150 recorded individual changes** (a renamed label counts, and so does a single repainted pixel), in **26 working days spread over 33 calendar days**, Aug 21 to Sep 22, 2026. Static figures with an "as of v3.1.1" stamp — they will need a refresh at milestones, noted in PLAN.md.
