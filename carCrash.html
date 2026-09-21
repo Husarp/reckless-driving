@@ -179,6 +179,14 @@
         }
         *::-webkit-scrollbar-thumb:hover { background: var(--c-card-border); }
         .garage-scroll, #goAchBox, #gameOverHud, .dg-scroll, .tut-scroll, .tut-rail, .stats-scroll { scrollbar-gutter: stable; }
+        /* Batch 473 - boot veil. Direct report: for about a second at startup "the old design" flashed -
+           smooth round text, no ring, a grey half-built screen. That was never an old design: it was the
+           FIRST PAINT, drawn before the embedded pixel fonts finished decoding (fallback monospace is
+           what reads as smooth and round) and before the first canvas frame ran (no ring, no road).
+           Nothing gated the reveal - the page showed the moment the HTML parsed.
+           The veil hides the body's CHILDREN, not the body, so the dark page background still paints and
+           boot is a clean dark screen instead of a white or grey one. */
+        body.booting > * { visibility: hidden; }
         .tut-rail::-webkit-scrollbar { width: 10px; }
         /* Batch 424 — first-launch nudge. Replaces the forced tutorial: the menu loads normally
            and this blinks until the screen has been opened once. steps(2) so it snaps on and off
@@ -1746,7 +1754,7 @@
         .mm-footer { display: flex; justify-content: space-between; font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; color: var(--c-text-dimmer); padding-top: 10px; }
     </style>
 </head>
-<body>
+<body class="booting">
 
     <!-- VIEW 1: MAIN MENU -->
     <div id="menuView" class="view active">
@@ -1814,7 +1822,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.1.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.1.1</span></div>
                 </div>
             </div>
         </div>
@@ -13557,7 +13565,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.1.0';
+        const GAME_VERSION = '3.1.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14878,6 +14886,25 @@
         sizeMenuFrame();
         calculateMultiplier();
         refreshMenuSummary();
+
+        // Batch 473 - lift the boot veil only once the pixel fonts are genuinely usable AND one real
+        // frame has painted with them, so the first thing ever visible is the finished menu. The timeout
+        // is the safety net: if the font promise never settles (it should not, the fonts are embedded),
+        // the game still appears after 1.5s rather than stranding a black window - a veil that can
+        // stick shut is worse than the flash it prevents.
+        {
+            let revealed = false;
+            const reveal = () => {
+                if (revealed) return;
+                revealed = true;
+                document.body.classList.remove('booting');
+            };
+            const bootFallback = setTimeout(reveal, 1500);
+            document.fonts.ready.then(() => requestAnimationFrame(() => {
+                clearTimeout(bootFallback);
+                reveal();
+            })).catch(reveal);
+        }
         // Static coin icons (Game-Over row) — drawn once, unlike the Garage's icons which get redrawn each time renderCarGrid()/that view refresh, since they don't need it (the icon itself never changes, only the number beside it does).
         renderCoinIcon(document.getElementById('goCoinsIcon'));
         renderCoinIcon(document.getElementById('garageCoinIcon'));

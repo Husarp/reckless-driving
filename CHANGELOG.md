@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.1.1 — 2026-09-22 12:20: Batch 473 — The startup flash was the unstyled first paint; boot veil added
+
+Direct report: for about a second at startup "the old design" appeared — smooth round text, a plain number with no ring, a grey half-built screen. **It was never an old design.** It was the very first paint, drawn before anything was ready:
+
+- The embedded pixel fonts had not finished decoding, so the browser painted its **fallback monospace** — which is exactly what smooth, round, un-pixelated text looks like next to Silkscreen.
+- No canvas frame had run yet, so the level ring canvas was blank (just the DOM "1" floating) and the road behind the menu was missing.
+- Nothing gated the reveal: the page displayed the instant the HTML parsed, and with ~1MB of base64 fonts to decode, that gap is visible.
+
+The fix is a **boot veil**: the body carries a `booting` class that hides its children — the dark page background still paints, so startup is a clean dark screen rather than a grey half-render. It lifts when the fonts are genuinely usable (`document.fonts.ready`) *and* one real frame has painted with them, so the first thing ever visible is the finished menu.
+
+The veil has a **1.5-second hard fallback**: if the font promise somehow never settles (it should not — the fonts are embedded), the game still appears rather than stranding a black window. A veil that can stick shut is worse than the flash it prevents.
+
 ## 3.1.0 — 2026-09-22 11:30: Batch 472 — Render-scale architecture: old proportions back, everything sharp; stock renderer unified
 
 Direct correction on v3.0: shrinking the world made the road and every raw-pixel object ~30% bigger relative to the cars. The proportions should be what they always were — the requirement is only that nothing is blurry or deformed. Backup: git tag `v3.0.0-pre-renderscale` + `backup/carCrash.3.0.0.pre-renderscale.html`.
