@@ -6,6 +6,14 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.2.2 — 2026-09-22 15:50: Batch 476 — Boosters removed from special vehicles
+
+Direct request, and the reasoning is airtight: boosters only ever render during a jump, and no special vehicle jumps — they have no ability, a ram, or the launch. So the Garage's BOOST TYPE picker was offering equipment that could never appear on the road.
+
+`carFlameAvailable()` now refuses every booster for `boxOnly` cars, which makes the picker show its existing "no booster customization for this vehicle" note — the same treatment the Tank's paint lock already gets. Verified: all six specials blocked, Stock keeps all three types, ram cars keep thruster and underglow exactly as before. FULL WARDROBE is untouched — it checks that boosters are globally *unlocked*, not what a given car can wear.
+
+Also closes the PLAN question logged one batch ago ("booster for special vehicles???") — answered by removing them rather than inventing a use.
+
 ## 3.2.1 — 2026-09-22 15:20: Batch 475 — Popup font, ram points, calmer launches, HUD cap
 
 **The popup letters were too big and too thick.** They were `bold 8px Silkscreen` — the loudest thing this UI can say, block capitals nearly half a car tall. Now `10px VT323`, the game's other pixel face (the XP and rank text already use it): same family, but a narrow face that reads as writing rather than signage. Under the 3x backing store it rasterises at 30 device px, which VT323 is actually designed for. Applies to every popup — points, close calls, letters, word completions.

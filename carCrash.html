@@ -1821,7 +1821,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.2</span></div>
                 </div>
             </div>
         </div>
@@ -6404,6 +6404,12 @@
         // effect to colour, so nothing else changes.
         function carCanRepaint(car) { return car.key !== 'tank' && (!car.noPaint || !!car.paintsTrail); }
         function carFlameAvailable(car, key) {
+            // Batch 476, direct request: no boosters on the special vehicles. None of them can ever use
+            // one - boosters only render during a jump, and the specials have no ability, a ram, or the
+            // launch - so the Garage's BOOST TYPE picker was offering equipment that could never appear.
+            // With every type unavailable, renderFlamePicker() shows its own "no booster customization"
+            // note, the same way tank and the paint lock already read.
+            if (car.boxOnly) return false;
             const disabled = car.disabledFlames || (car.ramAbility ? ['pods'] : []);
             return !disabled.includes(key);
         }
@@ -13652,7 +13658,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.2.1';
+        const GAME_VERSION = '3.2.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
