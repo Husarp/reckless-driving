@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.3</span></div>
                 </div>
             </div>
         </div>
@@ -6114,6 +6114,32 @@
         // counting it: `ownedCars.length` is what COLLECTOR reads, so three dead keys would have shown
         // the player three cars closer to its 58-car amethyst tier than they really are. Runs once on
         // startup, costs nothing, and protects every future removal for free.
+        // Batch 465 — two one-time save repairs, both from this batch's fixes.
+        //
+        // 1. Scores saved before the rounding fix below can hold a raw float ("14,094.509"). They are
+        //    rounded in place rather than left to display forever, since the number itself was never
+        //    meant to be fractional.
+        // 2. ACT OF GOD was renamed to THE DESTROYER and its id renamed with it, on the explicit call
+        //    that this is pre-release and the id should match the name. The old key is migrated so the
+        //    rename does not quietly take the achievement back off anyone who earned it.
+        (function repairSaves() {
+            let dirty = false;
+            const au = allTimeStats.achievementsUnlocked || {};
+            if (au.act_of_god && !au.the_destroyer) { au.the_destroyer = true; dirty = true; }
+            if ('act_of_god' in au) { delete au.act_of_god; dirty = true; }
+            (allTimeStats.recentScores || []).forEach((v, i) => {
+                if (v % 1) { allTimeStats.recentScores[i] = Math.round(v); dirty = true; }
+            });
+            runHistory.forEach(r => { if (r && r.score % 1) { r.score = Math.round(r.score); dirty = true; } });
+            try {
+                const hs = JSON.parse(localStorage.getItem('highscores') || '[]');
+                let hsDirty = false;
+                hs.forEach(h => { if (h && h.score % 1) { h.score = Math.round(h.score); hsDirty = true; } });
+                if (hsDirty) localStorage.setItem('highscores', JSON.stringify(hs));
+            } catch (e) {}
+            if (dirty) { saveAllTimeStats(); saveRunHistory(); }
+        })();
+
         (function pruneDeletedCars() {
             const real = new Set(GARAGE_CARS.map(c => c.key));
             const kept = (allTimeStats.ownedCars || []).filter(k => real.has(k));
@@ -7769,7 +7795,7 @@
         function ACH_SECRETS() {
             return [
             { id: 'full_circle', icon: 'clock', name: 'FULL CIRCLE', desc: 'Click your level badge and watch the ring go all the way round.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
-            { id: 'act_of_god', icon: 'car', name: 'THE DESTROYER', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.act_of_god },
+            { id: 'the_destroyer', icon: 'car', name: 'THE DESTROYER', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.the_destroyer },
             { id: 'pull_up_pull_up', icon: 'car', name: 'PULL UP! PULL UP!', desc: 'Land a mistimed jump and crash right into the car below you.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.pull_up_pull_up },
             { id: 'no_school_today', icon: 'bus', name: 'NO SCHOOL TODAY', desc: 'Crash into the school bus.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.no_school_today },
             { id: 'eye_catching', icon: 'car', name: 'EYE CATCHING', desc: 'Crash into a legendary-rarity car on the road.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.eye_catching },
@@ -11002,7 +11028,7 @@
                 debrisTint: '#c9d1d9', start: performance.now()
             });
             playSound('ram');
-            unlockAchievement('act_of_god');
+            unlockAchievement('the_destroyer');
         });
 
         // Transition: Menu Screen to Game Screen
@@ -11262,6 +11288,17 @@
         }
 
         function saveScore(vehicleType) {
+            // Batch 465, direct bug report: a saved run read "14,094.509". `score` accumulates raw
+            // fractional values all run (points x multiplier, deliberately unrounded so mid-run rounding
+            // cannot drift the total) and endRun() was the ONLY place that rounded it. Quitting from the
+            // pause menu calls saveScore() directly without going through endRun(), so that path stored
+            // the raw float straight into the run history and the leaderboard.
+            //
+            // Rounded here instead of patching exitToMenu(): saveScore() is the single funnel every path
+            // already goes through, so no future exit route can miss it. endRun() still rounds first,
+            // because things it touches downstream (the crash snapshot, the result panel) read `score`
+            // before this is ever called.
+            score = Math.round(score);
             const survivedMs = Math.max(0, Date.now() - gameStartTime);
             const finalCoins = recordRunStats(vehicleType, survivedMs);
             const timeSurvived = Math.floor(survivedMs / 1000);
@@ -13299,7 +13336,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.241.2';
+        const GAME_VERSION = '2.241.3';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

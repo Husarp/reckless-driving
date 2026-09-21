@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.241.3 — 2026-09-22 03:05: Batch 465 — Fractional scores, and THE DESTROYER's id matches its name
+
+**A saved run read "14,094.509".** Not invincible mode and not a test artifact — a real bug on a normal path.
+
+`score` deliberately accumulates *raw fractional* values all run (points × multiplier, unrounded so that per-event rounding cannot drift the total), and **`endRun()` was the only place that rounded it**. Quitting from the pause menu goes through `exitToMenu()`, which calls `saveScore()` directly and never touches `endRun()` — so that route wrote the raw float straight into the run history and the leaderboard.
+
+Rounded inside **`saveScore()`** rather than by patching `exitToMenu()`: `saveScore()` is the single funnel every path already goes through, so no future exit route can miss it. `endRun()` still rounds first, because the crash snapshot and result panel read `score` before `saveScore()` is ever called. Verified on the exact failing path — quitting mid-run with `score = 14094.50937` now stores **14095** in both the run history and the highscore list.
+
+**Existing saves are repaired on load**, since a number that was never meant to be fractional should not keep displaying that way. Any fractional entry in `recentScores`, `runHistory` or `highscores` is rounded in place, once, and only written back if something actually changed.
+
+**`act_of_god` is now `the_destroyer`**, on the explicit call that this is pre-release and the id should match the name. The old key is **migrated** rather than dropped, so the rename does not quietly take the achievement back off a save that already earned it. Verified: a save holding `act_of_god: true` comes back with `the_destroyer: true`, the old key gone, and the achievement showing as unlocked under its new name.
+
 ## 2.241.2 — 2026-09-22 02:30: Batch 464 — ACT OF GOD renamed to THE DESTROYER
 
 Display name only. The **id stays `act_of_god`**, because that is the key persisted in `allTimeStats.achievementsUnlocked` — renaming it would silently un-unlock the achievement for anyone who had already earned it.
