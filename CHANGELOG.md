@@ -6,6 +6,27 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.0.0 — 2026-09-22 09:20: Batch 471 — THE INTEGER-SCALE REFACTOR, plus outlines, trail end, and real speed airflow
+
+A major-version bump because the entire rendering coordinate system changed. Rollback exists twice over: git tag `pre-integer-scale` and `backup/carCrash.2.243.1.pre-integer-scale.html`.
+
+### CAR_SCALE 1.3 → 1
+
+The whole blur/deform saga (Batches 461–470) had one root: vehicles were the only thing in the world resampled by a fractional factor. The road art was always drawn 1:1. Now vehicles are too — **copied into the canvas pixel-for-pixel, the exact pipeline the road always used** — and the one remaining scale is the whole-canvas CSS fit, identical for every pixel in the world. Measured: the gameplay sprite is now pixel-identical to the Garage's (exactly 18px wide, same palette), where Batch 469's smoothing gave 367 colours and Batch 461's nearest gave a deformed 10.
+
+**This is a pure zoom, not a rebalance.** Every raw world-space constant was divided by 1.3 in the same pass: canvas 260→200 tall, side margins 18→14, player bounds 40→31, flight height 14→11 (with rise speed scaled to keep the same rise *time*), speed ramp 0.0003→0.000231 (measured: 120 km/h arrives at frame 6667 vs the old 6673), crash deceleration, close-call gaps, NPC brake gap, tank tracer range, launch arc, cone scatter. Everything expressed in `CAR_SCALE` units — speeds, hitboxes, spawn buffers, vertical physics, siren range — rescaled itself.
+
+The menu's background scene was rebuilt to the same world (canvas 123×200, road 80, lanes 20) at its exact old aspect ratio, so the menu frame and every DOM design box are untouched. Verified: demo cars dead-centred in the new lanes, jump/ram/launch all work, traffic spawns, trail and air unchanged in behaviour.
+
+The visible consequence beyond crisp cars: road art and vehicles now share one pixel size on screen, so the game finally reads as a single coherent pixel world instead of fine road pixels under coarse blurry cars.
+
+### The rest
+
+- **Snail tail's bottom-left outline** — direct report, and it was my own doing: the stub was outline + 2 slime + outline, and Batch 468's 3-wide repaint started *on* the left outline pixel, painting body colour over it. Outline restored, verified black at both rows.
+- **Ship's bow tip had no outline across its top** — the doc's row 0 is two hull pixels flanked by outline, leaving body colour raw on the sprite edge. Capped black.
+- **Trail flicker at the screen edge** — a point was culled +4px past the edge, deleting the whole last segment, so the beam alternated between touching the bottom and stopping a segment short. Points now live to +60px past the edge (the per-row clip already draws nothing off-screen), and the end-soften only applies while the trail's end is still on screen — once the beam runs off the bottom, the screen edge is the cut. Verified: at speed the last point sits beyond the edge on every sampled frame.
+- **Speed airflow replaces the chevron wake**, which was fairly judged as looking bad. Racing games draw this one way: short streaks hugging the flanks, born at the front corners where the air splits around the body, sliding backward *slower than the world* (boundary air clings), drifting slightly outward past the rear — thin broken lines, bright head, fading tail, never a solid rail and never centred on the body. Active for **every vehicle above 175 km/h** per direct spec; ramming switches it on at any speed and boosts it, so the SHIP's ability still reads. Measured: 0 particles at 120 km/h, 17 at 176, 19 at 200, 20 while ramming at 100. Cleared between runs.
+
 ## 2.243.1 — 2026-09-22 07:10: Batch 470 — Sprites were blitted onto fractional pixels; spin overshoot
 
 **Every sprite was landing between pixels.** The buffer pad was 22/44, and `22 x 1.3 = 28.6`, `44 x 1.3 = 57.2` — both fractional. So the blit destination was always fractional, which does two bad things at once: it forces the resampler to interpolate across the *whole* sprite, blurring far beyond what the 1.3 ratio alone costs, and it shifts the art sideways by the fractional part.
