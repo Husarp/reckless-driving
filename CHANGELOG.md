@@ -6,6 +6,16 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.235.1 — 2026-09-21 19:20: Batch 453 — The SHIP can ram with the sides of its bow
+
+Direct report, and a real bug. A ram kill needs `isFrontHit()`, which asks for **50% horizontal overlap** — measured against the hull's full 22px width. The ship has a pointed bow, so catching a car on the *side* of that point produces a small overlap, failed the test, and fell straight through to the crash branch. You rammed with the front of the ship and died for it.
+
+`ramFrontOverlap` lets a car lower that bar; the ship uses **0.05**.
+
+That is not "any contact anywhere", which would have been wrong for a 60px vehicle — a car merely alongside the hull is not being rammed. This test is only ever reached together with `ramGuardContact()`, which already requires the target to be within the guard's reach of the player's **front edge**. Front-proximity is still fully enforced; what is relaxed is how square-on the hit must be, which is exactly what a pointed bow changes.
+
+Verified, and verified as scoped: the ship crushes both square-on and at 42% off-centre and survives both, while Road Train still crushes square-on and still dies on the same glancing hit. Nothing but the ship changed.
+
 ## 2.235.0 — 2026-09-21 19:00: Batch 452 — Box-exclusives get a real SPECIAL rarity, and state their coin bonus
 
 Direct request. All six now carry `rarity: 'special'` instead of borrowing RARE / EPIC / LEGENDARY, so the card badge and the section header finally agree. Three things had to follow it rather than being left to fall through a default:

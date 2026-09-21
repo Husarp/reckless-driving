@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.235.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.235.1</span></div>
                 </div>
             </div>
         </div>
@@ -5973,7 +5973,7 @@
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
             { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 },
-            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true },
+            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
             { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
@@ -11835,11 +11835,21 @@
         }
 
         // direct request: Shield Bump/Tank's ram protection should only apply to a genuine front-on hit (the player's own nose reaching a vehicle ahead, i.e. roughly in-lane with it), not a side-swipe (e.g. a vehicle merging into the player's lane mid-transition) — otherwise the ability trivializes survival entirely ("you need to be careful not to just die in a stupid way").
-        function isFrontHit(player, v) {
+        // Batch 453, direct report about the SHIP: it has a pointed bow, but the 50% overlap this asks for
+        // is measured against the hull's full 22px width. Catching a car on the SIDE of that bow gives a
+        // small overlap, so mid-ram it failed this test and fell through to the crash branch - you rammed
+        // with the front of the ship and died for it.
+        //
+        // `ramFrontOverlap` lets a car lower the bar. The ship's 0.05 is not "any contact anywhere": this
+        // test is only ever reached together with ramGuardContact(), which already requires the target to
+        // be within the guard's reach of the player's FRONT edge. Front-proximity is still enforced; what
+        // is relaxed is how square-on the hit has to be, which is exactly what a pointed bow changes.
+        function isFrontHit(player, v, car) {
             const combinedHalfWidth = (player.width + v.width) / 2;
             const dx = Math.abs((player.x + player.width / 2) - (v.x + v.width / 2));
             const overlapX = combinedHalfWidth - dx;
-            return (overlapX / combinedHalfWidth) >= 0.5;
+            const need = (car && car.ramFrontOverlap !== undefined) ? car.ramFrontOverlap : 0.5;
+            return (overlapX / combinedHalfWidth) >= need;
         }
 
         // direct correction: what should destroy a vehicle is the front push-guard ("the drill"), not just any part of the player's own car body touching it ("it's not the drill, it's the actual tank sprite that destroys them"). isFrontHit() above only checks horizontal alignment, so a vehicle the player merges sideways into — already deep inside the player's hitbox by the time checkCollision() fires — could still pass it.
@@ -12603,7 +12613,7 @@
                             }
                         } else if (devInvincible) {
                             // dev-menu toggle: touching ANY vehicle (including ambulances) is a harmless no-op while this is on — no explosion, no endRun(), no coin credit, just passes through untouched.
-                        } else if (player.abilityState === 'ramming' && !v.wrecked && isFrontHit(player, v) && (selectedCarKey === 'tank' || ramGuardContact(player, v))) {
+                        } else if (player.abilityState === 'ramming' && !v.wrecked && isFrontHit(player, v, getSelectedCar()) && (selectedCarKey === 'tank' || ramGuardContact(player, v))) {
                             // direct bug report: hitting an already-`.wrecked` vehicle (an NPC that crashed into ANOTHER NPC, Batch 265-267 — a real, collidable obstacle by design, not a fresh target) still counted as a ram-kill and refilled energy/scored. `!v.wrecked` excludes it from this payoff branch entirely — it falls through to the normal crash branch below instead, same as hitting any other real obstacle.
                             explodeShieldBump(v, v.color, Math.floor(Math.random() * 3));
                             if (v.type === 'ambulance') unlockAchievement('bad_samaritan'); // Batch 325 — this branch already covers ambulances (see the Batch 193 comment above), so ramming one for real just needed the unlock hook
@@ -13022,7 +13032,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.235.0';
+        const GAME_VERSION = '2.235.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
