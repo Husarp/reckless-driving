@@ -6,6 +6,31 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.242.0 — 2026-09-22 04:20: Batch 466-468 — Pause wash, snail rebuilt, air slowed, ram wake
+
+**Pause panel wash covers the frame.** The same fault as Batch 460's result screen, in the third and last screen built on the fixed-box pattern: a 506x822 box scaled by `--hud-scale`, so a taller window left raw road above and below. Moved to `#pauseBackdrop`, `inset: 0`.
+
+### The snail
+
+**Its declared size did not match its art, and that caused the trail bug.** Batch 459 "made it smaller" by changing `h: 32 -> 28` and `hitboxW: 20 -> 18` — but the sprite is still drawn 20x32, so the numbers shrank and the art did not. Four rows of snail hung below the declared box, which is exactly why the trail appeared to start inside the snail rather than behind it: `drawY + player.height` was landing four rows short of the sprite's real bottom.
+
+Reverted to 32x20 so the declaration matches the art. **If it should still be smaller, the sprite itself has to be redrawn** — the numbers alone cannot do it, and changing them alone is what broke this.
+
+**The tail tip was pale blue.** The doc drew a 3px `#cfe9f0` slime stub, which at gameplay size reads as a stray blue artefact hanging off a brown snail. It also ended with no outline. Repainted in the body's own light tone with a black row closing it off — done in `drawGarageSnail53()` rather than by editing `PX_SNAIL`, so the transcribed data stays a faithful copy of the doc and the deliberate change stays visible as one.
+
+**Three trail faults, all fixed:**
+- *"Shouldn't be getting smaller — it cut the pixels."* The width tapered with age. At this pixel size that does not read as perspective, it reads as the beam being chewed away. Constant width now.
+- *"Not going fully to the end of the screen."* Alpha faded to nothing with age, so the tail died mid-road while points still existed beyond it. Only the last 12% softens now, just enough that the end is not a hard chop. Measured: reaches y=258 of a 260px canvas.
+- *"It looks like it's coming out of his ass."* Beyond the size bug above, laying the point at the very bottom edge starts the beam where the sprite stops, so nothing covers its origin. It starts at 72% of the body now, letting the snail sit on top of where it begins.
+
+### Air
+
+**Minimum raised to 150 km/h**, per direct spec.
+
+**It was moving far too fast.** Direct report: "it looks like the air is going the other direction faster." It ran at **1.5-3.0x the road's own speed**, and once anything in a scrolling scene outruns the surface it is over, the eye stops reading it as part of the same world. Now **1.0-1.18x** — measured 6.35px/frame against the road's 5.29 at 180 km/h. The small excess is what keeps it reading as rushing air rather than as road markings, and each particle's own 0.8-1.5 speed spreads them either side of it.
+
+**A ram wake**, per request, on the back of the vehicle. A wake is drawn as two arms leaving the trailing edge and **opening outward** as they fall behind — parallel streaks read as rain and converging ones read as suction. This follows the shape of the doc's own REAR AIR WAKE panel (Shield Bump storyboard, section 8b): two arms spreading ~30 degrees, broken rather than solid, losing alpha with distance so they die out instead of stopping. It matters most on the SHIP, which has every other ram cue suppressed — the wake is the only thing marking the ability there.
+
 ## 2.241.3 — 2026-09-22 03:05: Batch 465 — Fractional scores, and THE DESTROYER's id matches its name
 
 **A saved run read "14,094.509".** Not invincible mode and not a test artifact — a real bug on a normal path.

@@ -1478,7 +1478,16 @@
         .stz-rarity-pct { width: 30px; flex: none; text-align: right; font-family: 'Silkscreen', monospace; font-size: 7px; color: var(--c-text-dimmer); }
 
         /* Pause screen */
+        #pauseBackdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 12, 18, .85);
+            display: none;
+            pointer-events: none;
+            z-index: 4;
+        }
         #pauseHud {            position: absolute;
+            z-index: 5;
             left: 50%;
             top: 50%;
             width: 506px;
@@ -1492,7 +1501,11 @@
             gap: 16px;
             padding: 22px;
             box-sizing: border-box;
-            background: rgba(9, 12, 18, .85);
+            /* Batch 466 - same fault the result screen had in Batch 460, in the third and last screen
+               built on the fixed-box pattern. This is a 506x822 design box scaled by --hud-scale, so on a
+               window taller than the scaled box the wash stopped where the box stopped and left raw road
+               showing above and below. It lives on #pauseBackdrop now, inset:0 on the frame itself. */
+            background: none;
             text-align: center;
         }
         #pauseHud .go-title { color: #fff; font-size: 20px; text-shadow: 3px 3px 0 var(--c-red); }
@@ -1786,7 +1799,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.3</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.242.0</span></div>
                 </div>
             </div>
         </div>
@@ -2623,6 +2636,7 @@
                         </div>
                     </div>
                 </div>
+                <div id="pauseBackdrop"></div>
                 <div id="pauseHud">
                     <div class="go-title px">PAUSED</div>
                     <div class="stat-box">
@@ -2821,6 +2835,7 @@
         const statsLevelRankText = document.getElementById('statsLevelRankText');
         const gameOverHud = document.getElementById('gameOverHud');
         const gameOverBackdrop = document.getElementById('gameOverBackdrop');
+        const pauseBackdrop = document.getElementById('pauseBackdrop');
         const crashFlashEl = document.getElementById('crashFlash');
         const crashWordEl = document.getElementById('crashWord');
         const crashWordTextEl = document.getElementById('crashWordText');
@@ -3461,6 +3476,7 @@
                 pauseJumpsEl.textContent = jumpsUsed;
             }
             pauseHud.style.display = val ? 'flex' : 'none';
+            pauseBackdrop.style.display = val ? 'block' : 'none';   // Batch 466 — the wash follows the panel
         }
 
         // Web Audio
@@ -5554,7 +5570,23 @@
             ['#e0a83c', '12,17,1,1 11,18,2,1 10,19,1,1 12,19,2,2 9,20,2,1 11,21,2,1 7,22,6,1 8,23,3,1'],
             ['#cfe9f0', '9,29,2,3']
         ];
-        function drawGarageSnail53(gctx) { drawPixelRuns(gctx, PX_SNAIL, carLocalX53(20)); }
+        function drawGarageSnail53(gctx) {
+            const x = carLocalX53(20);
+            drawPixelRuns(gctx, PX_SNAIL, x);
+            // Batch 467, direct report: the very end of the tail "has a different color and looks really
+            // weird". It does - the doc drew a 2px pale-blue SLIME tip there (#cfe9xx), which at gameplay
+            // size reads as a stray blue artefact hanging off a brown snail rather than as slime. It also
+            // stopped with no outline cap, so the sprite just ended mid-pixel.
+            //
+            // Repainted in the body's own light tone with a black row closing it off. Done here rather
+            // than by editing PX_SNAIL so the transcribed data stays a faithful copy of the doc and the
+            // deliberate change stays visible as a change.
+            gctx.fillStyle = '#d9ab86';
+            gctx.fillRect(x + 8, 29, 3, 1);   // the slime stub is 3 wide, not 2 - measured, not assumed
+            gctx.fillRect(x + 8, 30, 3, 1);
+            gctx.fillStyle = '#000000';
+            gctx.fillRect(x + 8, 31, 3, 1);
+        }
         const PX_SHIP = [
             ['#000000', '9,0,1,1 12,0,1,1 8,1,1,2 13,1,1,2 7,3,1,2 14,3,1,2 6,5,1,2 15,5,1,2 5,7,1,2 16,7,1,2 4,9,1,1 17,9,1,1 3,10,1,2 18,10,1,2 2,12,1,2 19,12,1,2 1,14,1,35 20,14,1,35 2,49,1,2 19,49,1,2 3,51,1,2 18,51,1,2 4,53,1,3 17,53,1,3 5,56,1,1 16,56,1,1 6,57,10,1'],
             ['#8a5a2b', '10,0,2,3 10,3,3,3 8,5,1,4 10,6,2,1 14,7,1,2 10,8,1,12 16,10,1,1 18,14,1,6 4,16,1,4 6,16,1,2 12,16,1,4 16,16,1,3 8,17,1,3 14,18,1,5 6,19,1,4 16,20,1,2 4,22,1,1 10,22,1,24 18,22,1,1 4,24,1,1 16,24,1,1 18,24,1,1 18,29,1,4 4,30,1,4 6,30,1,2 12,30,1,6 16,30,1,3 8,31,1,5 14,32,1,4 6,33,1,3 16,34,1,1 4,35,1,1 18,35,1,1 4,37,1,1 16,37,1,1 18,37,1,7 6,43,1,2 12,43,1,3 3,44,2,1 8,44,1,2 16,44,3,1 4,45,1,2 14,45,1,1 16,45,1,1 18,45,1,4 5,47,12,1 4,48,3,3 10,48,2,3 15,48,2,3 5,51,12,1 5,52,4,2 13,52,4,2 6,54,1,2 8,54,1,3 10,54,1,3 12,54,1,3 14,54,1,3'],
@@ -6079,7 +6111,7 @@
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 28, hitboxW: 18, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
             { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
@@ -10815,7 +10847,13 @@
             for (const pt of snailTrail) pt.y += currentSpeed;
             snailTrail = snailTrail.filter(pt => pt.y < canvas.height + 4);
             if (t > 0) {
-                snailTrail.unshift({ x: drawX + player.width / 2, y: drawY + player.height - 1 });
+                // Batch 467, direct report: the trail looked like it came out of the snail's back end
+                // rather than from under it. Two causes. The declared height was 28 while the art is 32
+                // tall (Batch 459 shrank the numbers without touching the sprite), so `drawY + height`
+                // landed four rows INSIDE the snail; that is fixed in the roster. And laying the point at
+                // the very bottom edge starts the beam where the sprite stops, so nothing covers its
+                // origin. 0.72 puts it under the body, letting the snail sit on top of where it begins.
+                snailTrail.unshift({ x: drawX + player.width / 2, y: drawY + player.height * 0.72 });
                 if (snailTrail.length > SNAIL_TRAIL_MAX) snailTrail.length = SNAIL_TRAIL_MAX;
             } else if (snailTrail.length) {
                 snailTrail.pop();   // slowing down reels the trail in rather than cutting it off
@@ -10837,10 +10875,18 @@
             ctx.globalCompositeOperation = 'lighter';
             for (let i = 0; i < snailTrail.length - 1; i++) {
                 const a = snailTrail[i], b = snailTrail[i + 1];
-                const age = i / SNAIL_TRAIL_MAX;
-                const fade = Math.pow(1 - age, 1.5) * (0.35 + t * 0.65);
+                // Batch 467, two more direct reports. The trail "shouldn't be getting smaller - it cut
+                // the pixels": the width used to taper with age, which at this pixel size does not read as
+                // perspective, it reads as the beam being chewed away. Constant width now.
+                //
+                // And it "is not going fully to the end of the screen". The alpha faded to nothing with
+                // age, so the tail died mid-road while points still existed past it. A light beam has no
+                // reason to thin or fade along its length - only the very last segments soften, just
+                // enough that the end is not a hard chopped edge.
+                const age = i / snailTrail.length;
+                const fade = (0.55 + t * 0.45) * (age > 0.88 ? (1 - age) / 0.12 : 1);
                 if (fade <= 0.02) continue;
-                const w = Math.max(1, Math.round((1 - age) * 4));
+                const w = 4;
                 const y0 = Math.round(a.y), y1 = Math.round(b.y);
                 const rows = Math.max(1, y1 - y0);
                 for (let k = 0; k < rows; k++) {
@@ -10878,8 +10924,9 @@
         // 120 km/h, and it stays there. Batch 461 briefly lowered it to 75 on what turned out to be a
         // misspoken instruction; the intent was always that air should NOT appear at lower speeds.
         // Air this far up the range is a reward for actually getting fast, not ambient decoration.
-        const AIR_MIN_KMH = 120;
-        const AIR_FULL_KMH = 200;  // fully dense from here up, so a 250km/h car does not white out the road
+        // Batch 468, direct spec: 150. Air this far up the range is a reward for genuinely getting fast.
+        const AIR_MIN_KMH = 150;
+        const AIR_FULL_KMH = 210;  // fully dense from here up, so a 250km/h car does not white out the road
         let airField = null, airFieldW = 0, airFieldH = 0;
         function buildAirField() {
             airField = [];
@@ -10908,10 +10955,15 @@
             const t = Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH));
             const n = Math.max(1, Math.round(AIR_MAX_PARTICLES * t));
             const fade = 0.3 + t * 0.7;
-            // Real distance travelled this frame, so the streaks keep pace with the road instead of
-            // drifting at some rate of their own. The extra multiplier is what makes air read as air:
-            // it is the stuff rushing past you, not the tarmac.
-            const advance = currentSpeed * (1.5 + t * 1.5);
+            // Batch 468, direct report: "the air goes way too fast... it looks like the air is going the
+            // other direction faster". It was running at 1.5-3.0x the road's own speed, and once anything
+            // in a scrolling scene moves faster than the surface it is over, the eye stops reading it as
+            // the same world - it detaches and looks like it is travelling the wrong way.
+            //
+            // Air is only barely quicker than the road now. The small excess is what keeps it reading as
+            // rushing air rather than as painted road markings, and each particle's own `spd` (0.8-1.5)
+            // spreads them either side of that so they never move as one rigid sheet.
+            const advance = currentSpeed * (1.0 + t * 0.18);
             for (let i = 0; i < n; i++) {
                 const p = airField[i];
                 p.y += advance * p.spd;
@@ -10926,6 +10978,41 @@
                         ? 'rgba(139,127,106,' + (a * (1 - decay * 0.6)).toFixed(2) + ')'
                         : airAlpha(a * (1 - decay * 0.7));
                     ctx.fillRect(px, y, 1, 1);
+                }
+            }
+        }
+
+        // ---------- Ram wake (Batch 468) ----------
+        // Direct request: an air effect around a ramming car, "probably on the end of the car", the way
+        // the design docs use air. Reference for how this is normally drawn: a wake is a pair of lines
+        // leaving the trailing edge and OPENING outward as they fall behind - parallel streaks read as
+        // rain, and streaks that converge read as suction. The doc's own REAR AIR WAKE panel (section 8b
+        // in the Shield Bump storyboard) does exactly that with chevrons, and this follows its shape:
+        // two arms from the tail, spreading about 30 degrees, losing alpha with distance so they die out
+        // instead of stopping.
+        //
+        // Drawn from the car's rear edge, so on the SHIP - 60px of hull with no visible ram cue at all -
+        // the wake is the only thing marking the ability, which is exactly where it should be.
+        const RAM_WAKE_LEN = 16;
+        function drawRamWake(pl) {
+            const cx = pl.x + pl.width / 2, tail = pl.y + pl.height;
+            const t = Math.max(0, Math.min(1, speedRatio01()));
+            const len = Math.round(RAM_WAKE_LEN * (0.55 + t * 0.45));
+            const phase = (performance.now() / 45) % 4;
+            for (let k = 0; k < len; k++) {
+                const y = Math.round(tail + k);
+                if (y < 0 || y >= canvas.height) continue;
+                const spread = pl.width * 0.32 + k * 0.55;      // opens outward behind the car
+                const a = (0.5 + t * 0.35) * (1 - k / len);
+                if (a <= 0.03) continue;
+                if ((k + Math.floor(phase)) % 3 === 2) continue; // broken, not a solid pair of rails
+                ctx.fillStyle = 'rgba(226,242,255,' + (a * 0.85).toFixed(3) + ')';
+                ctx.fillRect(Math.round(cx - spread), y, 1, 1);
+                ctx.fillRect(Math.round(cx + spread), y, 1, 1);
+                if (k < len * 0.4) {
+                    ctx.fillStyle = 'rgba(255,255,255,' + (a * 0.5).toFixed(3) + ')';
+                    ctx.fillRect(Math.round(cx - spread) + 1, y, 1, 1);
+                    ctx.fillRect(Math.round(cx + spread) - 1, y, 1, 1);
                 }
             }
         }
@@ -12649,6 +12736,10 @@
             // the particles should fire "when using the RAM ability" too, because that is what sells it
             // as speed rather than as a button that turns a shield on.
             drawAmbientAir((player && player.abilityState === 'ramming') ? 45 : 0);
+            // Batch 468 — air tearing off the BACK of a ramming vehicle. The ambient field above is the
+            // world rushing past; this is the vehicle's own wake, anchored to it, which is what sells
+            // "this thing is forcing its way through the air" rather than "the road is moving".
+            if (player && player.abilityState === 'ramming') drawRamWake(player);
 
             if (gameActive) {
                 // Pending ambulance warnings: draw flashing danger zone, spawn when countdown ends
@@ -13336,7 +13427,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.241.3';
+        const GAME_VERSION = '2.242.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
