@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.238.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.239.0</span></div>
                 </div>
             </div>
         </div>
@@ -5700,7 +5700,17 @@
         }
         function drawOpenWheelBody53(gctx, h, c, o) {
             o = o || {};
-            const fw = o.frontW || 12, rw = o.rearW || 11, tw = o.tyre || 3, th = o.tyreH || 6;
+            // Batch 460, direct report that F3 JUNIOR's rear "is not symmetrical, has more pixels on one
+            // side than the other". Root cause, and it is structural rather than a typo in one sprite:
+            // the wings are placed at `7 - floor(w/2)` on a 14px-wide grid whose real centre is 6.5. An
+            // EVEN width lands symmetrically (w=10 spans 2..11, centred 6.5); an ODD one cannot - w=9
+            // spans 3..11, centred 7.0, one pixel heavier on the right. F3 was the only car with an odd
+            // wing (rearW 9), which is why it was the only one that looked wrong.
+            //
+            // Snapping odd widths down to even here fixes F3 and makes the same mistake impossible for
+            // any open-wheel car added later, including via the `|| 11` default below.
+            const even = n => n - (n % 2);
+            const fw = even(o.frontW || 12), rw = even(o.rearW || 11), tw = o.tyre || 3, th = o.tyreH || 6;
             const fy = o.fy || 6, ry = o.ry != null ? o.ry : h - 10;
             const podTop = fy + th + 1, podBot = ry - 2;
             gctx.fillStyle = '#000'; gctx.fillRect(7 - Math.floor(fw / 2), 0, fw, 3);
@@ -5743,7 +5753,7 @@
             gctx.fillStyle = shade(c, .3); gctx.fillRect(6, p.podBot + 2, 2, 3);
         }
         function drawBodyF3_53(gctx, c) {
-            const p = drawOpenWheelBody53(gctx, 30, c, { fy: 5, ry: 19, tyre: 3, tyreH: 5, frontW: 10, rearW: 9 });
+            const p = drawOpenWheelBody53(gctx, 30, c, { fy: 5, ry: 19, tyre: 3, tyreH: 5, frontW: 10, rearW: 8 });
             gctx.fillStyle = '#1a1f28'; gctx.fillRect(5, p.podTop + 2, 4, 4);
             gctx.fillStyle = '#2c3e50'; gctx.fillRect(6, p.podTop + 3, 2, 2);
             gctx.fillStyle = '#8a8f99'; gctx.fillRect(4, p.podTop + 1, 6, 1);
@@ -6052,6 +6062,18 @@
             if (car.ramAbility) return car.key === 'tank' ? 'TANK SHOOT' : 'SHIELD BUMP';
             if (car.noAbility) return 'NONE';
             return 'JUMP';
+        }
+        // Batch 460, direct list: vehicles that have no rear lamps in their own art must not sprout a
+        // brake glow when you slow down. Open-wheel racers run a single rain light at most and none of
+        // these sprites draws one; a tank, a go-kart and a tractor have no lighting to speak of; the
+        // DRIFT car was named specifically; and the box-exclusives are a snail, a donut, a bathtub, a
+        // grand piano, a ship and a bumper car, none of which has a tail light on any reading.
+        //
+        // Keyed on `boxOnly` plus an explicit list rather than a per-car flag, so the six specials stay
+        // covered automatically and the racers read as the deliberate group they are.
+        const NO_BRAKE_LIGHT_KEYS = ['tank', 'kart', 'tractor2', 'drift', 'f1', 'f3', 'indy', 'formula'];
+        function carHasBrakeLights(car) {
+            return !car.boxOnly && !NO_BRAKE_LIGHT_KEYS.includes(car.key);
         }
         function getSelectedCar() {
             return GARAGE_CARS.find(c => c.key === selectedCarKey) || GARAGE_CARS[0];
@@ -8736,7 +8758,7 @@
                 }
 
                 // brake lights, per direct user feedback ("back lights when braking/going backwards"). `vVelocity > 0` means moving DOWN the screen — this game's Down key doubles as both brake and reverse, so "moving backward" is the practical signal for "braking" here, not a separate brake input.
-                if (this.vVelocity > 0) {
+                if (this.vVelocity > 0 && carHasBrakeLights(getSelectedCar())) {
                     const car = selectedCarKey === 'stock' ? null : getSelectedCar();
                     const nativeH = car ? car.h : 24;
                     // direct bug report ("shadow having back lights instead of the car when braking [while jumping]"): this used to always draw at `this.y`, the GROUND position — fine while grounded, but the car itself is lifted by `flightHeight` during a jump via an INNER `ctx.translate(0, -flightHeight)` done AFTER drawScaledVehicle's own CAR_SCALE transform is already applied (see the isJumping branch above) — so braking mid-air put the lights back down at the shadow instead of following the car up.
@@ -10686,42 +10708,48 @@
             for (const pt of snailTrail) pt.y += currentSpeed;
             snailTrail = snailTrail.filter(pt => pt.y < canvas.height + 4);
             if (t > 0) {
-                snailTrail.unshift({ x: drawX + player.width / 2, y: drawY + player.height - 1, born: t });
+                snailTrail.unshift({ x: drawX + player.width / 2, y: drawY + player.height - 1 });
                 if (snailTrail.length > SNAIL_TRAIL_MAX) snailTrail.length = SNAIL_TRAIL_MAX;
             } else if (snailTrail.length) {
                 snailTrail.pop();   // slowing down reels the trail in rather than cutting it off
             }
-            for (let i = snailTrail.length - 1; i >= 0; i--) {
-                const pt = snailTrail[i];
-                const age = i / SNAIL_TRAIL_MAX;              // 0 at the snail, 1 at the far end
-                const fade = (1 - age) * (0.45 + pt.born * 0.55);
-                if (fade <= 0.03) continue;
-                const px = Math.round(pt.x), py = Math.round(pt.y);
-                const w = Math.max(1, Math.round((1 - age) * 5));
-                ctx.fillStyle = rgba(neon.deep, fade * 0.22);
-                ctx.fillRect(px - w - 2, py, w * 2 + 4, 1);
-                ctx.fillStyle = rgba(neon.mid, fade * 0.45);
-                ctx.fillRect(px - w, py, w * 2, 1);
-                if (age < 0.35) {
-                    ctx.fillStyle = rgba(neon.core, fade * 0.55 * (1 - age / 0.35));
-                    ctx.fillRect(px - 1, py, 2, 1);
+            if (snailTrail.length < 2) return;
+
+            // Batch 460, two direct reports. FIRST: it "renders really weird" - as a ladder of separate
+            // bars. A point is laid once per frame and then moves `currentSpeed` px, so at speed the
+            // points are 5-7px apart and each drew a single 1px-tall bar, leaving the gap between them
+            // empty. The fix is to stop drawing POINTS and start drawing the SEGMENTS between them,
+            // filling every row from one point to the next and interpolating x across it.
+            //
+            // SECOND: the colour was "way way too weak... like a shot from a Star Wars blaster". It was
+            // painting at 0.22/0.45/0.55 alpha in source-over, which can only ever darken toward the
+            // road. Real light adds, so the trail composites with 'lighter' now - overlapping layers
+            // build toward white exactly the way a blaster bolt or a neon tube does, and the core is
+            // drawn at full alpha. That is also why the bloom can be wide without turning into a smear.
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (let i = 0; i < snailTrail.length - 1; i++) {
+                const a = snailTrail[i], b = snailTrail[i + 1];
+                const age = i / SNAIL_TRAIL_MAX;
+                const fade = Math.pow(1 - age, 1.5) * (0.35 + t * 0.65);
+                if (fade <= 0.02) continue;
+                const w = Math.max(1, Math.round((1 - age) * 4));
+                const y0 = Math.round(a.y), y1 = Math.round(b.y);
+                const rows = Math.max(1, y1 - y0);
+                for (let k = 0; k < rows; k++) {
+                    const f = k / rows;
+                    const x = Math.round(a.x + (b.x - a.x) * f);
+                    const y = y0 + k;
+                    if (y < 0 || y >= canvas.height) continue;
+                    ctx.fillStyle = rgba(neon.deep, fade * 0.55);
+                    ctx.fillRect(x - w - 2, y, w * 2 + 5, 1);
+                    ctx.fillStyle = rgba(neon.mid, fade * 0.9);
+                    ctx.fillRect(x - w, y, w * 2 + 1, 1);
+                    ctx.fillStyle = rgba(neon.core, fade);
+                    ctx.fillRect(x - 1, y, 3, 1);
                 }
             }
-            // A soft halo stays on the snail itself - in the film the shell lights up as well as trailing.
-            // Kept deliberately faint now that the trail carries the effect; pinched row by row so it
-            // follows the sprite instead of boxing it.
-            if (t > 0) {
-                const pulse = 0.82 + 0.18 * Math.sin(performance.now() / 110);
-                const hh = player.height / 2, cy = drawY + hh;
-                for (let r = 2; r >= 1; r--) {
-                    ctx.fillStyle = rgba(neon.mid, (0.06 + t * 0.12) * pulse / r);
-                    for (let y = drawY - r; y < drawY + player.height + r; y++) {
-                        const dy = Math.min(1, Math.abs(y - cy) / (hh + r));
-                        const pinch = Math.round((1 - Math.sqrt(1 - dy * dy)) * (player.width / 2));
-                        ctx.fillRect(drawX - r + pinch, y, player.width + r * 2 - pinch * 2, 1);
-                    }
-                }
-            }
+            ctx.restore();
         }
 
         // ---------- Ambient road air (Batch 446, rebuilt in Batch 449) ----------
@@ -13172,7 +13200,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.238.1';
+        const GAME_VERSION = '2.239.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
