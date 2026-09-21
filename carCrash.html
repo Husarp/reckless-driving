@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.3</span></div>
                 </div>
             </div>
         </div>
@@ -12637,15 +12637,18 @@
                             playSound('ram');
                             continue;
                         } else if (config.ability === 'launch' && player.energy >= 100 - 1e-6
-                                   && !v.wrecked && v.type !== 'obstacle' && isFrontHit(player, v)) {
+                                   && !v.wrecked && v.type !== 'obstacle') {
                             // BUMPER CAR. Direct spec: when the bar is full, whatever you hit "goes flying...
                             // send it to the stars"; then it recharges over a few seconds and until it does,
-                            // hitting something just kills you like any other car. Three gates make that true:
-                            // the bar must be FULL (not merely non-empty, so it is genuinely all-or-nothing),
-                            // it must be a front hit (reversing into a car is not bumping it), and an
-                            // ambulance is exempt for the same reason ramming spares it - instant death is
-                            // the ambulance's whole identity. If any gate fails, control falls through to the
-                            // ordinary crash branches below, which is exactly the "then you just crash" ask.
+                            // hitting something just kills you like any other car.
+                            //
+                            // Batch 451, direct correction: the isFrontHit() gate is GONE - "the bumper car
+                            // should be able to ram vehicles with all of its sides". A real bumper car is
+                            // ringed in rubber, so restricting it to the nose was the wrong instinct.
+                            // Two gates remain: the bar must be FULL (genuinely all-or-nothing, not merely
+                            // charged), and ambulances are exempt for the same reason ramming spares them -
+                            // instant death is the ambulance's whole identity. If either fails, control falls
+                            // through to the ordinary crash branches, which is the "then you just crash" ask.
                             v.launched = true;
                             v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (2.2 + Math.random() * 1.6);
                             v.launchVy = -(6 + Math.random() * 3);
@@ -12683,7 +12686,11 @@
                     // "close call" bonus: gap between the two hitboxes is real but tiny, with no actual overlap (checkCollision already handled overlap above — a crash, a jump-over, or a ram, never a close call in the same frame).
                     //
                     // real bug, per direct follow-up feedback: a car changing lanes INTO the player could hand out this bonus right before actually crashing into them, since gradual lateral motion always passes THROUGH the close gap window on its way to an actual overlap — the instant "gap<=threshold" check had no way to tell "about to survive this" from "about to crash." Fixed by deferring credit: the first frame the gap drops to CLOSE_CALL_GAP just marks `v.wasEverClose`, nothing is awarded yet.
-                    if (!v.crushed && !v.closeCallCredited && player.abilityState !== 'jumping' && player.vVelocity <= 0 && !checkCollision(playerCollisionRect(), v)) {
+                    // Batch 451, direct request: no close calls for the BUMPER CAR against a vehicle it has
+                    // already launched. Now that it bumps with every side, a launched car spends its first
+                    // frames sliding away through exactly the "real gap, no overlap" band a close call looks
+                    // for - so it paid you a near-miss bonus for a hit you had just been rewarded for.
+                    if (!v.crushed && !v.launched && !v.closeCallCredited && player.abilityState !== 'jumping' && player.vVelocity <= 0 && !checkCollision(playerCollisionRect(), v)) {
                         const gap = rectGap(player, v);
                         if (gap <= closeCallGapNow()) {
                             // color captured HERE, at the closest moment, not later when credit actually fires (which can be several frames after, once the gap grows back out) — the color should reflect how fast the player was going during the actual near-miss, not whatever speed they happen to be at once it's confirmed survived.
@@ -13011,7 +13018,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.234.2';
+        const GAME_VERSION = '2.234.3';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
