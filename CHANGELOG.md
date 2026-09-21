@@ -6,6 +6,33 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.231.0 — 2026-09-21 13:10: Batch 445 — Six more joke vehicles from "Reckless Vehicles v4.dc.html"
+
+GRAND PIANO, GIANT SNAIL, SHIP, BUMPER CAR, BATHTUB and GIANT DONUT. All `boxOnly`, bringing the roster to **61 cars — 52 buyable, 9 box-exclusive**. COLLECTOR's tiers follow automatically: diamond 52, amethyst 61.
+
+**Transcribed, not redrawn.** Unlike bicycle/fish/couch, the doc ships exact per-pixel SVG paths, so every run was parsed straight out of it — including the black outline, which is why these do not call `sil53()`. The outline is already part of the art.
+
+They are stored as run data rather than ~1,700 `fillRect` lines. The doc's paths are all 1px-tall runs; merging vertically adjacent identical runs into taller rects first took **1,739 runs down to 935**, which matters in a single-file game that is already ~1MB.
+
+**One fixed look each, no repainting** — the direct instruction, "similar to the tank". `carCanRepaint()` used to be a hardcoded `key !== 'tank'` check; it now honours a `noPaint` flag. This goes further than the Tank does: these six draw functions **take no colour argument at all**, so the lock and the art agree rather than the UI merely hiding a choice that the sprite would still have honoured.
+
+**Speeds** — four are direct user specs, and the joke only works if the absurd thing is genuinely quick, so none of them is "realistically" slow:
+
+| | km/h | source |
+|---|---|---|
+| GIANT SNAIL | 250 | direct spec — joint-fastest in the game, which is the whole gag |
+| BATHTUB | 210 | direct spec, explicitly faster than the piano and the donut |
+| BUMPER CAR | 200 | direct spec |
+| SHIP | 180 | direct spec |
+| GIANT DONUT | 175 | my call — it is a wheel, so rolling fast is the one thing it is shaped to do |
+| GRAND PIANO | 150 | my call — a concert grand is ~400kg of cast iron, the slowest of the six |
+
+**Multipliers needed no new numbers.** The instruction was "smaller → smaller, long or big hitbox → higher", which is exactly what `vehicleMultiplierBonus()` already computes from `h` and `hitboxW` — and those are the doc's own viewBox, so there is no second figure to keep in sync. Measured: DONUT and BUMPER CAR ×1.03, BATHTUB ×1.11, PIANO ×1.12, SNAIL ×1.16, **SHIP ×1.88**.
+
+**Worth flagging: the SHIP is now the highest multiplier in the game**, past Road Train's ×1.79 and past the ×1.82 that lane × mode can reach between them. Batch 440 deliberately kept the best car just *under* that ceiling so no single lever outweighed the other two combined. A 60px-long box-exclusive breaks that rule by 3% — knowingly, because it follows the instruction that longer vehicles earn more, and because it cannot be bought at any price. Say if it should be trimmed to ×1.79 instead.
+
+Verified: all six render correctly against the doc, none appears in `GARAGE_NPC_RARITY` (box-exclusives never spawn as traffic), none can be repainted while Stock still can, Extra Boxes stay available and still hide themselves once all 61 cars and every gift paint are owned, and both the owned and undiscovered Garage tiles build without a paint argument.
+
 ## 2.230.0 — 2026-09-21 02:05: Batch 444 — Three achievements: FULL WARDROBE, FULL CIRCLE, ACT OF GOD
 
 **FULL WARDROBE** (amethyst, one-time) — own every paint colour *and* every booster. The completionist layer over FULL PALETTE, which only ever counted paints. `isFlameUnlocked()` covers both gates a booster can have, the level one and the bought one, so the check is one expression rather than a special case per booster.
