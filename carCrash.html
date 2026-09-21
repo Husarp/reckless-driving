@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.1</span></div>
                 </div>
             </div>
         </div>
@@ -10584,64 +10584,70 @@
             drawManholes(gctx, ov, chgt, roadL, roadW, lanes); // Batch 287 — on top of the finished road surface, like a real cover set into it
         }
 
-        // ---------- Ambient road air (Batch 446) ----------
-        // Ported from "_archive/Shield Bump Storyboardv2.dc.html", section 9: AMBIENT ROAD AIR, a 32x32
-        // tile of 15 particles - single motes and 2-4px streaks, about a third of them warm dust rather
-        // than white air - that wraps on all four edges so it can be repeated across the road without
-        // seams. The doc's own `rng(21)` and its alpha quantiser come across unchanged, so the particles
-        // land where the doc says they land rather than somewhere similar.
+        // ---------- Ambient road air (Batch 446, rebuilt in Batch 449) ----------
+        // Direct bug report: "they go in single lines, they should go random", and "at 50 kilometers this
+        // air was spinning so much it looked like crazy". Both were real and both were mine:
         //
-        // What is NOT from the doc: the doc plays this as a fixed 4-frame loop and says only "drop the
-        // alpha or the particle count on slower roads". The direct request was that speed drives it -
-        // "the faster you go, the more particles, and maybe the faster they go" - so count, alpha and
-        // scroll rate are all functions of speedRatio01() here. Below ~35% of the car's top speed
-        // nothing draws at all: at a crawl, visible air would read as drizzle, not speed.
-        const AIR_TILE = 32;
-        const AIR_MAX_PARTICLES = 15;   // the doc's own count, reached only at top speed
-        function airRng(seed) {
-            let s = seed * 7919 + 13;
-            return () => ((s = (s * 1664525 + 1013904223) & 0x7fffffff) / 0x7fffffff);
+        //   1. LINES. Batch 446 drew the doc's 32x32 tile repeatedly across the road, re-seeding the same
+        //      rng(21) for every tile. Identical seed means identical x positions, so all ~9 tiles across
+        //      the road drew their particles in the same 15 columns - reading as vertical stripes, not air.
+        //   2. SPINNING. It advanced the particles by `roadOffset`, which is a WRAPPING value, not a
+        //      per-frame delta. Every time it wrapped, every particle teleported. Multiplying it by a
+        //      speed factor and taking % 32 turned that into constant jitter, worst at low speed where
+        //      there was no real motion to hide it.
+        //
+        // So the tile is gone. Particles are now a single persistent field over the road: each one has its
+        // own x, its own length and its own speed multiplier, and advances by the REAL per-frame distance.
+        // Nothing repeats and nothing teleports.
+        const AIR_MAX_PARTICLES = 90;
+        const AIR_MIN_KMH = 120;   // direct spec: no air at all below this, "even if you lose the ability"
+        const AIR_FULL_KMH = 200;  // fully dense from here up, so a 250km/h car does not white out the road
+        let airField = null, airFieldW = 0, airFieldH = 0;
+        function buildAirField() {
+            airField = [];
+            for (let i = 0; i < AIR_MAX_PARTICLES; i++) {
+                airField.push({
+                    x: ROAD_BORDER_LEFT + Math.random() * ROAD_WIDTH,
+                    y: Math.random() * canvas.height,
+                    len: Math.random() < 0.45 ? 1 : 2 + Math.floor(Math.random() * 3),
+                    a: 0.16 + Math.random() * 0.5,
+                    dust: Math.random() < 0.3,          // the doc's own third-warm-dust mix
+                    spd: 0.8 + Math.random() * 0.7      // so they do not travel as one rigid sheet
+                });
+            }
+            airFieldW = ROAD_WIDTH; airFieldH = canvas.height;
         }
         function airAlpha(a) {
             const q = a >= 0.7 ? 0.72 : a >= 0.45 ? 0.46 : a >= 0.25 ? 0.26 : 0.14;
             return 'rgba(226,242,255,' + q + ')';
         }
-        // `boost` lets the ram ability push the air past what raw speed alone would give (see drawSbAir).
-        function drawAmbientAir(scroll, boost) {
-            const lift = boost || 0;
-            const power = Math.min(1, speedRatio01() + lift);
-            if (power < 0.35) return;
-            const t = (power - 0.35) / 0.65;                       // 0 at the threshold, 1 at full speed
+        // `boostKmh` is what the ram ability adds on top of real speed - it buys the visual impression of
+        // going faster without touching currentSpeed.
+        function drawAmbientAir(boostKmh) {
+            const kmh = speedToKmh(currentSpeed) + (boostKmh || 0);
+            if (kmh < AIR_MIN_KMH) return;
+            if (!airField || airFieldW !== ROAD_WIDTH || airFieldH !== canvas.height) buildAirField();
+            const t = Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH));
             const n = Math.max(1, Math.round(AIR_MAX_PARTICLES * t));
-            const fade = 0.35 + t * 0.65;
-            const step = scroll * (1.6 + t * 2.4);                 // faster road = the motes visibly hurry
-            const R = airRng(21);
-            const parts = [];
-            for (let i = 0; i < AIR_MAX_PARTICLES; i++) {
-                parts.push({ x: Math.floor(R() * AIR_TILE), y0: Math.floor(R() * AIR_TILE),
-                             len: R() < 0.45 ? 1 : 2 + Math.floor(R() * 3),
-                             a: 0.16 + R() * 0.5, dust: R() < 0.3 });
-            }
-            // Only the road surface, never the verges - air over grass would read as rain.
-            const x0 = ROAD_BORDER_LEFT, x1 = ROAD_BORDER_LEFT + ROAD_WIDTH;
-            for (let tx = x0; tx < x1; tx += AIR_TILE) {
-                for (let ty = -AIR_TILE; ty < canvas.height; ty += AIR_TILE) {
-                    for (let i = 0; i < n; i++) {
-                        const p = parts[i];
-                        const px = tx + p.x;
-                        if (px < x0 || px >= x1) continue;
-                        const head = (((p.y0 + step) % AIR_TILE) + AIR_TILE) % AIR_TILE;
-                        for (let k = 0; k < p.len; k++) {
-                            const y = ty + ((head - k) % AIR_TILE + AIR_TILE) % AIR_TILE;
-                            if (y < 0 || y >= canvas.height) continue;
-                            const decay = p.len === 1 ? 0 : k / p.len;
-                            const a = p.a * fade;
-                            ctx.fillStyle = p.dust
-                                ? 'rgba(139,127,106,' + (a * (1 - decay * 0.6)).toFixed(2) + ')'
-                                : airAlpha(a * (1 - decay * 0.7));
-                            ctx.fillRect(px, y, 1, 1);
-                        }
-                    }
+            const fade = 0.3 + t * 0.7;
+            // Real distance travelled this frame, so the streaks keep pace with the road instead of
+            // drifting at some rate of their own. The extra multiplier is what makes air read as air:
+            // it is the stuff rushing past you, not the tarmac.
+            const advance = currentSpeed * (1.5 + t * 1.5);
+            for (let i = 0; i < n; i++) {
+                const p = airField[i];
+                p.y += advance * p.spd;
+                if (p.y > canvas.height) { p.y -= canvas.height + p.len; p.x = ROAD_BORDER_LEFT + Math.random() * ROAD_WIDTH; }
+                const px = Math.floor(p.x);
+                for (let k = 0; k < p.len; k++) {
+                    const y = Math.floor(p.y) - k;
+                    if (y < 0 || y >= canvas.height) continue;
+                    const decay = p.len === 1 ? 0 : k / p.len;
+                    const a = p.a * fade;
+                    ctx.fillStyle = p.dust
+                        ? 'rgba(139,127,106,' + (a * (1 - decay * 0.6)).toFixed(2) + ')'
+                        : airAlpha(a * (1 - decay * 0.7));
+                    ctx.fillRect(px, y, 1, 1);
                 }
             }
         }
@@ -12320,7 +12326,7 @@
             // Batch 446 — ramming pushes the air past what raw speed alone would give. Direct request:
             // the particles should fire "when using the RAM ability" too, because that is what sells it
             // as speed rather than as a button that turns a shield on.
-            drawAmbientAir(roadOffset, (player && player.abilityState === 'ramming') ? 0.45 : 0);
+            drawAmbientAir((player && player.abilityState === 'ramming') ? 45 : 0);
 
             if (gameActive) {
                 // Pending ambulance warnings: draw flashing danger zone, spawn when countdown ends
@@ -12996,7 +13002,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.234.0';
+        const GAME_VERSION = '2.234.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
