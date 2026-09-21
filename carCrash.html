@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.2</span></div>
                 </div>
             </div>
         </div>
@@ -6026,6 +6026,15 @@
             allTimeStats.totalCoins -= car.unlock;
             allTimeStats.ownedCars.push(car.key);
             saveAllTimeStats();
+        }
+        // One place that answers "what can this car do", so the hover card, the Garage tile and anything
+        // added later cannot drift apart. Mirrors the same precedence launchGame() uses to set
+        // config.ability, deliberately: if these two ever disagree, the card lies about the car.
+        function carAbilityLabel(car) {
+            if (car.launchAbility) return 'BUMPER LAUNCH';
+            if (car.ramAbility) return car.key === 'tank' ? 'TANK SHOOT' : 'SHIELD BUMP';
+            if (car.noAbility) return 'NONE';
+            return 'JUMP';
         }
         function getSelectedCar() {
             return GARAGE_CARS.find(c => c.key === selectedCarKey) || GARAGE_CARS[0];
@@ -13002,7 +13011,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.234.1';
+        const GAME_VERSION = '2.234.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14095,13 +14104,12 @@
             ghcRarity.textContent = rarity.label;
             ghcRarity.style.color = rarity.color;
             document.getElementById('ghcName').textContent = car.label;
+            // Batch 450, direct request: EVERY car states its ability, not just the ram ones. Hiding the
+            // row for jump cars made jump look like "no ability" rather than the default it is, and left
+            // the ability-free joke vehicles saying nothing at all when that is their whole point.
             const ghcAbility = document.getElementById('ghcAbility');
-            if (car.ramAbility) {
-                ghcAbility.style.display = '';
-                ghcAbility.textContent = car.key === 'tank' ? 'ABILITY: TANK SHOOT' : 'ABILITY: SHIELD BUMP';
-            } else {
-                ghcAbility.style.display = 'none';
-            }
+            ghcAbility.style.display = '';
+            ghcAbility.textContent = 'ABILITY: ' + carAbilityLabel(car);
 
             const cs = allTimeStats.carStats[car.key];
             const runs = cs ? cs.runs : 0;

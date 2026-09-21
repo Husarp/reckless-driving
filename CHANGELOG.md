@@ -6,6 +6,14 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.234.2 — 2026-09-21 18:25: Batch 450 — Every car states its ability on the hover card
+
+Direct request. The row used to appear only for ram cars, which made JUMP look like "no ability" rather than the default it is, and left the ability-free joke vehicles saying nothing at all — when having none is their entire identity.
+
+Every car now shows one: **JUMP**, **SHIELD BUMP**, **TANK SHOOT**, **BUMPER LAUNCH**, or **NONE**.
+
+It reads from a single `carAbilityLabel()` that mirrors the exact precedence `launchGame()` uses to set `config.ability`. That matters more than it looks: if the label and the config ever disagreed, the card would be lying about the car. Verified they agree for all five cases — `stock: jump/JUMP`, `tank: ram/TANK SHOOT`, `roadtrain: ram/SHIELD BUMP`, `ship: ram/SHIELD BUMP`, `bumper: launch/BUMPER LAUNCH`, `snail: none/NONE`.
+
 ## 2.234.1 — 2026-09-21 18:10: Batch 449 — Air particles rebuilt; both reported faults were real
 
 Direct report: "they go in single lines, they should go random", and "at 50 kilometers this air was spinning so much it looked like crazy". Both were mine, and both had a specific cause:
