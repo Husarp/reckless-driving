@@ -6,6 +6,20 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.243.1 — 2026-09-22 07:10: Batch 470 — Sprites were blitted onto fractional pixels; spin overshoot
+
+**Every sprite was landing between pixels.** The buffer pad was 22/44, and `22 x 1.3 = 28.6`, `44 x 1.3 = 57.2` — both fractional. So the blit destination was always fractional, which does two bad things at once: it forces the resampler to interpolate across the *whole* sprite, blurring far beyond what the 1.3 ratio alone costs, and it shifts the art sideways by the fractional part.
+
+That is the off-centre car. Measured on the BUMPER CAR: drawn **1px right** of its lane centre and **25px wide where 18 x 1.3 = 23.4** — smeared 1.6px wider than it actually is. It was not drawn wrong and it was not a separate issue; it was this.
+
+`CAR_SCALE` is 1.3 = 13/10, so a value only survives it whole when it is a multiple of 10. Every dimension follows that rule now: pad 20 -> 26, 40 -> 52, buffer 70 -> 91, 150 -> 195. The un-rotated path also blits at a straight integer destination rather than going through a translate chain that ended on `-width / 2` — fractional for any odd width, 23 giving -11.5. **Re-measured: off by 0.0px.**
+
+**The spin did extra turns after it had already landed.** Direct report. The target was recomputed with `Math.ceil` *every frame*, so the moment an easing step carried the angle even slightly past it, `ceil` jumped to the next multiple of 360 and the settle restarted a full turn further on — repeatedly. The target is locked once, on the frame the coast begins, and the approach is clamped so it cannot overshoot. Verified across 1, 4 and 12 clicks: **0 overshoots**, landing on exactly 2, 6 and 6 turns.
+
+**The blur itself is NOT fixed, and cannot be at this scale.** Measured on one sprite, counting distinct colours: the Garage draws it in **10**; gameplay at 1.3x smoothed is **367**; at 1.3x nearest it is 10 but the shape deforms (22 of 32 rows single-height, 10 double); at an integer 2x or 3x it is **10 with the shape intact**.
+
+So crispness and correct shape are only available together at an integer scale. Everything else is choosing which one to lose. See PLAN.md.
+
 ## 2.243.0 — 2026-09-22 06:00: Batch 469 — Sprite distortion (my regression), fullscreen panels, trail colour, scrollbars
 
 **The sprites were being deformed, and it was Batch 461's doing.** Direct report: the donut is not round, the piano's black keys are misplaced, "black lines added", shapes changed — in gameplay but never in the Garage, and on NPCs too.
