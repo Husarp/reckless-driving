@@ -626,9 +626,6 @@
         .car-tile-mystery { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Silkscreen', monospace; font-size: 20px; color: var(--c-text-dimmer); }
         .car-tile-undiscovered { cursor: default; }
         /* 235 — box-exclusive car, not yet won: the uploaded "Locked Car Icons.dc.html" doc's "1c" (SHUTTER) treatment. */
-        .car-tile.car-tile-crate-locked { padding: 0; }
-        .car-tile-crate-locked-box { flex: 1; width: 100%; position: relative; background: var(--c-card); box-sizing: border-box; }
-        .car-tile-crate-shutter { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(23,28,39,.65) 0 4px, rgba(23,28,39,.15) 4px 6px); display: flex; align-items: center; justify-content: center; }
         .car-tile.equipped { border-color: var(--c-mint); }
         .car-tile.owned { border-color: #8a93ad; } /* owned, not equipped — "ready to go," a lighter grey than the default border so it reads as a deliberate 3rd state, not "no state" */
         /* replaces the old .buyable (amber)/.locked (dimmed default border) split. */
@@ -1775,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.233.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.0</span></div>
                 </div>
             </div>
         </div>
@@ -5987,7 +5984,13 @@
             common:    { label: 'COMMON',    color: '#9aa4b5' },
             rare:      { label: 'RARE',      color: '#4d9fff' },
             epic:      { label: 'EPIC',      color: '#c060ff' },
-            legendary: { label: 'LEGENDARY', color: '#ffb020' }
+            legendary: { label: 'LEGENDARY', color: '#ffb020' },
+            // Batch 448 — not a rarity a car can carry, and deliberately not stored on any car: it is
+            // the header for the box-exclusive section, which is grouped by the `boxOnly` flag that
+            // already exists. Those cars keep their real `rarity` because that is what sets their
+            // duplicate-refund rate and their DROP CHANCES row, so the per-card badge still reads
+            // RARE/EPIC/LEGENDARY - the section says how you get them, the badge says how likely it is.
+            special:   { label: 'SPECIAL',   color: '#ff5fa2' }
         };
 
         // Garage cars can spawn as ordinary NPC traffic too, per direct feedback ("why don't the game use all of these cars?").
@@ -12993,7 +12996,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.233.0';
+        const GAME_VERSION = '2.234.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -13977,29 +13980,16 @@
             // (This also resolves a real inconsistency found in the Batch 405 audit: the old copy
             // claimed these cars never appear in traffic, but GARAGE_NPC_RARITY — the map written to
             // exclude them — was never actually read, so they always did spawn.)
-            if (car.boxOnly && !isCarOwned(car) && !isCarDiscovered(car)) {
-                const tile = document.createElement('div');
-                tile.className = 'car-tile not-owned car-tile-crate-locked';
-                tile.innerHTML = `<div class="car-tile-crate-locked-box">
-                    <div class="car-tile-crate-shutter">
-                        <svg width="40" height="40" viewBox="0 0 16 16"><rect x="4" y="2" width="8" height="1" fill="#c9762a"></rect><rect x="2" y="3" width="12" height="4" fill="#c9762a"></rect><rect x="3" y="4" width="10" height="2" fill="#e89a45"></rect><rect x="2" y="7" width="12" height="1" fill="#12161f"></rect><rect x="2" y="8" width="12" height="6" fill="#a75f22"></rect><rect x="2" y="13" width="12" height="1" fill="#7a4318"></rect><rect x="4" y="8" width="1" height="6" fill="#f5b32a"></rect><rect x="11" y="8" width="1" height="6" fill="#f5b32a"></rect><rect x="2" y="3" width="1" height="4" fill="#f5b32a"></rect><rect x="13" y="3" width="1" height="4" fill="#f5b32a"></rect><rect x="7" y="6" width="2" height="4" fill="#f5b32a"></rect><rect x="7" y="8" width="2" height="1" fill="#12161f"></rect></svg>
-                    </div>
-                </div>`;
-                tile.addEventListener('click', () => {
-                    showConfirm(null, {
-                        title: '???',
-                        text: 'A sealed crate. Spot this car out on the road to find out what it is.',
-                        okLabel: 'OK',
-                        danger: false
-                    });
-                });
-                return tile;
-            }
             // an undiscovered car (never spotted as NPC traffic — see isCarDiscovered()) shows a blank "???" card instead of its real name/sprite/price, and isn't clickable at all — nothing to buy or preview yet.
             if (!isCarDiscovered(car)) {
                 const mysteryTile = document.createElement('div');
                 mysteryTile.className = 'car-tile not-owned car-tile-undiscovered';
-                mysteryTile.title = 'Find this car on the road to unlock it';
+                // Batch 448 — box-exclusives reach this tile now that their crate art is gone, and the
+                // old copy would have been a straight lie for them: boxOnly cars are excluded from NPC
+                // traffic, so no amount of driving will ever reveal one.
+                mysteryTile.title = car.boxOnly
+                    ? 'Win this one from an Extra Box to find out what it is'
+                    : 'Find this car on the road to unlock it';
                 mysteryTile.innerHTML = '<div class="car-tile-mystery">???</div>';
                 return mysteryTile;
             }
@@ -14163,6 +14153,7 @@
 
             const boxLast = (a, b) => (!!a.boxOnly - !!b.boxOnly);
             const byPrice = (a, b) => a.unlock - b.unlock;
+            const byName = (a, b) => a.label.localeCompare(b.label);
             // Batch 437 - owned cars NO LONGER float to the front of their rarity. Direct report: a
             // car jumping to the top the moment you buy it is disorienting, because the position you
             // just learned for it changes. Price order is stable, and the roster is small enough to
@@ -14194,15 +14185,24 @@
                 // header, so the list reads as a collection rather than a mostly-blank grid.
                 grid.appendChild(buildCarTile(GARAGE_CARS.find(c => c.key === 'stock')));
                 ['common', 'rare', 'epic', 'legendary'].forEach(tier => {
-                    const owned = GARAGE_CARS.filter(c => c.rarity === tier && isCarOwned(c));
-                    if (owned.length) addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, owned, (a, b) => boxLast(a, b) || byPrice(a, b));
+                    const owned = GARAGE_CARS.filter(c => c.rarity === tier && !c.boxOnly && isCarOwned(c));
+                    if (owned.length) addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, owned, byPrice);
                 });
+                const ownedSpecial = GARAGE_CARS.filter(c => c.boxOnly && isCarOwned(c));
+                if (ownedSpecial.length) addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, ownedSpecial, byName);
             } else {
                 grid.appendChild(buildCarTile(GARAGE_CARS.find(c => c.key === 'stock')));
                 // TIER (default) — grouped into rarity sections (colored header per tier), per direct feedback ("there is a common... and all the common cars below it, then there is rare, etc... kind of sorted, but not that much" — Batch 104).
+                // Batch 448, direct correction: the box-exclusives are their own section AFTER legendary,
+                // not scattered through the rarity tiers by the rarity they happen to carry. `boxLast`
+                // is gone from these comparators because there is no longer a box-exclusive inside any
+                // rarity section for it to push to the end.
                 ['common', 'rare', 'epic', 'legendary'].forEach(tier => {
-                    addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, GARAGE_CARS.filter(c => c.rarity === tier), (a, b) => boxLast(a, b) || byPrice(a, b));
+                    addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, GARAGE_CARS.filter(c => c.rarity === tier && !c.boxOnly), byPrice);
                 });
+                // Sorted by name, not price: a box-exclusive has no price, so byPrice would compare
+                // undefined against undefined and leave them in whatever order the roster happens to use.
+                addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, GARAGE_CARS.filter(c => c.boxOnly), byName);
             }
 
             document.querySelectorAll('#garageSortTabs [data-garage-sort]').forEach(btn => {
