@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.234.3</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.235.0</span></div>
                 </div>
             </div>
         </div>
@@ -2053,6 +2053,7 @@
                     <span class="ghc-state" id="ghcState"></span>
                 </div>
                 <div class="ghc-ability" id="ghcAbility" style="display:none"></div>
+                <div class="ghc-ability" id="ghcCoinBonus" style="display:none;color:var(--c-amber)"></div>
                 <div class="ghc-divider"></div>
                 <div class="ghc-stats">
                     <div class="ghc-stat"><span class="ghc-stat-label">RUNS</span><span class="ghc-stat-val" id="ghcRuns"></span></div>
@@ -5970,12 +5971,12 @@
             // deliberately kept the best car just UNDER that ceiling so no single lever outweighed the
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
-            { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'legendary', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'legendary', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 },
-            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'legendary', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true },
-            { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'epic',      boxOnly: true, noPaint: true, launchAbility: true },
-            { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'epic',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
-            { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'rare',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
+            { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 },
+            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true },
+            { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
+            { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
+            { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
         ];
         // direct request: prices researched against real-world new-vehicle costs per category (average of the researched range, not the extreme), replacing the old ×50 scale-of-arbitrary-numbers approach (Batch 332/334, CAR_PRICE_SCALE) entirely — these are now the final absolute values, not a base to be multiplied further.
 
@@ -6411,7 +6412,7 @@
         }
 
         // car-duplicate compensation, replacing Batch 160's `unlock*0.5` with the rarity-tiered flat amounts finalized in chat ("the common one is 1000, the rare is 2500, epic is 5000, legendary is 10000") — priced well above a common car's normal shop value on purpose (a box-locked car needs to feel worth chasing even as a "consolation," not literally match market price).
-        const CAR_DUPLICATE_BASE = { common: 50000, rare: 125000, epic: 250000, legendary: 500000 }; // Batch 332 — economy rescale, ×50 (was 1000/2500/5000/10000)
+        const CAR_DUPLICATE_BASE = { common: 50000, rare: 125000, epic: 250000, legendary: 500000, special: 750000 }; // Batch 332 — economy rescale, ×50 (was 1000/2500/5000/10000)
         function carDuplicateCompensation(car) {
             return CAR_DUPLICATE_BASE[car.rarity] || CAR_DUPLICATE_BASE.common;
         }
@@ -6476,6 +6477,9 @@
                 const discoveredPool = pool.filter(c => isCarDiscovered(c) || c.boxOnly);
                 if (discoveredPool.length) pool = discoveredPool;
             }
+            // Batch 452 — every box-exclusive is rarity 'special' now, so this filter could only ever
+            // come back empty and fall through to the whole pool. Picking uniformly says that outright
+            // instead of leaving a weighting step that silently does nothing.
             const rarityPool = pool.filter(c => c.rarity === rarityPick);
             const picked = (rarityPool.length ? rarityPool : pool)[Math.floor(Math.random() * (rarityPool.length ? rarityPool.length : pool.length))];
             if (isCarOwned(picked)) {
@@ -13018,7 +13022,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.234.3';
+        const GAME_VERSION = '2.235.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14117,6 +14121,12 @@
             const ghcAbility = document.getElementById('ghcAbility');
             ghcAbility.style.display = '';
             ghcAbility.textContent = 'ABILITY: ' + carAbilityLabel(car);
+            // Batch 452, direct request: the coin bonus has to be visible somewhere, or the trade the
+            // ability-free vehicles make is invisible and they just look strictly worse than everything
+            // else. It sits directly under ABILITY: NONE, which is exactly what it is compensating for.
+            const ghcCoin = document.getElementById('ghcCoinBonus');
+            ghcCoin.style.display = car.coinBonus ? '' : 'none';
+            if (car.coinBonus) ghcCoin.textContent = 'COINS: +' + Math.round(car.coinBonus * 100) + '%';
 
             const cs = allTimeStats.carStats[car.key];
             const runs = cs ? cs.runs : 0;
