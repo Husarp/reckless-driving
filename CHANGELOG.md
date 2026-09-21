@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.233.0 — 2026-09-21 16:20: Batch 447 — BICYCLE, FISH and COUCH removed
+
+Direct decision. The three hand-drawn joke vehicles from Batch 443 are gone, leaving the roster at **58 cars — 52 buyable, 6 box-exclusive**, all six of those transcribed from the user's own v4 doc. COLLECTOR's amethyst tier follows automatically: 61 → 58.
+
+Removed their three `drawGarage*53` functions (~6,200 characters of sprite code), their roster entries, and reworded the two comments elsewhere that named them. Nothing else referenced them.
+
+**A save could still be carrying one.** They were winnable from Extra Boxes for four batches, and `ownedCars.length` is exactly what COLLECTOR counts — so a player who won a couch would have kept being counted one car closer to the 58-car amethyst tier than they really were, permanently, with no way to notice. A one-time prune now drops any owned-car key that no longer names a real car. It runs at startup, only writes when it actually removes something, and protects every future removal for free rather than being specific to these three.
+
+It has to sit below `GARAGE_CARS`, not next to the save load where it naturally belongs: `GARAGE_CARS` is a `const` declared much further down the file, so reading it from the load block is a temporal-dead-zone crash on boot. Caught before it shipped.
+
+Verified: 58 cars, the six box-exclusives intact, a save naming a deleted car prunes it on load, `getSelectedCar()` falls back to Stock if the *selected* car was one of them, and both the Garage grid and a launched run build without throwing.
+
 ## 2.232.0 — 2026-09-21 15:40: Batch 446 — Speed air particles, the SHIP's invisible ram, the BUMPER CAR's launch, and coin bonuses
 
 **Ambient road air.** Ported from `_archive/Shield Bump Storyboardv2.dc.html` section 9, AMBIENT ROAD AIR: a 32×32 tile of 15 particles — single motes and 2-4px streaks, about a third warm dust rather than white air — that wraps on all four edges so it repeats across the road without seams. The doc's own `rng(21)` and its alpha quantiser are unchanged, so the particles land where the doc put them.

@@ -1775,7 +1775,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.232.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.233.0</span></div>
                 </div>
             </div>
         </div>
@@ -5411,85 +5411,10 @@
         }
 
 
-        // --- Box-exclusive joke vehicles (bicycle / fish / couch) ---
-        // Deliberately NOT built on bodyShell53 / bodyShellW53. Those helpers draw a CAR: a shell with
-        // headlights at the top, taillights at the bottom and a windscreen. None of these three is a
-        // car, and inheriting a windscreen is exactly what would make them read as broken rather than
-        // as a joke. They use sil53() for the black outline every other vehicle gets, and nothing else.
-        // `c` is the player's chosen paint, same as every other sprite - so these repaint normally.
-        function drawGarageBicycle53(gctx, c) {
-            const w = 8, x = carLocalX53(w);
-            // The first pass gave the frame a 2px-wide tube, which left almost no painted surface and
-            // came out as a dark smudge at gameplay size. The frame is 4 wide through the middle now,
-            // so the player's paint is actually the thing you see; the wheels stay 2 wide.
-            sil53(gctx, [
-                [1, x + 3, 2], [2, x + 3, 2], [3, x + 3, 2], [4, x + 3, 2], [5, x + 3, 2],
-                [5, x, 1], [5, x + 7, 1], [6, x, 8], [7, x, 1], [7, x + 7, 1],
-                [7, x + 2, 4], [8, x + 2, 4], [9, x + 2, 4], [10, x + 1, 6], [11, x + 1, 6],
-                [12, x + 2, 4], [13, x + 2, 4], [14, x + 2, 4],
-                [15, x + 3, 2], [16, x + 3, 2], [17, x + 3, 2], [18, x + 3, 2],
-            ]);
-            gctx.fillStyle = '#1a1f28'; gctx.fillRect(x + 3, 1, 2, 5); gctx.fillRect(x + 3, 15, 2, 4);
-            gctx.fillStyle = '#4a4f58'; gctx.fillRect(x + 3, 2, 2, 1); gctx.fillRect(x + 3, 16, 2, 1);
-            gctx.fillStyle = c; gctx.fillRect(x + 2, 7, 4, 8);
-            gctx.fillStyle = shade(c, .32); gctx.fillRect(x + 2, 7, 1, 8);
-            gctx.fillStyle = shade(c, -.32); gctx.fillRect(x + 5, 7, 1, 8);
-            gctx.fillStyle = '#8a939b'; gctx.fillRect(x, 6, 8, 1);
-            gctx.fillStyle = '#2b2f36'; gctx.fillRect(x, 5, 1, 3); gctx.fillRect(x + 7, 5, 1, 3);
-            gctx.fillStyle = '#6d757c'; gctx.fillRect(x + 1, 10, 6, 2);
-            gctx.fillStyle = '#3a3e46'; gctx.fillRect(x + 3, 10, 2, 2);
-            gctx.fillStyle = '#2b2f36'; gctx.fillRect(x + 2, 13, 4, 2);
-            gctx.fillStyle = 'rgba(255,255,255,.18)'; gctx.fillRect(x + 2, 13, 4, 1);
-        }
-        function drawGarageFish53(gctx, c) {
-            const w = 12, x = carLocalX53(w);
-            const body = [[0, 5, 2], [1, 4, 4], [2, 3, 6], [3, 3, 6]];
-            for (let y = 4; y <= 12; y++) body.push([y, 2, 8]);
-            body.push([13, 3, 6], [14, 4, 4], [15, 5, 2], [16, 5, 2]);
-            body.push([17, 4, 4], [18, 3, 6], [19, 2, 8], [20, 1, 10], [21, 1, 10]);   // tail fan
-            [8, 9, 10].forEach(y => body.push([y, 0, 2], [y, 10, 2]));                 // side fins
-            sil53(gctx, body.map(s => [s[0], x + s[1], s[2]]));
-            body.forEach(s => { gctx.fillStyle = c; gctx.fillRect(x + s[1], s[0], s[2], 1); });
-            gctx.fillStyle = shade(c, .28);                                            // lit left flank
-            for (let y = 4; y <= 12; y++) gctx.fillRect(x + 2, y, 3, 1);
-            gctx.fillStyle = shade(c, -.3);                                            // shaded right flank
-            for (let y = 4; y <= 12; y++) gctx.fillRect(x + 7, y, 3, 1);
-            gctx.fillStyle = shade(c, -.2);                                            // fins + tail read darker
-            [8, 9, 10].forEach(y => { gctx.fillRect(x, y, 2, 1); gctx.fillRect(x + 10, y, 2, 1); });
-            [[17, 4, 4], [18, 3, 6], [19, 2, 8], [20, 1, 10], [21, 1, 10]].forEach(s => gctx.fillRect(x + s[1], s[0], s[2], 1));
-            gctx.fillStyle = '#1a1f28'; gctx.fillRect(x + 3, 3, 1, 1); gctx.fillRect(x + 8, 3, 1, 1);
-            gctx.fillStyle = '#fff'; gctx.fillRect(x + 3, 2, 1, 1); gctx.fillRect(x + 8, 2, 1, 1);
-            gctx.fillStyle = shade(c, -.4); gctx.fillRect(x + 2, 6, 1, 3); gctx.fillRect(x + 9, 6, 1, 3);
-            gctx.fillStyle = 'rgba(255,255,255,.25)'; gctx.fillRect(x + 4, 5, 4, 1);
-        }
-        function drawGarageCouch53(gctx, c) {
-            const w = 20, h = 18, x = carLocalX53(w), spans = [];
-            for (let y = 0; y < h; y++) spans.push([y, x, w]);
-            sil53(gctx, spans);
-            // A couch seen from above is read almost entirely through CONTRAST: the arms and back are
-            // solid mass, the seat is the lit hollow between them. The first attempt shaded the arms
-            // only -.12 against the seat and the whole thing came out as a striped box, so the arms and
-            // back are pushed much darker and given a lit top edge to sit proud of the cushions.
-            gctx.fillStyle = shade(c, .12); gctx.fillRect(x, 0, w, h);                  // seat base
-            gctx.fillStyle = shade(c, -.38); gctx.fillRect(x, 0, 4, h);                 // left arm
-            gctx.fillRect(x + 16, 0, 4, h);                                             // right arm
-            gctx.fillRect(x + 4, 12, 12, 6);                                            // backrest, at the REAR
-            gctx.fillStyle = shade(c, -.1);                                             // lit crown on arms + back
-            gctx.fillRect(x + 1, 1, 2, h - 2); gctx.fillRect(x + 17, 1, 2, h - 2); gctx.fillRect(x + 4, 13, 12, 4);
-            gctx.fillStyle = c; gctx.fillRect(x + 4, 1, 12, 11);                        // three cushions
-            gctx.fillStyle = shade(c, -.45);
-            gctx.fillRect(x + 8, 1, 1, 11); gctx.fillRect(x + 12, 1, 1, 11);            // seams between them
-            gctx.fillRect(x + 4, 11, 12, 1);                                            // seat meets back
-            gctx.fillStyle = 'rgba(255,255,255,.22)';                                   // cushion crowns
-            gctx.fillRect(x + 5, 2, 3, 1); gctx.fillRect(x + 9, 2, 3, 1); gctx.fillRect(x + 13, 2, 3, 1);
-            gctx.fillStyle = shade(c, .35); gctx.fillRect(x + 4, 0, 12, 1);             // front lip catches light
-            gctx.fillStyle = 'rgba(0,0,0,.25)'; gctx.fillRect(x + 4, 10, 12, 1);        // cushions sink at the back
-        }
-
         // --- 6 more joke vehicles, transcribed from "Reckless Vehicles v4.dc.html" (user's own upload) ---
-        // The doc ships exact per-pixel SVG paths, so these are NOT redrawn by hand the way bicycle/fish/
-        // couch were - every run is copied straight out of it, including the black outline, which is why
-        // they do not call sil53(): the outline is already part of the art.
+        // The doc ships exact per-pixel SVG paths, so these are copied out of it run by run rather than
+        // redrawn by hand - including the black outline, which is why they do not call sil53(): the
+        // outline is already part of the art.
         //
         // Stored as run data rather than thousands of fillRect lines. The doc's paths are all 1px-tall
         // runs; vertically adjacent identical runs are merged into taller rects first, which takes the
@@ -6023,20 +5948,15 @@
             { key: 'supersuv',    label: 'SUPER SUV',   h: 30, draw: drawBodySuperSUV53,    unlock: 300000,  rarity: 'epic' },
             { key: 'coachbuilt',  label: 'COACHBUILT',  h: 28, draw: drawBodyCoachbuilt53,  unlock: 3500000, rarity: 'legendary' },
 
-            // The 3 joke vehicles the box system has been waiting for - the user's own named examples.
-            // `boxOnly: true` is the whole switch: it excludes them from NPC traffic (so you can never
-            // spot one on the road), from canAffordCar() (never purchasable at any coin total), and
-            // from the "own every car" check that gates Extra Boxes - which is what turns the boxes
-            // back on now that every buyable car can be bought. No other code changed.
+            // Box-exclusive joke vehicles. `boxOnly: true` is the whole switch: it excludes a car from
+            // NPC traffic (so one can never be spotted on the road), from canAffordCar() at any coin
+            // total, and from the "own every car" check that gates Extra Boxes - which is what keeps
+            // the boxes worth buying now that every ordinary car can simply be bought.
             //
-            // `rarity: 'legendary'` does NOT make them spawn: the GARAGE_NPC_RARITY loop skips boxOnly
-            // outright. It only groups them in the Garage's legendary section and sets what a duplicate
-            // roll refunds - the top rate, which is right for the only prizes a box can still give.
-            // No `unlock` price: buildCarTile() shows LOCKED for boxOnly instead of a price, and the
-            // price sort already pushes them last, so a number here would never be displayed anyway.
-            { key: 'bicycle', label: 'BICYCLE', h: 20, hitboxW: 8,  draw: drawGarageBicycle53, rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.70 },
-            { key: 'fish',    label: 'FISH',    h: 22, hitboxW: 12, draw: drawGarageFish53,    rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.60 },
-            { key: 'couch',   label: 'COUCH',   h: 18, hitboxW: 20, draw: drawGarageCouch53,   rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.50 },
+            // `rarity` does NOT make them spawn: the GARAGE_NPC_RARITY loop skips boxOnly outright. It
+            // only groups them in the Garage and sets what a duplicate roll refunds. No `unlock` price
+            // either: buildCarTile() shows LOCKED for box-exclusives instead of a price, and the price
+            // sort already pushes them last, so a number here would never be displayed anyway.
 
             // 6 more from "Reckless Vehicles v4.dc.html". Rarity is the doc's own label on each card.
             // `noPaint` is the direct instruction "they don't have colors... similar to the tank": one
@@ -6077,6 +5997,21 @@
         const GARAGE_NPC_RARITY = {};
         // direct request: box-exclusive cars (`boxOnly`) no longer spawn as NPC traffic at all, so a player can never "discover" one just by seeing it on the road — the only way to know what they even are is to actually win one from an Extra Box.
         GARAGE_CARS.forEach(car => { if (car.rarity && !car.boxOnly) GARAGE_NPC_RARITY[car.key] = RARITY_SPAWN_WEIGHT[car.rarity]; });
+
+        // Batch 447 — drop owned-car keys that no longer name a real car. BICYCLE, FISH and COUCH were
+        // removed this batch, and a save that won one from a box before then would otherwise keep
+        // counting it: `ownedCars.length` is what COLLECTOR reads, so three dead keys would have shown
+        // the player three cars closer to its 58-car amethyst tier than they really are. Runs once on
+        // startup, costs nothing, and protects every future removal for free.
+        (function pruneDeletedCars() {
+            const real = new Set(GARAGE_CARS.map(c => c.key));
+            const kept = (allTimeStats.ownedCars || []).filter(k => real.has(k));
+            if (kept.length !== (allTimeStats.ownedCars || []).length) {
+                allTimeStats.ownedCars = kept;
+                saveAllTimeStats();
+            }
+        })();
+
 
         // Batch 69: owning a car is now a real purchase (deducts coins, permanent), not just "your coin total happens to be above the threshold" — `car.unlock` is the price.
         function isCarOwned(car) { return allTimeStats.ownedCars.includes(car.key); }
@@ -6422,7 +6357,7 @@
         // *only* from a box, while a box could award any car at all. Now it marks the cars a box
         // may award, and everything without it is bought with coins like any other car. Direct
         // decision: every existing car became buyable at its real price, and the joke vehicles
-        // coming later (bicycle, fish, couch) will carry this flag instead.
+        // carry this flag instead (Batch 445).
         //
         // While nothing carries it, the car tier is dropped from the roll entirely rather than
         // silently paying coins in its place: the DROP CHANCES panel and the roll read these same
@@ -13058,7 +12993,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.232.0';
+        const GAME_VERSION = '2.233.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
