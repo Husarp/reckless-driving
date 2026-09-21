@@ -835,7 +835,16 @@
            frame's own reference size at --hud-scale 1 (506 is HUD_SCALE_REFERENCE_WIDTH, 822 is
            506 x 260/160), so scaling by --hud-scale makes the panel exactly fill the frame at any
            window size. It no longer needs the page-scroll safety net it used to carry. */
+        #gameOverBackdrop {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(38,10,14,.86), rgba(9,12,18,.94));
+            display: none;
+            pointer-events: none;
+            z-index: 4;
+        }
         #gameOverHud {            position: absolute;
+            z-index: 5;
             left: 50%;
             top: 50%;
             width: 506px;
@@ -849,7 +858,12 @@
             gap: 14px;
             padding: 22px;
             box-sizing: border-box;
-            background: linear-gradient(180deg, rgba(38,10,14,.86), rgba(9,12,18,.94));
+            /* Batch 460 - the red wash is NOT on this element any more. This is a fixed 506x822 design
+               box scaled by --hud-scale, so on a window taller than the scaled box the gradient stopped
+               where the box stopped and the raw road showed through above and below. Exactly the bug
+               Batch 436 fixed for the menu, in the other screen that uses the same fixed-box pattern.
+               The wash lives on #gameOverBackdrop, which is inset:0 on the frame itself. */
+            background: none;
             text-align: center;
             /* Batch 434 - the page-scroll safety net is gone: the panel is a fixed design box now,
                so it cannot outgrow its frame. #goAchBox still scrolls internally, because the
@@ -1772,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.237.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.238.0</span></div>
                 </div>
             </div>
         </div>
@@ -2581,6 +2595,7 @@
                 <div id="crashWord"><span id="crashWordText"></span></div>
                 <div id="crashSkipHint">[ESC] SKIP</div>
                 <div id="fpsCounter">0 FPS</div>
+                <div id="gameOverBackdrop"></div>
                 <div id="gameOverHud">
                     <div class="go-title">WRECKED</div>
                     <div class="go-score" id="goScore">0</div>
@@ -2805,6 +2820,7 @@
         const statsLevelXpText = document.getElementById('statsLevelXpText');
         const statsLevelRankText = document.getElementById('statsLevelRankText');
         const gameOverHud = document.getElementById('gameOverHud');
+        const gameOverBackdrop = document.getElementById('gameOverBackdrop');
         const crashFlashEl = document.getElementById('crashFlash');
         const crashWordEl = document.getElementById('crashWord');
         const crashWordTextEl = document.getElementById('crashWordText');
@@ -9315,6 +9331,15 @@
 
             // Check vertical clear space in lane Batch 264 — direct bug report, reproduced live (two trucks ending up overlapping in the same lane, `changingState: 'none'` on both — nothing to do with lane-changing at all): this only ever measured clearance against the EXISTING vehicle's own height, never accounting for how tall the NEW vehicle about to spawn might turn out to be (its body/type isn't even picked yet — that happens inside the Vehicle constructor, after this check passes).
             for (let v of vehicles) {
+                // Batch 458, direct bug report ("only two cars spawn and then it stopped spawning" with the
+                // BUMPER CAR): a LAUNCHED vehicle flies UP the screen, so its `y` goes small or negative -
+                // which is exactly the condition this test reads as "something is occupying the top of that
+                // lane". It kept its `lane`, so every car you bumped silently reserved a lane for the whole
+                // of its arc, and a few launches in a row starved the spawner completely.
+                //
+                // A launched vehicle is not traffic any more: it cannot be hit, cannot be passed and is on
+                // its way off the screen. It has no business reserving anything.
+                if (v.launched) continue;
                 const vH = v.height; // Batch 63: each vehicle's own body-based height, not a flat per-type constant
                 if (v.lane === lane && v.y - vH - SPAWN_HEIGHT_BUFFER < safetyY) {
                     return false;
@@ -9324,6 +9349,7 @@
             // Verify we don't block all lanes near the top of the screen
             let topBlockedLanes = new Set();
             for (let v of vehicles) {
+                if (v.launched) continue;   // same reason as above - it is leaving, not blocking
                 if (v.y < safetyY) {
                     topBlockedLanes.add(v.lane);
                 }
@@ -10891,6 +10917,11 @@
             config.ability = getSelectedCar().launchAbility ? 'launch'
                 : getSelectedCar().ramAbility ? 'ram'
                 : getSelectedCar().noAbility ? 'none' : 'jump';
+            // Batch 459, direct request: hide the bar outright for a car with no ability. It was already
+            // not being PAINTED for them, but the canvas still sat in the HUD as an empty frame, which
+            // reads as a bar stuck at zero rather than as a car that simply has no bar. Set here, once per
+            // run, rather than every frame - config.ability cannot change mid-run.
+            abilityBar.style.display = config.ability === 'none' ? 'none' : '';
             config.difficulty = selectDifficulty.value; // Batch 127
             config.skipCrashAnimation = selectSkipCrash.value === 'yes';
             config.soundVolume = parseFloat(selectSound.value);
@@ -10958,6 +10989,7 @@
             hudLeft.style.display = 'flex';
             drawAbilityBar(abilityCtx, 0, 0, 'charge');
             gameOverHud.style.display = 'none';
+            gameOverBackdrop.style.display = 'none';   // Batch 460 — the wash follows the panel
             startMusic();
 
             if (selectTilt.value === 'yes') {
@@ -10990,6 +11022,7 @@
             gameoverBtns.style.display = 'none';
             gameHud.style.display = 'none';
             gameOverHud.style.display = 'none';
+            gameOverBackdrop.style.display = 'none';   // Batch 460 — the wash follows the panel
             gameView.classList.remove('active');
             menuView.classList.add('active');
             sizeMenuFrame();
@@ -12305,6 +12338,7 @@
                 goAbilityRow.style.display = 'none';
             }
             gameOverHud.style.display = 'flex';
+            gameOverBackdrop.style.display = 'block';
             gameoverBtns.style.display = 'flex';
 
             if (instant) {
@@ -12763,9 +12797,14 @@
                             player.energy = 0;              // the bar IS the cooldown from here
                             player.launchRechargeMs = 0;
                             ramsUsed++;
+                            // Batch 459, direct request: a bump pays what a clean jump-over pays. That is
+                            // `pts * 2` (creditVehiclePass's own jumpMult), not Shield Bump's x1.2 - the
+                            // bumper car has no other way to score off a vehicle, since launching one also
+                            // removes it before it can ever be passed for the ordinary credit.
                             const lp = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10);
-                            score += lp * multiplier * 1.2; // no per-event rounding — see endRun()
-                            gainXP(15);
+                            score += lp * multiplier * 2; // no per-event rounding — see endRun()
+                            gainXP(lp * 2);
+                            coinsThisRun += Math.round(lp / 2 * COIN_EARN_SCALE); // same rate a jump-over pays
                             playSound('ram');
                             continue;
                         } else if (v.type === 'ambulance') {
@@ -13123,7 +13162,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.237.1';
+        const GAME_VERSION = '2.238.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

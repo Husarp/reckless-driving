@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.238.0 — 2026-09-21 22:30: Batch 458 — Bumper car stopped traffic spawning; bumps now score; empty bar hidden; result-screen wash covers the frame
+
+**Traffic stopped spawning after a couple of bumps.** Direct bug report, reproduced and root-caused. `canSpawnAt()` refuses a lane when a vehicle sits near the top of it — and a **launched** vehicle flies *up* the screen, so its `y` goes small or negative, which is exactly that condition. It also kept its `lane`, so every car you bumped silently reserved a lane for the whole of its arc. A few launches in a row starved the spawner completely, which is why it recovered on the next run.
+
+A launched vehicle is not traffic any more — it cannot be hit, cannot be passed, and is on its way off the screen. It no longer reserves anything, in either the per-lane check or the "don't block every lane" guard. Verified directly: a normal vehicle at the top still blocks its lane, a launched one does not, and **spawning still works with a launched car in every single lane.** Over 1,400 frames with 5 launches, traffic kept arriving throughout.
+
+**Bumps score like a clean jump-over**, as asked — `pts × 2`, the same `jumpMult` `creditVehiclePass()` uses, rather than Shield Bump's ×1.2. XP and coins match the jump-over rate too. This matters more for the bumper car than it looks: launching a vehicle also *removes* it, so there is no second chance to earn the ordinary pass credit from it.
+
+**The ability bar is hidden for cars that have none.** It was already not being painted for them, but the canvas still sat in the HUD as an empty frame, which reads as a bar stuck at zero rather than as a car that simply has no bar. Set once per run in `launchGame()`, since `config.ability` cannot change mid-run. Verified: hidden for GIANT SNAIL, shown for BUMPER CAR, SHIP and Stock.
+
+**The result screen's red wash now covers the whole frame.** It was on `#gameOverHud`, a fixed 506×822 design box scaled by `--hud-scale` — so on a window taller than the scaled box the gradient stopped where the box stopped and raw road showed through above and below. That is the same bug Batch 436 fixed for the menu, in the other screen built on the same fixed-box pattern. The wash moved to `#gameOverBackdrop`, `inset: 0` on the frame itself. Verified at 700×1300.
+
 ## 2.237.1 — 2026-09-21 21:30: Batch 457 — Box-exclusives were spawning as ordinary traffic
 
 Caught by eye while checking the snail's trail: a **GIANT DONUT drove past in the next lane**. Box-exclusives are defined by *not* appearing in traffic — that is the entire reason spotting one on the road cannot reveal it.
