@@ -6,6 +6,20 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.239.0 — 2026-09-21 23:40: Batch 460 — Trail rebuilt as real light; aura removed; brake lights culled; F3 rear made symmetric
+
+**The aura is gone.** It was never asked for — it came in as a substitute while I wrongly believed a trail was impossible. Only the trail remains.
+
+**The trail rendered as a ladder of separate bars.** A point is laid once per frame and then moves `currentSpeed` px, so at speed the points sit 5–7px apart and each was drawing a single 1px-tall bar, leaving the gap between them empty. It draws the **segments between points** now — every row from one point to the next, interpolating x across it. Verified continuous: 185 of 185 rows painted between the first and last point.
+
+**And it was far too weak.** It painted at 0.22 / 0.45 / 0.55 alpha in `source-over`, which can only ever darken toward the road — the opposite of light. It composites with **`lighter`** now, so overlapping layers build toward white the way a blaster bolt or a neon tube does, and the core draws at full alpha. That is also what lets the bloom be wide without turning into a smear. Any paint colour still reads as neon, because neon is a hue plus a white-hot centre.
+
+**Brake lights removed from 14 vehicles**, per the list: DRIFT, FORMULA, TANK, GO-KART, TRACTOR, F1, INDY OVAL, F3 JUNIOR, and all six box-exclusives. Keyed on `boxOnly` plus an explicit list rather than a per-car flag, so the specials stay covered automatically as that group changes. Stock and everything else keep theirs.
+
+**F3 JUNIOR's rear was asymmetric, and the cause was structural.** The open-wheel wings are placed at `7 - floor(w/2)` on a 14px grid whose true centre is **6.5**. An even width lands symmetrically — w=10 spans 2–11, centred 6.5. An odd one cannot: w=9 spans 3–11, centred 7.0, one pixel heavier on the right. F3 was the only car with an odd wing (`rearW: 9`), which is exactly why it was the only one that looked wrong.
+
+Fixed by snapping odd widths down to even inside the shared builder, so it also cannot recur for any open-wheel car added later — including through the `|| 11` default, which was the same trap waiting. Verified: **zero asymmetric rows across the entire F3 sprite**, not just the rear.
+
 ## 2.238.1 — 2026-09-21 22:50: Batch 459 — Smaller snail, and its trail is actually reachable
 
 **The trail was working — it was unreachable.** Direct report: "I don't see any trail behind it." It shared the air particles' 120 km/h floor, and the speed ramp is `+0.0003`/frame, which puts 120 km/h about **111 seconds** into a run. Almost no run lasts that long, so in practice the trail may as well not have existed.
