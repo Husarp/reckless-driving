@@ -6,6 +6,33 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.243.0 — 2026-09-22 06:00: Batch 469 — Sprite distortion (my regression), fullscreen panels, trail colour, scrollbars
+
+**The sprites were being deformed, and it was Batch 461's doing.** Direct report: the donut is not round, the piano's black keys are misplaced, "black lines added", shapes changed — in gameplay but never in the Garage, and on NPCs too.
+
+Batch 461 blitted sprites **nearest-neighbour**, and nearest-neighbour at 1.3x cannot keep pixel art intact. Measured: of 32 source rows, **22 map to one destination row and 10 map to two**. So 31% of every sprite is drawn double-height and 69% is not, and the same happens horizontally. A 1px outline lands as 1px in places and 2px in others — the "added black lines" — and a circle picks up flat sides. Measured on the donut: native row widths run `18,18,18,20,20,20,20,18` through the middle; nearest gave `23,23,26,26,26,26,26,26,23`.
+
+Smoothing is back on for the blit. **This is not a return to the pre-461 state**: that antialiased each `fillRect` straight onto the road, so edges blended with asphalt and left the grey fringe that started all of this. Drawing into a transparent buffer first means edges blend with *transparency*, so shapes stay true and the fringe stays gone.
+
+**Neither option is correct, because 1.3 is not an integer.** Blur or deform — those are the only two outcomes of resampling pixel art by a fractional factor. The real fix is integer scaling end to end, which means authoring the world at 1x and letting one integer display scale do the enlarging. That is a real refactor (every raw pixel constant: canvas height, player bounds, flight height, spawn margins) and it is now on PLAN.md rather than attempted mid-batch.
+
+**Maximised window broke the pause and result panels.** `--hud-scale` is derived from **width alone** — correct for the HUD chips, which only need to track the road's width, but wrong for the two fixed 506x822 panels: on a wide window it made them 2500px+ tall and they ran off the frame, clipping PAUSED off the top and the hint off the bottom. Both panels now use `--panel-scale`, which fits **both** axes — the same rule the menu has always used, and the only place it was missing.
+
+**The trail painted white whatever colour you picked.** Direct report: green came out "almost blue, a green-blue mixture". Two compounding causes, both mine:
+
+1. The core was `shade(hex, 0.75)` — three quarters of the way to white.
+2. The three layers were **concentric overlapping rects**, and under `lighter` every overlap *adds*. The centre received deep + mid + core at once, summed past 1.0 and clipped. Measured: a green trail painted out as `rgb(235,255,255)`.
+
+The layers are non-overlapping bands now and the core is only `0.35` toward white. Verified by sampling all 13 pixels across the beam: with green selected every band pixel reads green-dominant; with red, red-dominant.
+
+**Three more trail fixes:**
+- **Left over between runs** — road-anchored points were never cleared, so quitting and restarting left the old beam lying on the road. Cleared in `launchGame()`.
+- **NPCs drove under it** — it was drawn inside `Player.draw()`, landing on top of every vehicle already rendered. It is road paint, so it now draws with the road, before traffic.
+
+**Scrollbars were never themed at all.** Direct report that the result screen's bar has arrow buttons and a rounded thumb and a different background. Root cause: **`scrollbar-color` was set**, and in Chromium setting the standard scrollbar properties opts the element into the standard renderer, making every `::-webkit-scrollbar` rule below it dead. All that styling had no effect; what showed was the platform scrollbar. Removing `scrollbar-color` is what makes the rules apply.
+
+Now applied to **every** scrollable element rather than a hand-maintained selector list — which is exactly how the result screen's bar drifted from the Garage's. Arrow buttons removed, square thumb with the pixel bevel, and the track matches the panel it sits in.
+
 ## 2.242.0 — 2026-09-22 04:20: Batch 466-468 — Pause wash, snail rebuilt, air slowed, ram wake
 
 **Pause panel wash covers the frame.** The same fault as Batch 460's result screen, in the third and last screen built on the fixed-box pattern: a 506x822 box scaled by `--hud-scale`, so a taller window left raw road above and below. Moved to `#pauseBackdrop`, `inset: 0`.

@@ -153,17 +153,32 @@
            thumb), the thumb's 2px inset border is gone so it fills the full channel as a solid
            block instead of a floating pill, and the track carries a hard 2px edge like every
            other panel border in this UI. */
-        .garage-scroll, #goAchBox, #gameOverHud, .dg-scroll, .tut-scroll, .tut-rail, .stats-scroll { scrollbar-width: auto; scrollbar-color: var(--c-card-border) var(--c-panel); }
+        /* Batch 469 - two direct reports: the result screen's scrollbar "isn't game themed", it has
+           arrow buttons and a rounded thumb, and its background differs from the others.
+           ROOT CAUSE: `scrollbar-color` was set. In Chromium, setting the STANDARD scrollbar
+           properties opts the element into the standard scrollbar renderer and every
+           ::-webkit-scrollbar rule below is ignored outright - so all of this styling was dead and
+           what showed was the platform scrollbar, arrows and all. Removing `scrollbar-color` is what
+           makes the rest of these rules take effect.
+           Applied to EVERY scrollable element rather than a hand-maintained selector list, which is
+           how the result screen's own bar ended up looking different from the Garage's in the first
+           place. ::-webkit-scrollbar-button kills the arrows; the track now matches the panel it sits
+           in instead of carrying its own background. */
+        *::-webkit-scrollbar { width: 14px; height: 14px; }
+        *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+        *::-webkit-scrollbar-track { background: var(--c-night); border-left: 2px solid var(--c-panel-border); }
+        *::-webkit-scrollbar-corner { background: var(--c-night); }
+        /* Batch 425 - squarer, by direct request. A flat bar still read as a browser scrollbar; this is
+           a pixel block like the rest of the UI: hard 2px outline in the panel border colour, square
+           corners, and the same hard inset bevel the keycaps use (no blur anywhere). */
+        *::-webkit-scrollbar-thumb {
+            background: var(--c-card);
+            border: 2px solid var(--c-panel-border);
+            border-radius: 0;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,.06), inset -2px -2px 0 rgba(0,0,0,.45);
+        }
+        *::-webkit-scrollbar-thumb:hover { background: var(--c-card-border); }
         .garage-scroll, #goAchBox, #gameOverHud, .dg-scroll, .tut-scroll, .tut-rail, .stats-scroll { scrollbar-gutter: stable; }
-        .garage-scroll::-webkit-scrollbar, #goAchBox::-webkit-scrollbar, #gameOverHud::-webkit-scrollbar, .dg-scroll::-webkit-scrollbar, .tut-scroll::-webkit-scrollbar, .tut-rail::-webkit-scrollbar, .stats-scroll::-webkit-scrollbar { width: 14px; }
-        .garage-scroll::-webkit-scrollbar-track, #goAchBox::-webkit-scrollbar-track, #gameOverHud::-webkit-scrollbar-track, .dg-scroll::-webkit-scrollbar-track, .tut-scroll::-webkit-scrollbar-track, .tut-rail::-webkit-scrollbar-track, .stats-scroll::-webkit-scrollbar-track { background: var(--c-panel); border-left: 2px solid var(--c-panel-border); }
-        /* Batch 425 - squarer again, by direct request. A flat bar still read as a browser
-           scrollbar; this is a pixel block like the rest of the UI: hard 2px outline in the
-           panel border colour, square corners, and the same hard inset bevel the keycaps use
-           (no blur anywhere). */
-        .garage-scroll::-webkit-scrollbar-thumb, #goAchBox::-webkit-scrollbar-thumb, #gameOverHud::-webkit-scrollbar-thumb, .dg-scroll::-webkit-scrollbar-thumb, .tut-scroll::-webkit-scrollbar-thumb, .tut-rail::-webkit-scrollbar-thumb, .stats-scroll::-webkit-scrollbar-thumb { background: var(--c-card-border); border: 2px solid var(--c-panel-border); background-clip: padding-box; border-radius: 0; box-shadow: inset 2px 2px 0 rgba(255,255,255,.07), inset -2px -2px 0 rgba(0,0,0,.45); }
-        .garage-scroll::-webkit-scrollbar-thumb:hover, #goAchBox::-webkit-scrollbar-thumb:hover, #gameOverHud::-webkit-scrollbar-thumb:hover, .dg-scroll::-webkit-scrollbar-thumb:hover, .tut-scroll::-webkit-scrollbar-thumb:hover, .tut-rail::-webkit-scrollbar-thumb:hover, .stats-scroll::-webkit-scrollbar-thumb:hover { background: var(--c-mint); }
-        .garage-scroll::-webkit-scrollbar-corner, #goAchBox::-webkit-scrollbar-corner, #gameOverHud::-webkit-scrollbar-corner, .dg-scroll::-webkit-scrollbar-corner, .tut-scroll::-webkit-scrollbar-corner, .tut-rail::-webkit-scrollbar-corner, .stats-scroll::-webkit-scrollbar-corner { background: var(--c-panel); }
         .tut-rail::-webkit-scrollbar { width: 10px; }
         /* Batch 424 — first-launch nudge. Replaces the forced tutorial: the menu loads normally
            and this blinks until the screen has been opened once. steps(2) so it snaps on and off
@@ -849,7 +864,7 @@
             top: 50%;
             width: 506px;
             height: 822px;
-            transform: translate(-50%, -50%) scale(var(--hud-scale, 1));
+            transform: translate(-50%, -50%) scale(var(--panel-scale, var(--hud-scale, 1)));
             transform-origin: center center;
             display: none;
             flex-direction: column;
@@ -1492,7 +1507,7 @@
             top: 50%;
             width: 506px;
             height: 822px;
-            transform: translate(-50%, -50%) scale(var(--hud-scale, 1));
+            transform: translate(-50%, -50%) scale(var(--panel-scale, var(--hud-scale, 1)));
             transform-origin: center center;
             display: none;
             flex-direction: column;
@@ -1799,7 +1814,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.242.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.243.0</span></div>
                 </div>
             </div>
         </div>
@@ -3004,6 +3019,9 @@
         }
         // The fixed-px sizes on the HUD overlay (#hudLeft's pause button/energy bar, #gameHud's score/multiplier/speed chips) were tuned by eye against the game rendering at roughly this on-screen width (matches .game-container's own CSS fallback width above).
         const HUD_SCALE_REFERENCE_WIDTH = 506;
+        // The pause and result panels' design box - they are both exactly this, and both need to FIT
+        // rather than just track the width.
+        const PANEL_DESIGN_W = 506, PANEL_DESIGN_H = 822;
         function sizeGameFrame() {
             const contentW = sizeFrame(gameContainerEl, canvas.width, canvas.height, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
             // Batch 433 - no longer capped at 1. The cap meant the HUD shrank on a small window but
@@ -3011,6 +3029,17 @@
             // bigger the window got. Uncapped, the gameplay screen holds one set of proportions at
             // every size, which is the same rule the menu now follows.
             canvasContainerEl.style.setProperty('--hud-scale', contentW / HUD_SCALE_REFERENCE_WIDTH);
+            // Batch 469, direct report: maximised, "all the UI is getting so much bigger than it should"
+            // and the pause screen came out broken - PAUSED clipped off the top, the hint clipped off the
+            // bottom. --hud-scale is derived from WIDTH ALONE, which is right for the HUD chips (they are
+            // small and only need to track the road's width) but wrong for the two fixed 506x822 panels:
+            // on a wide window that scale makes them 2500px+ tall and they simply run off the frame.
+            //
+            // The panels get their own scale that respects BOTH axes. Same fit rule the menu already
+            // uses; it was only ever the in-game panels that were missing it.
+            canvasContainerEl.style.setProperty('--panel-scale',
+                Math.min(canvasContainerEl.clientWidth / PANEL_DESIGN_W,
+                         canvasContainerEl.clientHeight / PANEL_DESIGN_H) || 1);
         }
         // Batch 433 - one design size for the menu, scaled to whatever the frame ends up being.
         // 760, not the exact-8:13 715: the extra 45px is deliberate bottom breathing room so the
@@ -4199,8 +4228,26 @@
             gctx.translate(Math.round(x + width / 2), Math.round(y + height / 2));
             if (angle) gctx.rotate(angle);
             gctx.translate(-width / 2, -height / 2);
+            // Batch 469, direct report: donut not round, piano keys misplaced, "black lines added",
+            // shapes changed - on gameplay sprites but not the Garage's.
+            //
+            // Batch 461 blitted this NEAREST-NEIGHBOUR, and nearest-neighbour at 1.3x cannot keep pixel
+            // art intact. Measured: of 32 source rows, 22 map to ONE destination row and 10 map to TWO.
+            // So 31% of every sprite is drawn double-height and 69% is not, and the same happens across.
+            // A 1px outline becomes 1px in places and 2px in others - the "added black lines" - and a
+            // circle picks up flat sides. Measured on the donut: native row widths run
+            // 18,18,18,20,20,20,20,18 through the middle; nearest gave 23,23,26,26,26,26,26,26,23.
+            //
+            // Smoothing back ON. It is NOT a return to the pre-461 state: that antialiased each fillRect
+            // straight onto the road, so edges blended with the asphalt and left the grey fringe that
+            // started all this. Drawing into a transparent buffer first means edges blend with
+            // TRANSPARENCY instead, so the shapes stay true and the fringe stays gone.
+            //
+            // Neither is perfect, because 1.3 is not an integer. The real fix is integer scaling end to
+            // end - see PLAN.md.
             const prevSmoothing = gctx.imageSmoothingEnabled;
-            gctx.imageSmoothingEnabled = false;
+            gctx.imageSmoothingEnabled = true;
+            gctx.imageSmoothingQuality = 'high';
             gctx.drawImage(vehBuf, 0, 0, vehBuf.width, vehBuf.height,
                 -VEH_PAD_X * CAR_SCALE, -VEH_PAD_Y * CAR_SCALE,
                 vehBuf.width * CAR_SCALE, vehBuf.height * CAR_SCALE);
@@ -8874,7 +8921,11 @@
                     // cars with `hitboxW` are drawn on a wider 24px-native canvas, centered there via carLocalX53(); `carDrawOffsetX53()` shifts the draw origin back so the visible body still lines up with `this.x` (the hitbox's own left edge), not the wider canvas's. 0 for every car without `hitboxW` (all 10 original cars), so this is a no-op for them.
                     const car = getSelectedCar();
                     const isJumping = this.abilityState === 'jumping';
-                    if (car.turboTrail) drawSnailTrail(this, drawX, drawY);   // behind the car, so it draws first
+                    // Batch 469 — the trail is NOT drawn here any more. Direct report: NPC cars should pass
+                    // over it, not under it. Drawn from inside Player.draw() it landed on top of every
+                    // vehicle already rendered this frame, so a car you had just overtaken appeared to be
+                    // underneath a light beam lying on the road. It is road paint, so it belongs with the
+                    // road - see the drawSnailTrail() call right after drawAmbientAir() in the main loop.
                     drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car), drawY, this.width, this.height, (g) => {
                         // gated on sbGuardPhase too (not just abilityState) so the guard's retract animation keeps playing for its own ~350ms after ramming has already ended, instead of being cut off the instant the bar empties.
                         if (this.abilityState === 'ramming' || this.sbGuardPhase !== 'idle') drawShieldBumpFX(g, car, this);
@@ -10825,8 +10876,14 @@
             const n = parseInt(hex.slice(1), 16);
             return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a.toFixed(3) + ')';
         }
+        // Batch 469, direct report: picking green gave "almost blue, a green-blue mixture" instead of the
+        // colour chosen. Cause: the core was shade(hex, 0.75) - three quarters of the way to white - and
+        // with 'lighter' compositing every layer ADDS, so a near-white core stacked over the mid drove
+        // the result to white, which over dark asphalt reads blue-ish. A neon tube's hot centre is only
+        // a little lighter than the tube, never white. 0.35 now, and the outer bloom is only slightly
+        // darkened (-0.2 instead of -0.45) so it tints toward the chosen hue rather than away from it.
         function neonRamp(hex) {
-            return { deep: shade(hex, -0.45), mid: hex, core: shade(hex, 0.75) };
+            return { deep: shade(hex, -0.2), mid: hex, core: shade(hex, 0.35) };
         }
         // Batch 459, direct report: "I don't see any trail behind it." It was working - it was just
         // unreachable. The trail shared the air particles' 120 km/h floor, and the speed ramp is
@@ -10894,10 +10951,17 @@
                     const x = Math.round(a.x + (b.x - a.x) * f);
                     const y = y0 + k;
                     if (y < 0 || y >= canvas.height) continue;
-                    ctx.fillStyle = rgba(neon.deep, fade * 0.55);
-                    ctx.fillRect(x - w - 2, y, w * 2 + 5, 1);
-                    ctx.fillStyle = rgba(neon.mid, fade * 0.9);
-                    ctx.fillRect(x - w, y, w * 2 + 1, 1);
+                    // Batch 469 — the three layers are drawn as NON-OVERLAPPING bands. They used to be
+                    // stacked concentric rects, and under 'lighter' every overlap ADDS: the centre got
+                    // deep + mid + core at once, summed past 1.0 and clipped to white. That is what made
+                    // a green trail paint out as near-white (measured: rgb(235,255,255)) regardless of
+                    // the colour chosen. One band per pixel keeps the chosen hue on screen.
+                    ctx.fillStyle = rgba(neon.deep, fade * 0.5);
+                    ctx.fillRect(x - w - 2, y, 2, 1);
+                    ctx.fillRect(x + w + 1, y, 2, 1);
+                    ctx.fillStyle = rgba(neon.mid, fade);
+                    ctx.fillRect(x - w, y, w - 1, 1);
+                    ctx.fillRect(x + 2, y, w - 1, 1);
                     ctx.fillStyle = rgba(neon.core, fade);
                     ctx.fillRect(x - 1, y, 3, 1);
                 }
@@ -11196,6 +11260,10 @@
             displayedScore = 0;
             laneSwitchesThisRun = 0;
             coinsThisRun = 0;
+            // Batch 469, direct report: quitting and starting again as the snail left a piece of the old
+            // run's trail lying on the road until it scrolled off. The points are road-anchored and
+            // nothing cleared them between runs.
+            snailTrail.length = 0;
             peakSpeedThisRun = 0;
             airborneFramesThisRun = 0;
             ambulancesMetThisRun = 0;
@@ -12740,6 +12808,10 @@
             // world rushing past; this is the vehicle's own wake, anchored to it, which is what sells
             // "this thing is forcing its way through the air" rather than "the road is moving".
             if (player && player.abilityState === 'ramming') drawRamWake(player);
+            // Batch 469 — with the road, before any traffic, so NPCs drive OVER the snail's trail.
+            if (gameActive && player && getSelectedCar().turboTrail) {
+                drawSnailTrail(player, player.x, player.y);
+            }
 
             if (gameActive) {
                 // Pending ambulance warnings: draw flashing danger zone, spawn when countdown ends
@@ -13427,7 +13499,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.242.0';
+        const GAME_VERSION = '2.243.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
