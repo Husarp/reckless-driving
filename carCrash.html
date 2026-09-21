@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.237.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.237.1</span></div>
                 </div>
             </div>
         </div>
@@ -8901,8 +8901,21 @@
                     } else {
                         // direct request: "spawning less rare cars because when you have the 10 lane mode, there is much more cars spawning, so it's easier to encounter rare tanks... make it similar chance for how it is now, default for four lanes." This weight is a fixed PER-SPAWN-ATTEMPT probability, but total spawn attempts/minute scale with lane count (Batch 213's `config.lanes / 4` term in spawnChance), so the ABSOLUTE rare-car encounter rate was scaling up right along with it even though nothing about the per-attempt odds changed.
                         const rareLaneFactor = config.lanes / 4;
-                        const carPool = GARAGE_CARS.filter(c => c.rarity).map(c => {
-                            const w = RARITY_SPAWN_WEIGHT[c.rarity];
+                        // Batch 457, real bug: this filtered on "has a rarity at all", so every
+                        // box-exclusive was spawnable as ordinary traffic - the exact thing box-exclusives
+                        // are defined by NOT doing. A GIANT DONUT was caught driving past in testing.
+                        //
+                        // GARAGE_NPC_RARITY is the map built for precisely this and it already excludes
+                        // boxOnly, but nothing ever read it. (The Batch 405 audit noticed the same thing
+                        // and left a comment saying so, which is how long this has been live.) Reading it
+                        // here fixes the bug and retires the dead map in one move, so there is no longer a
+                        // second, disagreeing idea of which cars may appear in traffic.
+                        //
+                        // It also closes a hazard Batch 452 introduced: rarity 'special' has no entry in
+                        // RARITY_SPAWN_WEIGHT, so the old line computed `undefined / rareLaneFactor` = NaN
+                        // as a spawn weight for all six.
+                        const carPool = GARAGE_CARS.filter(c => GARAGE_NPC_RARITY[c.key] !== undefined).map(c => {
+                            const w = GARAGE_NPC_RARITY[c.key];
                             return ['garage:' + c.key, c.rarity === 'common' ? w : w / rareLaneFactor];
                         });
                         const picked = pickWeighted([['sedan', 25], ['hatch', 20], ['coupe', 20], ['pickup', 15], ['van', 15], ...carPool]);
@@ -13110,7 +13123,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.237.0';
+        const GAME_VERSION = '2.237.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14091,9 +14104,10 @@
             // from boxes, not the shop. Until it's been spotted it stays a sealed crate, so the
             // reveal still belongs to the road rather than the menu.
             //
-            // (This also resolves a real inconsistency found in the Batch 405 audit: the old copy
-            // claimed these cars never appear in traffic, but GARAGE_NPC_RARITY — the map written to
-            // exclude them — was never actually read, so they always did spawn.)
+            // (The Batch 405 audit noticed that GARAGE_NPC_RARITY — the map written to exclude these
+            // cars — was never actually read, so they always did spawn regardless. That was finally
+            // fixed in Batch 457, after a GIANT DONUT was caught driving past in testing: the spawn
+            // pool reads the map now, so the claim above is true rather than merely intended.)
             // an undiscovered car (never spotted as NPC traffic — see isCarDiscovered()) shows a blank "???" card instead of its real name/sprite/price, and isn't clickable at all — nothing to buy or preview yet.
             if (!isCarDiscovered(car)) {
                 const mysteryTile = document.createElement('div');

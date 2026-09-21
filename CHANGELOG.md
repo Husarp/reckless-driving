@@ -6,6 +6,16 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.237.1 — 2026-09-21 21:30: Batch 457 — Box-exclusives were spawning as ordinary traffic
+
+Caught by eye while checking the snail's trail: a **GIANT DONUT drove past in the next lane**. Box-exclusives are defined by *not* appearing in traffic — that is the entire reason spotting one on the road cannot reveal it.
+
+The spawn pool filtered on `c.rarity` — "has a rarity at all" — rather than on not being box-exclusive. `GARAGE_NPC_RARITY` is the map built for precisely this job and it already excluded them, but **nothing ever read it**. The Batch 405 audit noticed exactly that and left a comment saying so, which is how long this has been live. The pool reads the map now, which fixes the bug and retires the dead map in one move, so there is no longer a second, disagreeing idea of which cars may appear in traffic.
+
+It also closes a hazard Batch 452 introduced without me noticing: `rarity: 'special'` has no entry in `RARITY_SPAWN_WEIGHT`, so the old line was computing `undefined / rareLaneFactor` — **NaN** — as a spawn weight for all six.
+
+**My earlier verification was worthless, and worth saying why.** When these cars were added I checked that none appeared in `GARAGE_NPC_RARITY` and reported them as excluded from traffic. That tested the map, not the behaviour — and the map was the part nothing used. Re-verified properly this time by spawning **4,000 vehicles through the real `Vehicle` constructor**: 0 box-exclusives, 36 distinct ordinary garage cars still appearing, no NaN weights.
+
 ## 2.237.0 — 2026-09-21 21:10: Batch 456 — Paint the GIANT SNAIL and it colours the trail
 
 Snail only, as decided. `paintsTrail` is an **exception** to `noPaint`, not a removal of it: the shell is still fixed art that takes no colour argument, but the trail does take one, so the picker opens and the paint goes somewhere real. Every other `noPaint` car has no effect to colour and stays locked — verified for PIANO, DONUT, BATHTUB, BUMPER CAR and SHIP, and the Tank stays locked too.
