@@ -6,6 +6,35 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.232.0 — 2026-09-21 15:40: Batch 446 — Speed air particles, the SHIP's invisible ram, the BUMPER CAR's launch, and coin bonuses
+
+**Ambient road air.** Ported from `_archive/Shield Bump Storyboardv2.dc.html` section 9, AMBIENT ROAD AIR: a 32×32 tile of 15 particles — single motes and 2-4px streaks, about a third warm dust rather than white air — that wraps on all four edges so it repeats across the road without seams. The doc's own `rng(21)` and its alpha quantiser are unchanged, so the particles land where the doc put them.
+
+What is *not* from the doc: it plays this as a fixed 4-frame loop and only suggests "drop the alpha or the particle count on slower roads". The request was that speed drives it, so **count, alpha and scroll rate are all functions of `speedRatio01()`**. Measured pixels drawn per frame: 30% speed → 0, 35% → 27, 50% → 144, 70% → 302, 90% → 679, full → 718. Below 35% nothing draws at all — at a crawl, visible air reads as drizzle rather than speed.
+
+**Ramming drives it too**, per the request that the particles fire "when using the RAM ability, because that creates a feeling of speed". A ram at half speed now puts down 698 pixels against 144 without it — near top-speed air from a mid-speed run, which is the point.
+
+**SHIP: rams with no ram.** Direct spec — "it wouldn't display the RAM, but it would still give the air particles, and you could just RAM with the ship". `hideRamGuard` drops *every* cue: thruster plume, the projected guard through all three phases, and the air ripple. The ability, its hitbox reach, its speed boost and the air boost are all untouched. The check sits above the plume on purpose — a rocket exhaust under a sailing ship reads as a bug just as loudly as an energy shield on its bow. Verified: SHIP draws 0 cue pixels while ramming, Road Train still draws 151.
+
+**BUMPER CAR: LAUNCH.** A fourth ability value, `'launch'`. Hit a car with a full bar and it is thrown off the screen — spinning, shrinking and fading on its own arc, the only vehicle in the game ever drawn rotated. The bar empties and refills over **5 seconds**; hit something before it is full and you simply die, exactly as specified.
+
+It cannot be triggered by a key, and that is enforced structurally rather than by a guard: `startAbility()` only has branches for `'jump'` and `'ram'`, so a third value means the ability key does nothing at all, with no extra condition to keep in sync. Three gates decide a launch — the bar must be **full** (all-or-nothing, not merely charged), it must be a **front** hit, and ambulances are exempt for the same reason ramming spares them. Any gate failing falls through to the ordinary crash branches.
+
+**A bug caught in testing, and it was mine.** The cooldown was being topped up by passing traffic, because the ability bar's normal refill is "+1 cell per car passed". So on a busy road the launch came back early and on an empty one it did not — precisely the dependence on traffic that a flat timer exists to remove. Passing refill is now skipped for `'launch'` and `'none'` cars. Verified: the bar reads 20/40/60/80/100 across five seconds regardless of traffic.
+
+**The other seven joke vehicles have no ability, and earn more instead.** A jump would hand them thruster flames that assume a car silhouette and a flat underside; a donut with rockets under it reads as broken art, not as a joke. They get `'none'` — which the ability-bar renderer already hid, so the HUD needed no change — and a coin bonus applied to the run payout:
+
+| | bonus | | | bonus |
+|---|---|---|---|---|
+| GIANT DONUT | +75% | | BICYCLE | +70% |
+| GRAND PIANO | +65% | | FISH | +60% |
+| BATHTUB | +55% | | COUCH | +50% |
+| GIANT SNAIL | +40% | | | |
+
+Scaled against what each already has: the snail is the joint-fastest car in the game and gets the least, the donut is the smallest and slowest-earning and gets the most. SHIP and BUMPER CAR get **no** coin bonus — they have an ability instead, and that is the trade.
+
+These numbers are a judgement call, not a spec. The brief was "some should have more and some should have less"; the floor is deliberately high because jump is a survival tool, not flavour, and +10% would never be worth giving it up.
+
 ## 2.231.0 — 2026-09-21 13:10: Batch 445 — Six more joke vehicles from "Reckless Vehicles v4.dc.html"
 
 GRAND PIANO, GIANT SNAIL, SHIP, BUMPER CAR, BATHTUB and GIANT DONUT. All `boxOnly`, bringing the roster to **61 cars — 52 buyable, 9 box-exclusive**. COLLECTOR's tiers follow automatically: diamond 52, amethyst 61.

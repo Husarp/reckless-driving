@@ -1775,7 +1775,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.231.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.232.0</span></div>
                 </div>
             </div>
         </div>
@@ -3378,7 +3378,7 @@
             cs.bestScore = Math.max(cs.bestScore, score);
             cs.bestSurvivalMs = Math.max(cs.bestSurvivalMs, survivedMs);
             // Coins are never shown live during a run — only totalled up and revealed here, multiplied by the same score multiplier the run's score already used.
-            const finalCoins = Math.round(coinsThisRun * multiplier);
+            const finalCoins = Math.round(coinsThisRun * multiplier * (1 + (getSelectedCar().coinBonus || 0)));
             allTimeStats.totalCoins += finalCoins;
             allTimeStats.totalCoinsEarnedLifetime += finalCoins; // Batch 332 — "Businessman"
             checkMillionaire(); // Batch 341
@@ -3784,6 +3784,10 @@
         // Jump ability (Batch 34, reworked same day) — hold-to-fly: needs at least ABILITY_MIN_ENERGY to take off, then drains in real time for as long as it's held.
         const ABILITY_BAR_CELLS = 9;
         const ENERGY_PER_CELL = 100 / ABILITY_BAR_CELLS;
+        // Batch 446 — how long the BUMPER CAR takes to recharge a spent bar. 5s: long enough that you
+        // cannot simply drive through a lane clearing it, short enough to come back within the same
+        // stretch of traffic. Direct spec was only "some seconds".
+        const LAUNCH_RECHARGE_MS = 5000;
         // Ram's activation threshold made to match Jump's exactly (see Shield Bump block below).
         const ABILITY_MIN_ENERGY = Math.ceil(3 * ENERGY_PER_CELL); // % energy required to START either ability — "at least three full red cells"
         // Batch 440 - direct request: jumping uses 30% less energy. This is the ms to drain a FULL
@@ -4390,6 +4394,14 @@
                 sbTankCue(gctx, cx, 0, Math.floor(now / 90) % 4);
                 return;
             }
+
+            // Batch 446, direct spec for the SHIP: "it wouldn't display the RAM, but it would still give
+            // the air particles, and you could just RAM with the ship." `hideRamGuard` drops EVERY cue -
+            // thruster plume, projected guard through all three of its phases, and the air ripple - while
+            // leaving the ability itself, its hitbox reach, its speed boost and the ambient-air boost
+            // completely untouched. Placed above the plume on purpose: a rocket exhaust under a sailing
+            // ship reads as a bug just as loudly as an energy shield on its bow would.
+            if (car.hideRamGuard) return;
 
             // Batch 415, direct report: the guard was scaled by the car's own width
             // (`bw / 16`), so a 22px-wide Monster Truck got a guard 37% wider than a normal car's
@@ -6022,9 +6034,9 @@
             // roll refunds - the top rate, which is right for the only prizes a box can still give.
             // No `unlock` price: buildCarTile() shows LOCKED for boxOnly instead of a price, and the
             // price sort already pushes them last, so a number here would never be displayed anyway.
-            { key: 'bicycle', label: 'BICYCLE', h: 20, hitboxW: 8,  draw: drawGarageBicycle53, rarity: 'legendary', boxOnly: true },
-            { key: 'fish',    label: 'FISH',    h: 22, hitboxW: 12, draw: drawGarageFish53,    rarity: 'legendary', boxOnly: true },
-            { key: 'couch',   label: 'COUCH',   h: 18, hitboxW: 20, draw: drawGarageCouch53,   rarity: 'legendary', boxOnly: true },
+            { key: 'bicycle', label: 'BICYCLE', h: 20, hitboxW: 8,  draw: drawGarageBicycle53, rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.70 },
+            { key: 'fish',    label: 'FISH',    h: 22, hitboxW: 12, draw: drawGarageFish53,    rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.60 },
+            { key: 'couch',   label: 'COUCH',   h: 18, hitboxW: 20, draw: drawGarageCouch53,   rarity: 'legendary', boxOnly: true, noAbility: true, coinBonus: 0.50 },
 
             // 6 more from "Reckless Vehicles v4.dc.html". Rarity is the doc's own label on each card.
             // `noPaint` is the direct instruction "they don't have colors... similar to the tank": one
@@ -6041,12 +6053,12 @@
             // deliberately kept the best car just UNDER that ceiling so no single lever outweighed the
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
-            { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'legendary', boxOnly: true, noPaint: true },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'legendary', boxOnly: true, noPaint: true },
-            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'legendary', boxOnly: true, noPaint: true },
-            { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'epic',      boxOnly: true, noPaint: true },
-            { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'epic',      boxOnly: true, noPaint: true },
-            { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'rare',      boxOnly: true, noPaint: true },
+            { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'legendary', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'legendary', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 },
+            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'legendary', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true },
+            { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'epic',      boxOnly: true, noPaint: true, launchAbility: true },
+            { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'epic',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
+            { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'rare',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
         ];
         // direct request: prices researched against real-world new-vehicle costs per category (average of the researched range, not the extreme), replacing the old ×50 scale-of-arbitrary-numbers approach (Batch 332/334, CAR_PRICE_SCALE) entirely — these are now the final absolute values, not a base to be multiplied further.
 
@@ -8197,7 +8209,7 @@
 
         // result-screen achievements summary.
         function renderResultAchievements() {
-            const finalCoinsThisRun = Math.round(coinsThisRun * multiplier); // same formula recordRunStats() already used for Businessman
+            const finalCoinsThisRun = Math.round(coinsThisRun * multiplier * (1 + (getSelectedCar().coinBonus || 0))); // same formula recordRunStats() already used for Businessman
             const defs = [
                 { id: 'score', gained: CS.snapshot.score },
                 { id: 'pass', gained: dodgedCount },
@@ -8594,6 +8606,15 @@
                     if (this.tankReloadMs >= TANK_RELOAD_ANIM_MS) this.tankReloadPhase = 'idle';
                 }
 
+                // Batch 446 — BUMPER CAR. Its bar is not spent by a button, so nothing else would ever
+                // refill it: the usual refill comes from passing cars (creditVehiclePass), which would make
+                // the cooldown depend on how much traffic happens to be around. A flat timer keeps "you can
+                // use it again in N seconds" true regardless of the road.
+                if (config.ability === 'launch' && this.energy < 100) {
+                    this.launchRechargeMs = (this.launchRechargeMs || 0) + 16.66;
+                    this.energy = Math.min(100, 100 * this.launchRechargeMs / LAUNCH_RECHARGE_MS);
+                }
+
                 if (this.abilityState === 'jumping') {
                     if (this.jumpHeld) {
                         // Held: rise and drain energy in real time
@@ -8654,7 +8675,11 @@
 
                 if (config.ability !== 'none') {
                     // jump's "ready" glow now matches what useAbility() actually requires instead of a flat 100% — before this, the bar could sit in "still charging" amber for a while after you were already able to jump, which is exactly the confusing mismatch that was reported.
-                    const readyThreshold = config.ability !== 'ram' ? ABILITY_MIN_ENERGY
+                    // Batch 446 — 'launch' needs a FULL bar, not ABILITY_MIN_ENERGY: the BUMPER CAR is
+                    // all-or-nothing, so the glow has to mean "hit something now and it flies" rather than
+                    // "partly charged". Without this the bar would advertise ready while a hit still killed you.
+                    const readyThreshold = config.ability === 'launch' ? 100
+                        : config.ability !== 'ram' ? ABILITY_MIN_ENERGY
                         : selectedCarKey === 'tank' ? TANK_SHOT_COST : 2 * ENERGY_PER_CELL;
                     // same epsilon as useAbility()'s real gate, so the "ready" glow state can never disagree with whether a shot will actually be accepted.
                     const ready = this.energy + 1e-6 >= readyThreshold && this.abilityState === 'idle';
@@ -9051,6 +9076,18 @@
             }
 
             update() {
+                // Batch 446 — launched by the BUMPER CAR: it stops being traffic entirely and flies, so it
+                // skips the road-relative speed maths below rather than fighting it. It keeps a little
+                // downward drag so the arc reads as thrown rather than teleported, and despawns on its own
+                // once it is well clear of the frame (the normal off-screen cull only looks at the bottom).
+                if (this.launched) {
+                    this.x += this.launchVx;
+                    this.y += this.launchVy;
+                    this.launchVy += 0.12;
+                    this.launchAngle += this.launchSpin;
+                    this.launchScale = Math.max(0.15, (this.launchScale === undefined ? 1 : this.launchScale) - 0.012);
+                    return;
+                }
                 // speedOffset was already clamped relative to the player once at spawn (see constructor) — no per-frame re-clamping here, that's what caused the twitch
                 let speed = currentSpeed - this.speedOffset;
                 this.y += speed;
@@ -9172,6 +9209,23 @@
             }
 
             draw() {
+                // A launched vehicle is drawn through a rotate/scale transform - the only vehicle in the
+                // game that is ever drawn at an angle. Everything else is axis-aligned pixel art, which is
+                // why this is a wrapper around the normal draw rather than a variant sprite.
+                if (this.launched) {
+                    const sc = this.launchScale === undefined ? 1 : this.launchScale;
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, Math.min(1, sc * 1.4));
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.launchAngle);
+                    ctx.scale(sc, sc);
+                    ctx.translate(-(this.x + this.width / 2), -(this.y + this.height / 2));
+                    this.launched = false;          // draw the ordinary sprite inside the transform
+                    this.draw();
+                    this.launched = true;
+                    ctx.restore();
+                    return;
+                }
                 if (this.crushed || this.wrecked) {
                     // direct design decision: a rammed vehicle no longer just vanishes into a fixed-size explosion (looked wrong on big cars especially, the burst never matched their scale) — it's flattened in place via a squash transform on its OWN existing sprite (so it's automatically the right shape/size for whatever was hit, no new art needed), tinted dark, and left as a harmless non-collidable wreck the player drives straight over, scrolling off-screen naturally like anything else.
                     drawCrushedWreck(this, !this.wrecked); // Batch 267 — NPC-crash wrecks skip the burnt-black tint, ram-kills keep it
@@ -10592,6 +10646,68 @@
             drawManholes(gctx, ov, chgt, roadL, roadW, lanes); // Batch 287 — on top of the finished road surface, like a real cover set into it
         }
 
+        // ---------- Ambient road air (Batch 446) ----------
+        // Ported from "_archive/Shield Bump Storyboardv2.dc.html", section 9: AMBIENT ROAD AIR, a 32x32
+        // tile of 15 particles - single motes and 2-4px streaks, about a third of them warm dust rather
+        // than white air - that wraps on all four edges so it can be repeated across the road without
+        // seams. The doc's own `rng(21)` and its alpha quantiser come across unchanged, so the particles
+        // land where the doc says they land rather than somewhere similar.
+        //
+        // What is NOT from the doc: the doc plays this as a fixed 4-frame loop and says only "drop the
+        // alpha or the particle count on slower roads". The direct request was that speed drives it -
+        // "the faster you go, the more particles, and maybe the faster they go" - so count, alpha and
+        // scroll rate are all functions of speedRatio01() here. Below ~35% of the car's top speed
+        // nothing draws at all: at a crawl, visible air would read as drizzle, not speed.
+        const AIR_TILE = 32;
+        const AIR_MAX_PARTICLES = 15;   // the doc's own count, reached only at top speed
+        function airRng(seed) {
+            let s = seed * 7919 + 13;
+            return () => ((s = (s * 1664525 + 1013904223) & 0x7fffffff) / 0x7fffffff);
+        }
+        function airAlpha(a) {
+            const q = a >= 0.7 ? 0.72 : a >= 0.45 ? 0.46 : a >= 0.25 ? 0.26 : 0.14;
+            return 'rgba(226,242,255,' + q + ')';
+        }
+        // `boost` lets the ram ability push the air past what raw speed alone would give (see drawSbAir).
+        function drawAmbientAir(scroll, boost) {
+            const lift = boost || 0;
+            const power = Math.min(1, speedRatio01() + lift);
+            if (power < 0.35) return;
+            const t = (power - 0.35) / 0.65;                       // 0 at the threshold, 1 at full speed
+            const n = Math.max(1, Math.round(AIR_MAX_PARTICLES * t));
+            const fade = 0.35 + t * 0.65;
+            const step = scroll * (1.6 + t * 2.4);                 // faster road = the motes visibly hurry
+            const R = airRng(21);
+            const parts = [];
+            for (let i = 0; i < AIR_MAX_PARTICLES; i++) {
+                parts.push({ x: Math.floor(R() * AIR_TILE), y0: Math.floor(R() * AIR_TILE),
+                             len: R() < 0.45 ? 1 : 2 + Math.floor(R() * 3),
+                             a: 0.16 + R() * 0.5, dust: R() < 0.3 });
+            }
+            // Only the road surface, never the verges - air over grass would read as rain.
+            const x0 = ROAD_BORDER_LEFT, x1 = ROAD_BORDER_LEFT + ROAD_WIDTH;
+            for (let tx = x0; tx < x1; tx += AIR_TILE) {
+                for (let ty = -AIR_TILE; ty < canvas.height; ty += AIR_TILE) {
+                    for (let i = 0; i < n; i++) {
+                        const p = parts[i];
+                        const px = tx + p.x;
+                        if (px < x0 || px >= x1) continue;
+                        const head = (((p.y0 + step) % AIR_TILE) + AIR_TILE) % AIR_TILE;
+                        for (let k = 0; k < p.len; k++) {
+                            const y = ty + ((head - k) % AIR_TILE + AIR_TILE) % AIR_TILE;
+                            if (y < 0 || y >= canvas.height) continue;
+                            const decay = p.len === 1 ? 0 : k / p.len;
+                            const a = p.a * fade;
+                            ctx.fillStyle = p.dust
+                                ? 'rgba(139,127,106,' + (a * (1 - decay * 0.6)).toFixed(2) + ')'
+                                : airAlpha(a * (1 - decay * 0.7));
+                            ctx.fillRect(px, y, 1, 1);
+                        }
+                    }
+                }
+            }
+        }
+
         // ---------- Main menu live background (Batch 53) ---------- Batch 55 bug fix: the demo cars' x positions used to be hand-picked/eyeballed numbers (60, 29, 91) that didn't actually match the menu road's real lane centers — off by ~4.5px each, which read as "cars not centered in the lanes." Computed properly here from the menu's fixed road geometry (roadL=18, roadW=124, lanes=4 — matches the literal args drawMenuScene() passes to drawRoadScene()).
         const MENU_LANE_X = [0, 1, 2, 3].map(lane => {
             const lw = 124 / 4;
@@ -10716,7 +10832,17 @@
             applyLaneLayout(config.lanes);
             config.hasTrucks = true; // no longer a player choice
             // Shield Bump: ability is now derived from the selected car instead of hardcoded, per the finalized 9-car ram roster (GARAGE_CARS.ramAbility) — every other car keeps the universal Jump.
-            config.ability = getSelectedCar().ramAbility ? 'ram' : 'jump';
+            // Batch 446 — 'launch' is the BUMPER CAR's. Direct spec: "this ability isn't something we can
+            // activate, it just... when the energy bar is full... it uses it automatically." Giving it its
+            // own config value is what enforces that: startAbility() only has branches for 'jump' and
+            // 'ram', so a third value means pressing the ability key does nothing at all, with no extra
+            // guard to keep in sync. The bar becomes a pure cooldown readout.
+            // 'none' is the other 7 joke vehicles. Direct decision: they trade the ability away for coins
+            // rather than being handed a jump whose thruster flames assume a car silhouette and a flat
+            // underside - a donut with rockets under it reads as broken art, not as a joke.
+            config.ability = getSelectedCar().launchAbility ? 'launch'
+                : getSelectedCar().ramAbility ? 'ram'
+                : getSelectedCar().noAbility ? 'none' : 'jump';
             config.difficulty = selectDifficulty.value; // Batch 127
             config.skipCrashAnimation = selectSkipCrash.value === 'yes';
             config.soundVolume = parseFloat(selectSound.value);
@@ -11805,7 +11931,12 @@
             dodgedCount++;
             if (!v.jumpedOver) coinsThisRun += Math.round(pts / 10 * COIN_EARN_SCALE);
             // ability bar refill: +1 bar (10 energy, out of the bar's 10 cells) for a normal pass, +2 bars (20) for a truck, replacing the old continuous time-based regen entirely.
-            if (player.abilityState === 'idle' && player.rechargeDelay <= 0) {
+            // Batch 446 — the BUMPER CAR's bar is a fixed 5s cooldown, not a reward for passing traffic.
+            // Caught in testing: without this, passing cars topped it up mid-cooldown, so on a busy road
+            // the launch came back early and on an empty one it did not - exactly the dependence on
+            // traffic that a flat timer exists to remove. 'none' cars have no bar at all, so they skip it too.
+            if (config.ability !== 'launch' && config.ability !== 'none'
+                && player.abilityState === 'idle' && player.rechargeDelay <= 0) {
                 // was flat 10/20/50, tuned for the old 10-cell bar (clean 1/2/5-cell multiples then); re-expressed as N x ENERGY_PER_CELL so a refill always lands on an exact whole-cell boundary regardless of the bar's actual cell count.
                 const barGain = isTruckLike(v) ? 2 * ENERGY_PER_CELL // Batch 135
                     : (v.type === 'ambulance' && !v.jumpedOver) ? 5 * ENERGY_PER_CELL
@@ -12248,6 +12379,10 @@
             }
 
             drawRoadScene(ctx, canvas.width, canvas.height, ROAD_BORDER_LEFT, ROAD_BORDER_RIGHT, ROAD_WIDTH, config.lanes, roadOffset);
+            // Batch 446 — ramming pushes the air past what raw speed alone would give. Direct request:
+            // the particles should fire "when using the RAM ability" too, because that is what sells it
+            // as speed rather than as a button that turns a shield on.
+            drawAmbientAir(roadOffset, (player && player.abilityState === 'ramming') ? 0.45 : 0);
 
             if (gameActive) {
                 // Pending ambulance warnings: draw flashing danger zone, spawn when countdown ends
@@ -12496,7 +12631,7 @@
                     }
 
                     // a crushed wreck is purely decorative from here on: no more collision, no close calls, nothing to react to.
-                    if (!v.crushed && checkCollision(playerCollisionRect(), v)) {
+                    if (!v.crushed && !v.launched && checkCollision(playerCollisionRect(), v)) {
                         if (player.abilityState === 'jumping') {
                             // immune over everything, including ambulances now.
                             if (!v.jumpedOver) {
@@ -12546,6 +12681,30 @@
                             ramKillsThisRun++;
                             player.ramChainKills++;
                             allTimeStats.bestRamChainKills = Math.max(allTimeStats.bestRamChainKills, player.ramChainKills);
+                            playSound('ram');
+                            continue;
+                        } else if (config.ability === 'launch' && player.energy >= 100 - 1e-6
+                                   && !v.wrecked && v.type !== 'obstacle' && isFrontHit(player, v)) {
+                            // BUMPER CAR. Direct spec: when the bar is full, whatever you hit "goes flying...
+                            // send it to the stars"; then it recharges over a few seconds and until it does,
+                            // hitting something just kills you like any other car. Three gates make that true:
+                            // the bar must be FULL (not merely non-empty, so it is genuinely all-or-nothing),
+                            // it must be a front hit (reversing into a car is not bumping it), and an
+                            // ambulance is exempt for the same reason ramming spares it - instant death is
+                            // the ambulance's whole identity. If any gate fails, control falls through to the
+                            // ordinary crash branches below, which is exactly the "then you just crash" ask.
+                            v.launched = true;
+                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (2.2 + Math.random() * 1.6);
+                            v.launchVy = -(6 + Math.random() * 3);
+                            v.launchSpin = (Math.random() < 0.5 ? -1 : 1) * (0.18 + Math.random() * 0.22);
+                            v.launchAngle = 0;
+                            v.speedOffset = 0;
+                            player.energy = 0;              // the bar IS the cooldown from here
+                            player.launchRechargeMs = 0;
+                            ramsUsed++;
+                            const lp = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10);
+                            score += lp * multiplier * 1.2; // no per-event rounding — see endRun()
+                            gainXP(15);
                             playSound('ram');
                             continue;
                         } else if (v.type === 'ambulance') {
@@ -12611,7 +12770,11 @@
                     }
 
                     // Despawn once fully off-screen — purely cleanup now, scoring already happened above. `!v.passScored` here is defensive insurance only (the surpass check above is always geometrically satisfied before a vehicle can reach its exit edge), not a path expected to actually trigger.
-                    const exited = v.type === 'ambulance' ? (v.y < -v.height - 20) : (v.y > canvas.height);
+                    // Batch 446 — a launched vehicle exits upward or sideways, so the usual bottom-edge
+                    // cull would never fire on it and it would linger forever just off-frame.
+                    const exited = v.launched
+                        ? (v.y < -v.height - 40 || v.y > canvas.height + 40 || v.x < -v.width - 40 || v.x > canvas.width + 40)
+                        : v.type === 'ambulance' ? (v.y < -v.height - 20) : (v.y > canvas.height);
                     if (exited) {
                         if (v.siren) stopSiren(v.siren);
                         vehicles.splice(i, 1);
@@ -12895,7 +13058,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.231.0';
+        const GAME_VERSION = '2.232.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
