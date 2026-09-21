@@ -1821,7 +1821,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.1</span></div>
                 </div>
             </div>
         </div>
@@ -3105,7 +3105,12 @@
             // stopped growing on a large one, so the chips crept smaller relative to the road the
             // bigger the window got. Uncapped, the gameplay screen holds one set of proportions at
             // every size, which is the same rule the menu now follows.
-            canvasContainerEl.style.setProperty('--hud-scale', contentW / HUD_SCALE_REFERENCE_WIDTH);
+            // Batch 475, direct report: maximised, "the energy bar and all the score indicators" grow
+            // absurd. Batch 433 removed the cap so the HUD would hold one proportion at every size, but
+            // at fullscreen with a high lane count the frame gets very wide and the chips scale with it -
+            // there is a size past which bigger stops being readable and starts being ridiculous. 1.5x
+            // is that line: the HUD still grows with the window, then stops.
+            canvasContainerEl.style.setProperty('--hud-scale', Math.min(1.5, contentW / HUD_SCALE_REFERENCE_WIDTH));
             // Batch 469, direct report: maximised, "all the UI is getting so much bigger than it should"
             // and the pause screen came out broken - PAUSED clipped off the top, the hint clipped off the
             // bottom. --hud-scale is derived from WIDTH ALONE, which is right for the HUD chips (they are
@@ -9585,12 +9590,17 @@
                 ctx.globalAlpha = Math.max(0, alpha);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = this.color;
-                ctx.font = "bold 8px 'Silkscreen', monospace";
+                // Batch 475, direct report: the popup letters were "too big and too thick". Bold 8px
+                // Silkscreen is the loudest thing this UI can say - block capitals nearly half a car
+                // tall. VT323 is the game's other face (the XP/rank text uses it): same pixel-art family,
+                // but a NARROW face, so it reads as writing rather than signage. Under the 3x backing
+                // store 10 world px rasterises at 30 device px, which VT323 is actually designed for.
+                ctx.font = "10px 'VT323', monospace";
                 ctx.textBaseline = 'alphabetic';
                 ctx.fillText(this.text, this.x, this.y);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = "7px 'Silkscreen', monospace";
-                ctx.fillText(this.sub, this.x, this.y + 9);
+                ctx.font = "8px 'VT323', monospace";
+                ctx.fillText(this.sub, this.x, this.y + 8);
                 ctx.restore();
             }
         }
@@ -13211,6 +13221,10 @@
                             if (selectedCarKey === 'tank') {
                                 score += 30 * multiplier; // no per-event rounding — see endRun()
                                 gainXP(30);
+                                if (config.scorePopupsEnabled) {
+                                    scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2,
+                                        '+' + Math.round(30 * multiplier), 'DIRECT HIT', '#4dd2ff'));
+                                }
                             } else {
                                 // halved the refund alongside the SHIELD_BUMP_MS_PER_CELL cut, closing the "ramming sustains forever" exploit.
                                 const cellsGained = isTruckLike(v) ? 2 / 3 : 1 / 3;
@@ -13227,6 +13241,13 @@
                                 const ramPts = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10);
                                 score += ramPts * multiplier * 1.2; // no per-event rounding — see endRun()
                                 gainXP(15);
+                                // Batch 475, direct report: "I don't see any points for ramming cars with
+                                // my ship." Correct - the popups only covered passes and jump-overs. A ram
+                                // kill scores, so it pops, on the car it killed, same toggle.
+                                if (config.scorePopupsEnabled) {
+                                    scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2,
+                                        '+' + Math.round(ramPts * multiplier * 1.2), 'RAMMED', '#4dd2ff'));
+                                }
                             }
                             ramsUsed++;
                             // "Road Rage" (lifetime ram kills) / "Chain Reaction" (most kills within ONE continuous ramming activation) achievements.
@@ -13249,9 +13270,14 @@
                             // instant death is the ambulance's whole identity. If either fails, control falls
                             // through to the ordinary crash branches, which is the "then you just crash" ask.
                             v.launched = true;
-                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (2.2 + Math.random() * 1.6);
-                            v.launchVy = -(6 + Math.random() * 3);
-                            v.launchSpin = (Math.random() < 0.5 ? -1 : 1) * (0.18 + Math.random() * 0.22);
+                            // Batch 475, direct report: launched cars flew off in "very random directions".
+                            // The lateral kick could be nearly as strong as the upward one, so a side tap
+                            // sent cars sailing across the whole road. The throw is mostly UP-SCREEN now -
+                            // away from the bumper, the way a hit at speed actually reads - with a modest
+                            // sideways component away from the player and a calmer spin.
+                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (1.1 + Math.random() * 0.7);
+                            v.launchVy = -(6.5 + Math.random() * 1.5);
+                            v.launchSpin = (Math.random() < 0.5 ? -1 : 1) * (0.1 + Math.random() * 0.1);
                             v.launchAngle = 0;
                             v.speedOffset = 0;
                             player.energy = 0;              // the bar IS the cooldown from here
@@ -13265,6 +13291,10 @@
                             score += lp * multiplier * 2; // no per-event rounding — see endRun()
                             gainXP(lp * 2);
                             coinsThisRun += Math.round(lp / 2 * COIN_EARN_SCALE); // same rate a jump-over pays
+                            if (config.scorePopupsEnabled) {
+                                scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2,
+                                    '+' + Math.round(lp * multiplier * 2), 'BUMPED', '#f5b32a'));
+                            }
                             playSound('ram');
                             continue;
                         } else if (v.type === 'ambulance') {
@@ -13622,7 +13652,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.2.0';
+        const GAME_VERSION = '3.2.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
