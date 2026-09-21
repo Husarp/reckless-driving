@@ -6,6 +6,24 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.234.0 — 2026-09-21 17:05: Batch 448 — Box-exclusives get their own SPECIAL section, and plain "???" tiles
+
+Direct correction: they were supposed to be their own section all along, not scattered through the rarity tiers by whatever rarity they happen to carry.
+
+**SPECIAL, after LEGENDARY.** Grouped by the `boxOnly` flag that already exists rather than by a new rarity value, so nothing had to be stored on the cars themselves. `RARITY_INFO.special` is a header entry only — no car carries `rarity: 'special'`.
+
+They keep their real `rarity`, and the per-card badge still reads RARE / EPIC / LEGENDARY. That is deliberate: rarity is what sets a duplicate's refund rate and which DROP CHANCES row a car sits in, so hiding it would lose real information. **The section tells you how you get them; the badge tells you how likely it is.**
+
+Sorted by name inside the section, not by price — a box-exclusive has no `unlock`, so the usual price comparator would have compared `undefined` with `undefined` and left them in whatever order the roster array happened to use.
+
+`boxLast` is also gone from the rarity sections' comparators. It existed to push box-exclusives to the end of whichever tier they landed in, and there are none left inside a tier for it to push.
+
+**The crate art is gone.** An undiscovered box-exclusive now shows the same plain "???" tile every other undiscovered car uses, per direct request. That removed the last user of `.car-tile-crate-locked`, so its three orphaned CSS rules went too.
+
+One thing that had to change with it: the "???" tile's tooltip said "Find this car on the road to unlock it", which is a straight lie for these — `boxOnly` cars are excluded from NPC traffic, so no amount of driving will ever reveal one. Box-exclusives now get "Win this one from an Extra Box to find out what it is".
+
+Verified: section order reads COMMON / RARE / EPIC / LEGENDARY / SPECIAL, zero crate tiles remain, undiscovered box-exclusives render as "???", and discovered ones show their real card with its rarity badge intact.
+
 ## 2.233.0 — 2026-09-21 16:20: Batch 447 — BICYCLE, FISH and COUCH removed
 
 Direct decision. The three hand-drawn joke vehicles from Batch 443 are gone, leaving the roster at **58 cars — 52 buyable, 6 box-exclusive**, all six of those transcribed from the user's own v4 doc. COLLECTOR's amethyst tier follows automatically: 61 → 58.
