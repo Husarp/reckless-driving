@@ -6,6 +6,16 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.235.0 — 2026-09-21 19:00: Batch 452 — Box-exclusives get a real SPECIAL rarity, and state their coin bonus
+
+Direct request. All six now carry `rarity: 'special'` instead of borrowing RARE / EPIC / LEGENDARY, so the card badge and the section header finally agree. Three things had to follow it rather than being left to fall through a default:
+
+- **Duplicate compensation** got its own tier at **750,000**, above legendary's 500,000. Without it these would have fallen to the generic `common` fallback and refunded 50,000 — a fifteenth of what a duplicate legendary pays, for a strictly rarer car.
+- **The box roll's rarity weighting is now explicitly a uniform pick.** `CAR_RARITY_WEIGHTS` chooses a tier and then filters the pool by it; with every box car on one tier that filter could only ever come back empty and fall through to the whole pool. Saying so outright beats leaving a weighting step that silently does nothing.
+- **The Stats collection panel corrected itself.** It counts cars *spotted* per rarity, and box-exclusives were padding those totals with six cars that can never be spotted — they are excluded from traffic by design. It now reads **6 / 52** rather than 6 / 58.
+
+**The coin bonus is visible**, on the hover card directly under the ability line — which is exactly what it compensates for. GIANT DONUT reads `ABILITY: NONE` / `COINS: +75%`. SHIP reads `ABILITY: SHIELD BUMP` with no coin row, because it has an ability instead and that is the whole trade.
+
 ## 2.234.3 — 2026-09-21 18:40: Batch 451 — BUMPER CAR bumps with every side, and stops paying close calls for it
 
 **Every side, not just the nose.** Direct correction — the `isFrontHit()` gate is gone. A real bumper car is ringed in rubber, so restricting the launch to the front was the wrong instinct. Two gates remain: the bar must be **full**, and ambulances stay exempt for the same reason ramming spares them. Verified from all four sides — front, rear, left and right all launch, and the player survives each.
