@@ -6,6 +6,10 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.241.2 — 2026-09-22 02:30: Batch 464 — ACT OF GOD renamed to THE DESTROYER
+
+Display name only. The **id stays `act_of_god`**, because that is the key persisted in `allTimeStats.achievementsUnlocked` — renaming it would silently un-unlock the achievement for anyone who had already earned it.
+
 ## 2.241.1 — 2026-09-22 02:15: Batch 463 — Clicking a menu car now does exactly what ramming one does
 
 Direct correction. The easter egg had its own bespoke explosion and made the car vanish. Both were wrong: it should be the same outcome as a ram.
