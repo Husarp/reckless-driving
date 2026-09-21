@@ -6,6 +6,17 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.234.1 — 2026-09-21 18:10: Batch 449 — Air particles rebuilt; both reported faults were real
+
+Direct report: "they go in single lines, they should go random", and "at 50 kilometers this air was spinning so much it looked like crazy". Both were mine, and both had a specific cause:
+
+1. **Lines.** Batch 446 drew the doc's 32×32 tile repeatedly across the road, re-seeding the same `rng(21)` for every tile. Identical seed means identical x positions, so all ~9 tiles across the road put their particles in the same 15 columns. That reads as vertical stripes, not as air.
+2. **Spinning.** It advanced the particles by `roadOffset` — which is a *wrapping* value, not a per-frame delta. Every wrap teleported every particle. Multiplying that by a speed factor and taking `% 32` turned it into constant jitter, and it was worst at low speed where there was no real motion to hide it.
+
+The tile is gone. Particles are now a single persistent field over the road, each with its own x, length and speed multiplier, advanced by the **real per-frame distance**. Nothing repeats and nothing teleports.
+
+**Speed gating is in km/h now, as asked.** Nothing at all below **120 km/h**, ramping to full density at 200 so a 250 km/h car does not white out the road. Measured: 50/90/119 km/h → 0 particles; 120 → 1; 140 → 46; 170 → 118; 200 → 173; 250 → 178 (capped). Ramming adds +45 km/h to what the air sees, so a ram at 140 draws 147 instead of 46. At 180 km/h a particle advances 12.45px per frame, smoothly.
+
 ## 2.234.0 — 2026-09-21 17:05: Batch 448 — Box-exclusives get their own SPECIAL section, and plain "???" tiles
 
 Direct correction: they were supposed to be their own section all along, not scattered through the rarity tiers by whatever rarity they happen to carry.
