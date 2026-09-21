@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.235.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.236.0</span></div>
                 </div>
             </div>
         </div>
@@ -5972,7 +5972,7 @@
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 , turboTrail: true },
             { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
@@ -8693,6 +8693,7 @@
                     // cars with `hitboxW` are drawn on a wider 24px-native canvas, centered there via carLocalX53(); `carDrawOffsetX53()` shifts the draw origin back so the visible body still lines up with `this.x` (the hitbox's own left edge), not the wider canvas's. 0 for every car without `hitboxW` (all 10 original cars), so this is a no-op for them.
                     const car = getSelectedCar();
                     const isJumping = this.abilityState === 'jumping';
+                    if (car.turboTrail) drawSnailTrail(this, drawX, drawY);   // behind the car, so it draws first
                     drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car), drawY, this.width, this.height, () => {
                         // gated on sbGuardPhase too (not just abilityState) so the guard's retract animation keeps playing for its own ~350ms after ramming has already ended, instead of being cut off the instant the bar empties.
                         if (this.abilityState === 'ramming' || this.sbGuardPhase !== 'idle') drawShieldBumpFX(ctx, car, this);
@@ -10595,6 +10596,73 @@
                 }
             }
             drawManholes(gctx, ov, chgt, roadL, roadW, lanes); // Batch 287 — on top of the finished road surface, like a real cover set into it
+        }
+
+        // ---------- GIANT SNAIL turbo glow (Batch 454) ----------
+        // User's own reference: the snail from Turbo, and the ask was a blue trail behind it.
+        //
+        // A trail behind the car is GEOMETRICALLY IMPOSSIBLE here, and measuring it is the only reason
+        // that is known rather than guessed: the player sits flush against the bottom of the canvas -
+        // `player.y + player.height` is 259 of a 260px canvas, so there is exactly ONE pixel of road
+        // behind the tail. A first attempt did build a proper road-anchored trail and it worked exactly
+        // as designed, which is how it ended up holding 2 points and spanning 7px: every point scrolled
+        // off the bottom edge within two frames of being laid.
+        //
+        // So this is the other half of the same reference - in the film the snail's whole shell lights
+        // up blue - drawn in the space that does exist: a halo around the snail plus streaks running
+        // down BESIDE it, which is the road rushing past rather than a wake being left behind.
+        //
+        // Same 120 km/h floor as the air particles, so a slow snail is just a snail.
+        const SNAIL_STREAK_MAX = 14;
+        let snailStreaks = [];
+        function drawSnailTrail(player, drawX, drawY) {
+            const kmh = speedToKmh(currentSpeed);
+            const t = Math.max(0, Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH)));
+            const cx = drawX + player.width / 2;
+            // Halo: three rings stepping outward and down in alpha, pulsing gently so it reads as
+            // energised rather than as a flat selection outline.
+            if (t > 0) {
+                const pulse = 0.82 + 0.18 * Math.sin(performance.now() / 110);
+                // Drawn row by row with the ends pinched in, not as plain fillRects. A rectangular halo
+                // around an oval snail reads as a selection box, which is what the first version looked
+                // like on screen - the shape has to suggest the sprite, not its bounding box.
+                const hh = player.height / 2, cy = drawY + hh;
+                for (let r = 3; r >= 1; r--) {
+                    ctx.fillStyle = 'rgba(79,195,255,' + ((0.10 + t * 0.20) * pulse / r).toFixed(3) + ')';
+                    for (let y = drawY - r; y < drawY + player.height + r; y++) {
+                        const dy = Math.min(1, Math.abs(y - cy) / (hh + r));
+                        const pinch = Math.round((1 - Math.sqrt(1 - dy * dy)) * (player.width / 2));
+                        ctx.fillRect(drawX - r + pinch, y, player.width + r * 2 - pinch * 2, 1);
+                    }
+                }
+                ctx.fillStyle = 'rgba(223,246,255,' + (0.10 * t * pulse).toFixed(3) + ')';
+                ctx.fillRect(drawX + 2, drawY + 3, player.width - 4, player.height - 6);
+            }
+            // Streaks down each flank. They spawn at the nose and run past the car, so they occupy the
+            // full 42px of its own height - the one stretch of screen that is reliably available.
+            for (const st of snailStreaks) st.y += currentSpeed * st.spd;
+            snailStreaks = snailStreaks.filter(st => st.y < drawY + player.height + 6);
+            if (t > 0 && snailStreaks.length < SNAIL_STREAK_MAX && Math.random() < 0.25 + t * 0.5) {
+                snailStreaks.push({
+                    side: Math.random() < 0.5 ? -1 : 1,
+                    off: 1 + Math.random() * 4,
+                    y: drawY - 4 - Math.random() * 6,
+                    len: 3 + Math.floor(Math.random() * 5),
+                    spd: 1.1 + Math.random() * 0.8
+                });
+            }
+            for (const st of snailStreaks) {
+                const x = Math.round(st.side < 0 ? drawX - st.off : drawX + player.width + st.off - 1);
+                for (let k = 0; k < st.len; k++) {
+                    const y = Math.round(st.y) - k;
+                    if (y < 0 || y >= canvas.height) continue;
+                    const a = (0.25 + t * 0.55) * (1 - k / st.len);
+                    ctx.fillStyle = k === 0
+                        ? 'rgba(223,246,255,' + a.toFixed(2) + ')'
+                        : 'rgba(79,195,255,' + (a * 0.85).toFixed(2) + ')';
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
         }
 
         // ---------- Ambient road air (Batch 446, rebuilt in Batch 449) ----------
@@ -13032,7 +13100,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.235.1';
+        const GAME_VERSION = '2.236.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

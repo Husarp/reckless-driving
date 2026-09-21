@@ -6,6 +6,23 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.236.0 — 2026-09-21 19:55: Batch 454 — GIANT SNAIL turbo glow
+
+The Turbo reference, built in the space that actually exists.
+
+**A trail behind the car is geometrically impossible here**, and that is measured rather than assumed. The player sits flush against the bottom of the canvas: `player.y + player.height` is **259 of a 260px canvas**, so there is exactly **one pixel** of road behind the tail.
+
+The first attempt did build a proper road-anchored trail, and it worked exactly as designed — which is how it ended up holding 2 points and spanning 7px. Every point scrolled off the bottom edge within two frames of being laid. No amount of tuning fixes that; there is nowhere for a wake to go.
+
+So this is the other half of the same reference — in the film the snail's whole shell lights up blue:
+
+- **A halo around the snail**, three rings stepping outward and down in alpha, pulsing gently so it reads as energised rather than as a flat outline. Drawn row by row with the ends pinched in, not as `fillRect`s: a rectangular halo around an oval snail reads as a *selection box*, which is exactly what the first version looked like on screen.
+- **Streaks down each flank**, spawning at the nose and running past the car. They occupy the full 42px of the snail's own height — the one stretch of screen that is reliably available — and read as the road rushing past.
+
+Same 120 km/h floor as the air particles, so a slow snail is just a snail and the glow specifically means speed. Verified: 0 pixels drawn below the threshold, ~2,300 and 6 live streaks at 237 km/h.
+
+**If a trail behind the car is wanted for real, the player's resting position has to move up the screen first** — that is a gameplay change, not an effects one, so it was not done here.
+
 ## 2.235.1 — 2026-09-21 19:20: Batch 453 — The SHIP can ram with the sides of its bow
 
 Direct report, and a real bug. A ram kill needs `isFrontHit()`, which asks for **50% horizontal overlap** — measured against the hull's full 22px width. The ship has a pointed bow, so catching a car on the *side* of that point produces a small overlap, failed the test, and fell straight through to the crash branch. You rammed with the front of the ship and died for it.
