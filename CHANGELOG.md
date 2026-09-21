@@ -6,6 +6,24 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.241.0 — 2026-09-22 01:30: Batch 462 — Level badge spins with momentum; the number is actually centred; air back to 120
+
+**Air particles return to 120 km/h.** Batch 461 lowered them to 75 on a misspoken instruction; the intent was always that air should *not* appear at lower speeds. Reverted.
+
+**The spin is momentum now, matching the described behaviour**: a click spins the ring, more clicks make it spin **faster rather than restarting it**, and it coasts down to a stop on its own. Measured: one click gives 2 turns over 1.9s; two clicks 7 turns; four or more cap out at 7 turns in 2.8s.
+
+It is a **CSS rotate on the ring canvas, not a redraw**, which buys three things at once. The number is a separate element, so it stays put and upright exactly as asked. The ring keeps showing real XP throughout, because its pixels are never touched. And nothing has to block `paintLevelBadge()` any more — which is precisely what let the previous version strand the badge permanently if a frame never arrived. That whole failure mode is gone rather than guarded.
+
+**It always settles on a whole turn.** Stopping at an arbitrary angle would leave the progress arc pointing somewhere it does not mean — the arc starts at 12 o'clock and that has to stay true. Verified across 1, 2, 4 and 10 clicks: every one ends on an exact multiple of 360°.
+
+FULL CIRCLE still unlocks on the first click.
+
+**The number was 2px low, and the circle was not the cause.** The obvious suspect was wrong, which is why this was measured before anything was changed: the number's box and the ring's box share a centre to within **0.0px**, so the circle is correctly drawn and did not need remaking.
+
+What is off is **Silkscreen's own metrics** — its digits carry no descender, so a line box centred by flexbox puts the *ink* low. At the menu's 28px the drawn pixels sit a full 2px below the ring's centre.
+
+The correction is computed from the font's real metrics rather than hardcoded, because it does not scale linearly: the three sizes in use (28px menu, 15px badge, 11px three-digit) round to different whole-pixel offsets. Cached per font, so it measures once per size.
+
 ## 2.240.0 — 2026-09-22 00:40: Batch 461 — The grey overlay was antialiasing; vehicles now render 1:1 and blit
 
 **It was never a shadow.** `CAR_SCALE` is 1.3, and `drawScaledVehicle()` scaled the *context* — so every sprite's `fillRect` landed between device pixels and canvas antialiased it. The blend against the road is the grey fringe; the softened edges are the blur. The Garage was clean because it draws at whole-number scales.

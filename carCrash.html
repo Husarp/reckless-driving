@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.240.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.241.0</span></div>
                 </div>
             </div>
         </div>
@@ -3849,6 +3849,31 @@
         // `ringPct` (Batch 444) overrides ONLY the ring's fill fraction, for the click easter egg's
         // spin. It deliberately does not touch the XP text: sweeping the ring by feeding this a fake
         // `xp` would have made the readout count up to a number the player does not actually have.
+        // Batch 462, direct report that the level number is not vertically centred in its circle.
+        // Measured first, because the obvious suspect was wrong: the number's box and the ring's box
+        // share a centre to within 0.0px, so the circle is fine and did not need redrawing. What is off
+        // is Silkscreen's own metrics - the glyphs carry no descender, so a line box centred by flexbox
+        // puts the INK low. At the menu's 28px the drawn pixels sit a full 2px below the ring's centre.
+        //
+        // The correction is computed from the font's real metrics rather than hardcoded, because it does
+        // not scale linearly: the three sizes in use (28px menu, 15px badge, 11px three-digit) round to
+        // different whole-pixel offsets. Cached per font string, so this measures once per size.
+        const levelNumNudge = new Map();
+        function centreLevelNumber(numEl) {
+            const cs = getComputedStyle(numEl);
+            const font = cs.fontSize + ' ' + cs.fontFamily;
+            let dy = levelNumNudge.get(font);
+            if (dy === undefined) {
+                const g = document.createElement('canvas').getContext('2d');
+                g.font = font;
+                const m = g.measureText('0');
+                const lineH = m.fontBoundingBoxAscent + m.fontBoundingBoxDescent;
+                const inkCentre = m.fontBoundingBoxAscent - (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+                dy = Math.round(lineH / 2 - inkCentre);
+                levelNumNudge.set(font, dy);
+            }
+            if (dy) numEl.style.transform = 'translateY(' + dy + 'px)';
+        }
         function paintLevelBadgeAt(ringCanvas, numEl, xpEl, rankEl, level, xp, ringPct) {
             const S = 24;
             ringCanvas.width = S; ringCanvas.height = S;
@@ -3874,6 +3899,7 @@
             numEl.textContent = String(level);
             numEl.style.color = color;
             numEl.classList.toggle('level-badge-num-3digit', level >= 100);
+            centreLevelNumber(numEl);
             const legendary = level >= 101;
             ringCanvas.classList.toggle('level-badge-legendary', legendary);
             numEl.classList.toggle('level-badge-legendary', legendary);
@@ -3893,36 +3919,46 @@
         //
         // No cursor:pointer anywhere near the badge, and no hover hint: this is a secret achievement,
         // so anything that advertises the badge as clickable would give it away.
-        // Batch 461 — this was a BOOLEAN, and that could strand the badge permanently. paintLevelBadge()
-        // refuses to paint while a spin is running, so if the animation ever stopped without clearing the
-        // flag the badge froze mid-sweep forever AND every later click was refused by the same flag. That
-        // is not hypothetical: requestAnimationFrame stops firing while the window is hidden or occluded,
-        // which is exactly how it behaves in a testing pane and how WebView2 can behave when the app loses
-        // focus. A DEADLINE cannot strand: once the time is past, the spin is over whether or not a frame
-        // ever ran, and the next paint puts the badge back to its true value on its own.
-        let levelSpinUntil = 0;
+        // Batch 462, rebuilt from the described behaviour: a click SPINS the ring, repeated clicks make
+        // it spin faster rather than restarting it, and it coasts down to a stop on its own.
+        //
+        // The spin is a CSS rotate on the ring canvas, not a redraw. That matters for three reasons: the
+        // number is a separate element so it stays put and upright exactly as asked; the ring keeps
+        // showing the player's real XP the whole time, because its pixels never change; and nothing has
+        // to block paintLevelBadge() any more, which is what made the previous version able to strand the
+        // badge permanently if a frame never arrived.
+        //
+        // It always settles on a WHOLE turn. Stopping at an arbitrary angle would leave the progress arc
+        // pointing somewhere it does not mean - the arc starts at 12 o'clock and that has to stay true.
+        const SPIN_IMPULSE = 22;     // deg/frame added per click
+        const SPIN_MAX = 75;         // ~12 turns/second, fast enough to blur but not to strobe
+        const SPIN_FRICTION = 0.965;
+        let spinRing = null, spinAngle = 0, spinVel = 0, spinRunning = false;
         function spinLevelBadge(badgeEl) {
-            // Two different markups: Garage and Stats use .level-badge-*, but the main menu's own
-            // circle (kept deliberately when the menu was rebuilt from the design doc) uses .mm-level-*.
-            // Matching both is what makes all 3 instances work rather than only the two older ones.
             const ring = badgeEl.querySelector('canvas');
-            const num = badgeEl.querySelector('.level-badge-num, .mm-level-num');
-            const xpEl = badgeEl.querySelector('.level-badge-xp, .mm-level-xp');
-            const rankEl = badgeEl.querySelector('.level-badge-rank, .mm-level-rank');
-            if (!ring || !num || !xpEl || !rankEl || performance.now() < levelSpinUntil) return;
+            if (!ring) return;
             unlockAchievement('full_circle');
-            const level = allTimeStats.playerLevel, xp = allTimeStats.playerXP;
-            const real = Math.max(0, Math.min(1, xp / levelReq(level)));
-            const t0 = performance.now(), DUR = 900;
-            levelSpinUntil = t0 + DUR;
-            (function frame(now) {
-                const k = Math.min(1, (now - t0) / DUR);
-                const eased = 1 - Math.pow(1 - k, 3);
-                paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp, (real + eased) % 1);
-                if (k < 1) { requestAnimationFrame(frame); return; }
-                levelSpinUntil = 0;
-                paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp);
-            })(t0);
+            if (ring !== spinRing) { if (spinRing) spinRing.style.transform = ''; spinRing = ring; spinAngle = 0; }
+            spinVel = Math.min(SPIN_MAX, spinVel + SPIN_IMPULSE);   // clicks ACCUMULATE, they do not restart
+            if (spinRunning) return;
+            spinRunning = true;
+            requestAnimationFrame(function step() {
+                spinAngle += spinVel;
+                spinVel *= SPIN_FRICTION;
+                if (spinVel < 0.8) {
+                    // Coasting: ease the last bit onto the next whole turn so the arc ends where it means.
+                    const target = Math.ceil(spinAngle / 360) * 360;
+                    const gap = target - spinAngle;
+                    if (gap < 0.6) {
+                        spinAngle = 0; spinVel = 0; spinRunning = false;
+                        spinRing.style.transform = '';
+                        return;
+                    }
+                    spinAngle += Math.max(1.2, gap * 0.16);
+                }
+                spinRing.style.transform = 'rotate(' + (spinAngle % 360).toFixed(1) + 'deg)';
+                requestAnimationFrame(step);
+            });
         }
         // Delegated, so all 3 badge instances (Menu/Garage/Stats) are covered by one listener - and a
         // 4th would be too, without anyone having to remember to wire it up.
@@ -3931,7 +3967,6 @@
             if (badge) spinLevelBadge(badge);
         });
         function paintLevelBadge(ringCanvas, numEl, xpEl, rankEl) {
-            if (performance.now() < levelSpinUntil) return; // a click-spin is mid-flight; don't stomp it
             if (levelBadgeAnimFrom && (levelBadgeAnimFrom.level !== allTimeStats.playerLevel || levelBadgeAnimFrom.xp !== allTimeStats.playerXP)) {
                 const from = levelBadgeAnimFrom;
                 levelBadgeAnimFrom = null; // consumed — only the first badge to render plays it
@@ -10812,15 +10847,11 @@
         // own x, its own length and its own speed multiplier, and advances by the REAL per-frame distance.
         // Nothing repeats and nothing teleports.
         const AIR_MAX_PARTICLES = 90;
-        // Batch 461 — 120 was the original instruction, then corrected: "they indicate speed so they
-        // should appear on lower speeds". The measurement behind the correction: the ramp is
-        // +0.0003/frame, which put 120 km/h about 111 SECONDS into a run, so most runs ended before any
-        // air existed at all - an indicator you never see cannot indicate anything.
-        //
-        // 75 km/h is roughly 12 seconds in. Still clearly above the 50 km/h start, so standing still is
-        // calm and the air genuinely means "moving fast" rather than "moving".
-        const AIR_MIN_KMH = 75;
-        const AIR_FULL_KMH = 190;  // fully dense from here up, so a 250km/h car does not white out the road
+        // 120 km/h, and it stays there. Batch 461 briefly lowered it to 75 on what turned out to be a
+        // misspoken instruction; the intent was always that air should NOT appear at lower speeds.
+        // Air this far up the range is a reward for actually getting fast, not ambient decoration.
+        const AIR_MIN_KMH = 120;
+        const AIR_FULL_KMH = 200;  // fully dense from here up, so a 250km/h car does not white out the road
         let airField = null, airFieldW = 0, airFieldH = 0;
         function buildAirField() {
             airField = [];
@@ -13251,7 +13282,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.240.0';
+        const GAME_VERSION = '2.241.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
