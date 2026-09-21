@@ -1814,7 +1814,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.243.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.243.1</span></div>
                 </div>
             </div>
         </div>
@@ -3978,28 +3978,39 @@
         const SPIN_IMPULSE = 22;     // deg/frame added per click
         const SPIN_MAX = 75;         // ~12 turns/second, fast enough to blur but not to strobe
         const SPIN_FRICTION = 0.965;
-        let spinRing = null, spinAngle = 0, spinVel = 0, spinRunning = false;
+        let spinRing = null, spinAngle = 0, spinVel = 0, spinRunning = false, spinTarget = null;
         function spinLevelBadge(badgeEl) {
             const ring = badgeEl.querySelector('canvas');
             if (!ring) return;
             unlockAchievement('full_circle');
             if (ring !== spinRing) { if (spinRing) spinRing.style.transform = ''; spinRing = ring; spinAngle = 0; }
             spinVel = Math.min(SPIN_MAX, spinVel + SPIN_IMPULSE);   // clicks ACCUMULATE, they do not restart
+            spinTarget = null;   // a fresh click means the landing spot is decided again once it coasts
             if (spinRunning) return;
             spinRunning = true;
             requestAnimationFrame(function step() {
                 spinAngle += spinVel;
                 spinVel *= SPIN_FRICTION;
                 if (spinVel < 0.8) {
-                    // Coasting: ease the last bit onto the next whole turn so the arc ends where it means.
-                    const target = Math.ceil(spinAngle / 360) * 360;
-                    const gap = target - spinAngle;
-                    if (gap < 0.6) {
-                        spinAngle = 0; spinVel = 0; spinRunning = false;
+                    // Batch 470, direct report: after slowing it "goes to its correct spot and then does
+                    // like four spins and stops". The target was recomputed with Math.ceil EVERY frame,
+                    // so the moment an easing step carried the angle even slightly past it, ceil jumped
+                    // to the NEXT multiple of 360 and the whole settle started again a turn further on -
+                    // repeatedly, which is where the extra spins came from.
+                    //
+                    // The target is now locked ONCE, on the frame the coast begins, and the approach is
+                    // clamped so it can never overshoot it. It decelerates onto the exact spot and stops.
+                    if (spinTarget === null) spinTarget = Math.ceil(spinAngle / 360) * 360;
+                    const gap = spinTarget - spinAngle;
+                    if (gap < 0.5) {
+                        spinAngle = 0; spinVel = 0; spinRunning = false; spinTarget = null;
                         spinRing.style.transform = '';
                         return;
                     }
-                    spinAngle += Math.max(1.2, gap * 0.16);
+                    spinAngle += Math.min(gap, Math.max(1.2, gap * 0.16));
+                    spinRing.style.transform = 'rotate(' + (spinAngle % 360).toFixed(1) + 'deg)';
+                    requestAnimationFrame(step);
+                    return;
                 }
                 spinRing.style.transform = 'rotate(' + (spinAngle % 360).toFixed(1) + 'deg)';
                 requestAnimationFrame(step);
@@ -4207,10 +4218,20 @@
         // guard reaches above y=0, thruster flames below car.h, and a jump lifts by up to
         // MAX_FLIGHT_HEIGHT. Sized generously - it is one small canvas reused for every vehicle, so the
         // cost is a clear() per draw rather than an allocation.
-        const VEH_PAD_X = 22, VEH_PAD_Y = 44;
+        // Batch 470, measured bug: the pad was 22/44, and 22 x 1.3 = 28.6 while 44 x 1.3 = 57.2. Both
+        // FRACTIONAL, so every sprite was blitted onto a fractional destination pixel. That does two bad
+        // things at once - it forces the resampler to interpolate across the whole sprite (blur far
+        // beyond what the 1.3 ratio alone costs) and it shifts the art sideways by the fractional part.
+        // Measured on the BUMPER CAR: drawn 1px right of its lane centre and 25px wide where 18 x 1.3
+        // should be 23.4, i.e. smeared 1.6px wider than it is.
+        //
+        // CAR_SCALE is 1.3 = 13/10, so anything multiplied by it is a whole number only when it is a
+        // multiple of 10. Every dimension here is now chosen on that rule: 20 -> 26, 40 -> 52,
+        // 70 -> 91, 150 -> 195. Nothing lands between pixels any more.
+        const VEH_PAD_X = 20, VEH_PAD_Y = 40;
         const vehBuf = document.createElement('canvas');
-        vehBuf.width = 24 + VEH_PAD_X * 2;    // widest hitbox is 22
-        vehBuf.height = 64 + VEH_PAD_Y * 2;   // tallest car is the SHIP at 60
+        vehBuf.width = 70;    // 2x20 pad + 30 native; widest hitbox is 22
+        vehBuf.height = 150;  // 2x40 pad + 70 native; tallest car is the SHIP at 60
         const vehBufCtx = vehBuf.getContext('2d');
         function drawScaledVehicle(gctx, x, y, width, height, drawFn, angle) {
             const b = vehBufCtx;
@@ -4222,11 +4243,23 @@
             b.restore();
 
             gctx.save();
-            // Rounded so the blit starts on a whole device pixel. Without this the nearest-neighbour
-            // sampling still shifts by a sub-pixel amount each frame, which is the same jiggle the
-            // NPC-position rounding above already exists to prevent.
+            // Batch 470 - the un-rotated path (every vehicle except a launched one) now blits at a
+            // straight integer destination instead of going through a translate chain. The old chain
+            // ended on `-width / 2`, which is fractional for any odd width - 23 gave -11.5 - and that
+            // half pixel went straight into the destination coordinate along with the fractional pad.
+            if (!angle) {
+                const prevS = gctx.imageSmoothingEnabled;
+                gctx.imageSmoothingEnabled = true;
+                gctx.imageSmoothingQuality = 'high';
+                gctx.drawImage(vehBuf, 0, 0, vehBuf.width, vehBuf.height,
+                    Math.round(x) - VEH_PAD_X * CAR_SCALE, Math.round(y) - VEH_PAD_Y * CAR_SCALE,
+                    vehBuf.width * CAR_SCALE, vehBuf.height * CAR_SCALE);
+                gctx.imageSmoothingEnabled = prevS;
+                gctx.restore();
+                return;
+            }
             gctx.translate(Math.round(x + width / 2), Math.round(y + height / 2));
-            if (angle) gctx.rotate(angle);
+            gctx.rotate(angle);
             gctx.translate(-width / 2, -height / 2);
             // Batch 469, direct report: donut not round, piano keys misplaced, "black lines added",
             // shapes changed - on gameplay sprites but not the Garage's.
@@ -13499,7 +13532,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.243.0';
+        const GAME_VERSION = '2.243.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
