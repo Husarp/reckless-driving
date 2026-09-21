@@ -6,6 +6,24 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.240.0 — 2026-09-22 00:40: Batch 461 — The grey overlay was antialiasing; vehicles now render 1:1 and blit
+
+**It was never a shadow.** `CAR_SCALE` is 1.3, and `drawScaledVehicle()` scaled the *context* — so every sprite's `fillRect` landed between device pixels and canvas antialiased it. The blend against the road is the grey fringe; the softened edges are the blur. The Garage was clean because it draws at whole-number scales.
+
+Measured on one sprite: **182 distinct colours** at gameplay scale against **10** at an integer scale.
+
+Path antialiasing cannot be switched off, so the drawing had to stop being scaled. Sprites render at **1:1 into an offscreen buffer** — every rect on a whole pixel, exactly as in the Garage — and the finished buffer is blitted with `imageSmoothingEnabled = false`, which is nearest-neighbour and cannot invent an intermediate colour. **Now measured at 10 distinct colours, matching the reference exactly.**
+
+This needed all 9 `drawScaledVehicle()` call sites to receive the render target instead of closing over `ctx` / `gctx` / `menuCtx`, since the drawing now goes somewhere else.
+
+The buffer is padded (68×152 for a 22×60 worst-case sprite) because a lot is drawn outside the nominal box: the shield-bump guard reaches above `y=0`, thruster flames below `car.h`, and a jump lifts by up to `MAX_FLIGHT_HEIGHT`. Verified none of it is clipped — a jump paints 710 px against 444 for the same car standing plain, and a ram paints 1,396.
+
+The blit position is also rounded to whole device pixels. Without that, nearest-neighbour sampling still shifts sub-pixel per frame — the same jiggle the NPC position rounding already exists to prevent.
+
+**Level badge spin could strand permanently.** `levelSpinBusy` was a boolean, and `paintLevelBadge()` refuses to paint while a spin runs — so if the animation ever stopped without clearing the flag, the badge froze mid-sweep forever *and* every later click was refused by the same flag. Not hypothetical: `requestAnimationFrame` stops firing while a window is hidden or occluded. It is a **deadline** now (`levelSpinUntil`), which cannot strand: once the time is past the spin is over whether or not a frame ever ran, and the next paint restores the true value by itself.
+
+**Air particles start at 75 km/h, was 120.** Direct correction — "they indicate speed so they should appear on lower speeds", and an indicator you never see cannot indicate anything: at `+0.0003`/frame, 120 km/h was about 111 seconds into a run. 75 km/h is roughly 12 seconds, still well clear of the 50 km/h start so standing still stays calm.
+
 ## 2.239.0 — 2026-09-21 23:40: Batch 460 — Trail rebuilt as real light; aura removed; brake lights culled; F3 rear made symmetric
 
 **The aura is gone.** It was never asked for — it came in as a substitute while I wrongly believed a trail was impossible. Only the trail remains.

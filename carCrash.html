@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.239.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.240.0</span></div>
                 </div>
             </div>
         </div>
@@ -3893,7 +3893,14 @@
         //
         // No cursor:pointer anywhere near the badge, and no hover hint: this is a secret achievement,
         // so anything that advertises the badge as clickable would give it away.
-        let levelSpinBusy = false;
+        // Batch 461 — this was a BOOLEAN, and that could strand the badge permanently. paintLevelBadge()
+        // refuses to paint while a spin is running, so if the animation ever stopped without clearing the
+        // flag the badge froze mid-sweep forever AND every later click was refused by the same flag. That
+        // is not hypothetical: requestAnimationFrame stops firing while the window is hidden or occluded,
+        // which is exactly how it behaves in a testing pane and how WebView2 can behave when the app loses
+        // focus. A DEADLINE cannot strand: once the time is past, the spin is over whether or not a frame
+        // ever ran, and the next paint puts the badge back to its true value on its own.
+        let levelSpinUntil = 0;
         function spinLevelBadge(badgeEl) {
             // Two different markups: Garage and Stats use .level-badge-*, but the main menu's own
             // circle (kept deliberately when the menu was rebuilt from the design doc) uses .mm-level-*.
@@ -3902,18 +3909,18 @@
             const num = badgeEl.querySelector('.level-badge-num, .mm-level-num');
             const xpEl = badgeEl.querySelector('.level-badge-xp, .mm-level-xp');
             const rankEl = badgeEl.querySelector('.level-badge-rank, .mm-level-rank');
-            if (!ring || !num || !xpEl || !rankEl || levelSpinBusy) return;
+            if (!ring || !num || !xpEl || !rankEl || performance.now() < levelSpinUntil) return;
             unlockAchievement('full_circle');
             const level = allTimeStats.playerLevel, xp = allTimeStats.playerXP;
             const real = Math.max(0, Math.min(1, xp / levelReq(level)));
             const t0 = performance.now(), DUR = 900;
-            levelSpinBusy = true;
+            levelSpinUntil = t0 + DUR;
             (function frame(now) {
                 const k = Math.min(1, (now - t0) / DUR);
                 const eased = 1 - Math.pow(1 - k, 3);
                 paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp, (real + eased) % 1);
                 if (k < 1) { requestAnimationFrame(frame); return; }
-                levelSpinBusy = false;
+                levelSpinUntil = 0;
                 paintLevelBadgeAt(ring, num, xpEl, rankEl, level, xp);
             })(t0);
         }
@@ -3924,7 +3931,7 @@
             if (badge) spinLevelBadge(badge);
         });
         function paintLevelBadge(ringCanvas, numEl, xpEl, rankEl) {
-            if (levelSpinBusy) return; // a click-spin is mid-flight; refreshMenuSummary() must not stomp it
+            if (performance.now() < levelSpinUntil) return; // a click-spin is mid-flight; don't stomp it
             if (levelBadgeAnimFrom && (levelBadgeAnimFrom.level !== allTimeStats.playerLevel || levelBadgeAnimFrom.xp !== allTimeStats.playerXP)) {
                 const from = levelBadgeAnimFrom;
                 levelBadgeAnimFrom = null; // consumed — only the first badge to render plays it
@@ -4103,13 +4110,50 @@
         }
 
         // Batch 42: all three drawPixel* functions below still draw at their original 14x24 (or 14x56 for trucks) design resolution — this wraps a call in a canvas scale transform so the same pixel art renders at CAR_SCALE without touching a single fillRect coordinate inside them.
+        // Batch 461, direct report of a "strange grey shadow / overlay" on gameplay cars that the same
+        // sprites do not have in the Garage, plus blur.
+        //
+        // It was never a shadow. CAR_SCALE is 1.3, and this used to scale the CONTEXT and let each sprite
+        // fillRect at 1.3x - so every edge landed between device pixels and canvas antialiased it. The
+        // blend against the road is the grey fringe, and the softened edges are the blur. Measured on one
+        // sprite: 182 distinct colours at gameplay scale against 10 at an integer scale.
+        //
+        // Antialiasing cannot be turned off for paths, so the drawing has to stop being scaled. Sprites
+        // now render at 1:1 into an offscreen buffer - every rect on a whole pixel, exactly as in the
+        // Garage - and the finished buffer is blitted with imageSmoothingEnabled = false, which is
+        // nearest-neighbour and cannot invent an intermediate colour.
+        //
+        // The buffer is padded because plenty is drawn outside the nominal sprite box: the shield-bump
+        // guard reaches above y=0, thruster flames below car.h, and a jump lifts by up to
+        // MAX_FLIGHT_HEIGHT. Sized generously - it is one small canvas reused for every vehicle, so the
+        // cost is a clear() per draw rather than an allocation.
+        const VEH_PAD_X = 22, VEH_PAD_Y = 44;
+        const vehBuf = document.createElement('canvas');
+        vehBuf.width = 24 + VEH_PAD_X * 2;    // widest hitbox is 22
+        vehBuf.height = 64 + VEH_PAD_Y * 2;   // tallest car is the SHIP at 60
+        const vehBufCtx = vehBuf.getContext('2d');
         function drawScaledVehicle(gctx, x, y, width, height, drawFn, angle) {
+            const b = vehBufCtx;
+            b.setTransform(1, 0, 0, 1, 0, 0);
+            b.clearRect(0, 0, vehBuf.width, vehBuf.height);
+            b.save();
+            b.translate(VEH_PAD_X, VEH_PAD_Y);
+            drawFn(b);
+            b.restore();
+
             gctx.save();
-            gctx.translate(x + width / 2, y + height / 2);
+            // Rounded so the blit starts on a whole device pixel. Without this the nearest-neighbour
+            // sampling still shifts by a sub-pixel amount each frame, which is the same jiggle the
+            // NPC-position rounding above already exists to prevent.
+            gctx.translate(Math.round(x + width / 2), Math.round(y + height / 2));
             if (angle) gctx.rotate(angle);
             gctx.translate(-width / 2, -height / 2);
-            gctx.scale(CAR_SCALE, CAR_SCALE);
-            drawFn();
+            const prevSmoothing = gctx.imageSmoothingEnabled;
+            gctx.imageSmoothingEnabled = false;
+            gctx.drawImage(vehBuf, 0, 0, vehBuf.width, vehBuf.height,
+                -VEH_PAD_X * CAR_SCALE, -VEH_PAD_Y * CAR_SCALE,
+                vehBuf.width * CAR_SCALE, vehBuf.height * CAR_SCALE);
+            gctx.imageSmoothingEnabled = prevSmoothing;
             gctx.restore();
         }
 
@@ -8728,32 +8772,32 @@
 
                 // STOCK keeps the original dedicated sprite (drawPixelCar), which draws its own thruster flame internally (see its isJumping branch) — every other car's flame is drawn explicitly below instead (Batch 284, see drawFlameFxScaled).
                 if (selectedCarKey === 'stock') {
-                    drawScaledVehicle(ctx, drawX, drawY, this.width, this.height, () => drawPixelCar(
-                        ctx, 0, 0, resolvePlayerColor(), this.abilityState === 'jumping', this.flightHeight
+                    drawScaledVehicle(ctx, drawX, drawY, this.width, this.height, (g) => drawPixelCar(
+                        g, 0, 0, resolvePlayerColor(), this.abilityState === 'jumping', this.flightHeight
                     ), this.tiltAngle);
                 } else {
                     // cars with `hitboxW` are drawn on a wider 24px-native canvas, centered there via carLocalX53(); `carDrawOffsetX53()` shifts the draw origin back so the visible body still lines up with `this.x` (the hitbox's own left edge), not the wider canvas's. 0 for every car without `hitboxW` (all 10 original cars), so this is a no-op for them.
                     const car = getSelectedCar();
                     const isJumping = this.abilityState === 'jumping';
                     if (car.turboTrail) drawSnailTrail(this, drawX, drawY);   // behind the car, so it draws first
-                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car), drawY, this.width, this.height, () => {
+                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car), drawY, this.width, this.height, (g) => {
                         // gated on sbGuardPhase too (not just abilityState) so the guard's retract animation keeps playing for its own ~350ms after ramming has already ended, instead of being cut off the instant the bar empties.
-                        if (this.abilityState === 'ramming' || this.sbGuardPhase !== 'idle') drawShieldBumpFX(ctx, car, this);
-                        if (!isJumping) { car.draw(ctx, resolvePlayerColor()); return; }
-                        drawGenericJumpShadow(ctx, 0, car, this.flightHeight);
+                        if (this.abilityState === 'ramming' || this.sbGuardPhase !== 'idle') drawShieldBumpFX(g, car, this);
+                        if (!isJumping) { car.draw(g, resolvePlayerColor()); return; }
+                        drawGenericJumpShadow(g, 0, car, this.flightHeight);
                         const bw = car.hitboxW || 14, bx = car.hitboxW ? carLocalX53(bw) : 0;
                         const cx = bx + bw / 2, cy = car.h / 2;
                         const liftScale = 1.08;
-                        ctx.save();
-                        ctx.translate(0, -this.flightHeight);
-                        ctx.translate(cx, cy);
-                        ctx.scale(liftScale, liftScale);
-                        ctx.translate(-cx, -cy);
+                        g.save();
+                        g.translate(0, -this.flightHeight);
+                        g.translate(cx, cy);
+                        g.scale(liftScale, liftScale);
+                        g.translate(-cx, -cy);
                         // booster flames generalized to every jump-ability car (were stock-only before), reusing the same scaled-flame wrapper the Garage preview/hover uses so gameplay matches what's shown there.
                         updateFlameFx();
-                        drawFlameFxScaled(ctx, cx, car.h, bw / 14, effectiveFlameType(car), flameFxFrame, flameAlts()[flameFxAlt[flameFxFrame]], flameFxMirror);
-                        car.draw(ctx, resolvePlayerColor());
-                        ctx.restore();
+                        drawFlameFxScaled(g, cx, car.h, bw / 14, effectiveFlameType(car), flameFxFrame, flameAlts()[flameFxAlt[flameFxFrame]], flameFxMirror);
+                        car.draw(g, resolvePlayerColor());
+                        g.restore();
                     }, this.tiltAngle);
                 }
 
@@ -8762,8 +8806,8 @@
                     const car = selectedCarKey === 'stock' ? null : getSelectedCar();
                     const nativeH = car ? car.h : 24;
                     // direct bug report ("shadow having back lights instead of the car when braking [while jumping]"): this used to always draw at `this.y`, the GROUND position — fine while grounded, but the car itself is lifted by `flightHeight` during a jump via an INNER `ctx.translate(0, -flightHeight)` done AFTER drawScaledVehicle's own CAR_SCALE transform is already applied (see the isJumping branch above) — so braking mid-air put the lights back down at the shadow instead of following the car up.
-                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car || {}), drawY, this.width, this.height, () => {
-                        if (this.abilityState === 'jumping') ctx.translate(0, -this.flightHeight);
+                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car || {}), drawY, this.width, this.height, (g) => {
+                        if (this.abilityState === 'jumping') g.translate(0, -this.flightHeight);
                         // Batch 415, direct report: this used to paint a flat full-width bar across
                         // the whole tail PLUS two bright squares hard against the outer corners -
                         // so braking lit the entire back of the car and the corner blocks read as a
@@ -8781,16 +8825,16 @@
                             { w: Math.max(2, Math.round(bw * 0.30)), a: 0.55, h: 3 }
                         ];
                         bands.forEach(b => {
-                            ctx.fillStyle = 'rgba(255, 71, 87, ' + b.a + ')';
-                            ctx.fillRect(Math.round(cx - b.w / 2), nativeH - b.h - 1, b.w, b.h);
+                            g.fillStyle = 'rgba(255, 71, 87, ' + b.a + ')';
+                            g.fillRect(Math.round(cx - b.w / 2), nativeH - b.h - 1, b.w, b.h);
                         });
                         // A single solid core at the centre, not a pair either side: two lamps with a
                         // gap between them left the middle DIMMER than its flanks, inverting the
                         // brightest-in-the-middle falloff this is meant to have. One core, inset from
                         // the flanks so it never touches the silhouette's edge.
                         const coreW = Math.max(2, Math.round(bw * 0.34));
-                        ctx.fillStyle = '#ff4757';
-                        ctx.fillRect(Math.round(cx - coreW / 2), nativeH - 3, coreW, 2);
+                        g.fillStyle = '#ff4757';
+                        g.fillRect(Math.round(cx - coreW / 2), nativeH - 3, coreW, 2);
                     }, this.tiltAngle);
                 }
             }
@@ -9183,13 +9227,13 @@
                 const drawX = snap ? Math.round(this.x) : this.x;
                 const drawY = snap ? Math.round(this.y) : this.y;
                 if (this.type === 'ambulance') {
-                    drawScaledVehicle(gctx, drawX, drawY, this.width, this.height, () => drawPixelAmbulance(gctx, 0, 0));
+                    drawScaledVehicle(gctx, drawX, drawY, this.width, this.height, (g) => drawPixelAmbulance(g, 0, 0));
                 } else if (this.garageCar) {
                     // same offset technique Player.draw() already uses: a Garage car's own draw fn centers its body within a shared wider 24px-native canvas, so the draw origin needs shifting to line back up with this vehicle's real (narrower, hitboxW-based) x/width.
-                    drawScaledVehicle(gctx, drawX + carDrawOffsetX53(this.garageCar), drawY, this.width, this.height, () => this.garageCar.draw(gctx, this.color));
+                    drawScaledVehicle(gctx, drawX + carDrawOffsetX53(this.garageCar), drawY, this.width, this.height, (g) => this.garageCar.draw(g, this.color));
                 } else {
                     const bodyDraw = VEHICLE_BODIES[this.body].draw;
-                    drawScaledVehicle(gctx, drawX, drawY, this.width, this.height, () => bodyDraw(gctx, this.color, this.trailerColor));
+                    drawScaledVehicle(gctx, drawX, drawY, this.width, this.height, (g) => bodyDraw(g, this.color, this.trailerColor));
                 }
             }
 
@@ -10768,8 +10812,15 @@
         // own x, its own length and its own speed multiplier, and advances by the REAL per-frame distance.
         // Nothing repeats and nothing teleports.
         const AIR_MAX_PARTICLES = 90;
-        const AIR_MIN_KMH = 120;   // direct spec: no air at all below this, "even if you lose the ability"
-        const AIR_FULL_KMH = 200;  // fully dense from here up, so a 250km/h car does not white out the road
+        // Batch 461 — 120 was the original instruction, then corrected: "they indicate speed so they
+        // should appear on lower speeds". The measurement behind the correction: the ramp is
+        // +0.0003/frame, which put 120 km/h about 111 SECONDS into a run, so most runs ended before any
+        // air existed at all - an indicator you never see cannot indicate anything.
+        //
+        // 75 km/h is roughly 12 seconds in. Still clearly above the 50 km/h start, so standing still is
+        // calm and the air genuinely means "moving fast" rather than "moving".
+        const AIR_MIN_KMH = 75;
+        const AIR_FULL_KMH = 190;  // fully dense from here up, so a 250km/h car does not white out the road
         let airField = null, airFieldW = 0, airFieldH = 0;
         function buildAirField() {
             airField = [];
@@ -10860,7 +10911,7 @@
             menuDemoRects = demoCars.map(c => ({ x: c.x, y: c.y, w: PLAYER_WIDTH, h: PLAYER_HEIGHT }));
             demoCars.forEach((c, i) => {
                 if (t < (menuCarHiddenUntil[i] || 0)) return;
-                drawScaledVehicle(menuCtx, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT, () => drawPixelCar(menuCtx, 0, 0, c.color, false, 0));
+                drawScaledVehicle(menuCtx, c.x, c.y, PLAYER_WIDTH, PLAYER_HEIGHT, (g) => drawPixelCar(g, 0, 0, c.color, false, 0));
             });
             drawMenuBooms(t);
         }
@@ -12276,7 +12327,7 @@
 
             // wrecks — Batch 97: the real vehicle (own draw fn/size), rotated.
             CS.wrecks.forEach(w => {
-                drawScaledVehicle(gctx, w.x, w.y, w.width, w.height, () => w.drawFn(gctx), w.angle);
+                drawScaledVehicle(gctx, w.x, w.y, w.width, w.height, (g) => w.drawFn(g), w.angle);
             });
 
             // responders
@@ -12286,7 +12337,7 @@
                 } else {
                     // drawBodyPolice53 has a fixed livery, no color param — matches how it's drawn everywhere else (VEHICLE_BODIES calls every body fn the same way, extra args this one doesn't declare are just ignored).
                     drawScaledVehicle(gctx, r.x, r.y, PLAYER_WIDTH, PLAYER_HEIGHT,
-                        () => drawBodyPolice53(gctx), 0);
+                        (g) => drawBodyPolice53(g), 0);
                 }
                 // light bar swap once stopped.
                 if (Math.abs(r.y - r.targetY) < 3) {
@@ -13200,7 +13251,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.239.0';
+        const GAME_VERSION = '2.240.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
