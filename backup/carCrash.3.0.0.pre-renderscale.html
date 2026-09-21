@@ -1752,7 +1752,7 @@
     <div id="menuView" class="view active">
         <div class="game-container">
             <div class="canvas-container">
-                <canvas id="menuCanvas" width="480" height="780"></canvas>
+                <canvas id="menuCanvas" width="123" height="200"></canvas>
                 <!-- Batch 436 - the dark wash is its own FULL-FRAME layer. It used to live on
                      #menuOverlay back when that was inset:0; once the overlay became a fixed,
                      centred design box the wash shrank with it and left the raw road verge
@@ -1814,7 +1814,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.1.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.0.0</span></div>
                 </div>
             </div>
         </div>
@@ -2972,51 +2972,35 @@
         // Every raw world-space constant was divided by 1.3 in the same batch, so this is a pure zoom
         // of the old game, not a rebalance. The old values are recoverable from the git tag
         // pre-integer-scale and backup/carCrash.2.243.1.pre-integer-scale.html.
-        // Batch 472 — v3.1's RENDER-SCALE architecture, replacing v3.0's shrink-the-world approach.
-        // Direct correction on v3.0: the road (and every raw-pixel object) came out ~30% bigger relative
-        // to the cars; the proportions should be what they always were, just SHARP.
-        //
-        // The world is back in its ORIGINAL units (canvas 260 tall, ~26px lanes — every raw constant is
-        // its pre-3.0 value again), and sharpness comes from rendering the whole canvas at 3x internal
-        // resolution: road art lands on a 3-device-pixel grid and cars on a 4-device-pixel grid, both
-        // INTEGER, so both are perfectly crisp. 4/3 is within 2.6% of the old 1.3 car-to-road ratio.
-        const CAR_SCALE = 4 / 3;
-        const RENDER_SCALE = 3;              // device pixels per world pixel for everything but cars
-        const SPRITE_DEVICE_SCALE = 4;       // device pixels per sprite pixel (RENDER_SCALE * CAR_SCALE)
-        let VIEW_W = 0, VIEW_H = 200;        // playfield size in WORLD units (canvas attrs are x3)
+        const CAR_SCALE = 1;
         const CAR_FILL_RATIO = 0.7; // car width as a fraction of lane width
         const PLAYER_WIDTH = Math.round(14 * CAR_SCALE);   // 18
         const PLAYER_HEIGHT = Math.round(24 * CAR_SCALE);  // 31
 
         // Low-res coordinate constants.
-        const SIDE_MARGIN = 18;
+        const SIDE_MARGIN = 14;   // was 18 at CAR_SCALE 1.3
         const REF_LANE_WIDTH = Math.round(PLAYER_WIDTH / CAR_FILL_RATIO); // 26
         let ROAD_BORDER_LEFT = SIDE_MARGIN;
-        let ROAD_BORDER_RIGHT = 142;  // recomputed by applyLaneLayout(); initial value only
+        let ROAD_BORDER_RIGHT = 110;  // recomputed by applyLaneLayout(); initial value only
         let ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
 
         // More vertical lookahead (direct user request): taller than the original 220 so the player can see an oncoming lane change further out and has more time to react. "Don't overdo it" — a moderate ~18% increase, not a dramatic one.
-        const CANVAS_HEIGHT = 260;
+        const CANVAS_HEIGHT = 200;   // was 260 at CAR_SCALE 1.3
         const SPAWN_SAFETY_Y = Math.round(140 * CANVAS_HEIGHT / 220); // scaled proportionally with the taller canvas
         const SPAWN_HEIGHT_BUFFER = Math.round(30 * CAR_SCALE); // Batch 264 — extra margin reserved for whatever tall vehicle spawns NEXT, see canSpawnAt()
         let fpsLastTime = performance.now(), fpsFrameCount = 0; // Batch 268 — FPS counter state, see loop()
         // direct report: "suicidal doesn't feel suicidal" at either low (4) or high (10) lane counts.
-        const DIFFICULTY_SPAWN_SAFETY_Y = { calm: SPAWN_SAFETY_Y, reckless: SPAWN_SAFETY_Y, suicidal: 60 };
+        const DIFFICULTY_SPAWN_SAFETY_Y = { calm: SPAWN_SAFETY_Y, reckless: SPAWN_SAFETY_Y, suicidal: 46 };
         function spawnSafetyY() { return DIFFICULTY_SPAWN_SAFETY_Y[config.difficulty] ?? SPAWN_SAFETY_Y; }
 
         function applyLaneLayout(lanes) {
             const roadWidthPx = REF_LANE_WIDTH * lanes;
-            // Batch 472 — the canvas backing store is RENDER_SCALE x the world, so world pixels land on
-            // a whole 3-device-pixel grid and stay sharp. Everything below thinks in world units via
-            // VIEW_W/VIEW_H; only the two attribute assignments know about the multiplier.
-            VIEW_W = roadWidthPx + SIDE_MARGIN * 2;
-            VIEW_H = CANVAS_HEIGHT;
-            canvas.width = VIEW_W * RENDER_SCALE;
-            canvas.height = VIEW_H * RENDER_SCALE;
-            canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
-            sizeFrame(gameContainerEl, VIEW_W, VIEW_H, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
+            canvas.width = roadWidthPx + SIDE_MARGIN * 2;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.aspectRatio = canvas.width + ' / ' + canvas.height;
+            sizeFrame(gameContainerEl, canvas.width, canvas.height, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
             ROAD_BORDER_LEFT = SIDE_MARGIN;
-            ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
+            ROAD_BORDER_RIGHT = canvas.width - SIDE_MARGIN;
             ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
             rebuildRoadBuffers();
         }
@@ -3048,7 +3032,7 @@
         // rather than just track the width.
         const PANEL_DESIGN_W = 506, PANEL_DESIGN_H = 822;
         function sizeGameFrame() {
-            const contentW = sizeFrame(gameContainerEl, VIEW_W, VIEW_H, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
+            const contentW = sizeFrame(gameContainerEl, canvas.width, canvas.height, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
             // Batch 433 - no longer capped at 1. The cap meant the HUD shrank on a small window but
             // stopped growing on a large one, so the chips crept smaller relative to the road the
             // bigger the window got. Uncapped, the gameplay screen holds one set of proportions at
@@ -3121,8 +3105,8 @@
         const DIFFICULTY_MULT_BONUS = { calm: 0, reckless: 0.15, suicidal: 0.4 };
 
         // "close call" bonus: extra points for squeezing past a vehicle with almost no room to spare, without actually hitting it.
-        const CLOSE_CALL_GAP_MIN = 1.6;
-        const CLOSE_CALL_GAP_MAX = 3.0;
+        const CLOSE_CALL_GAP_MIN = 1.23;   // was 1.6 at CAR_SCALE 1.3
+        const CLOSE_CALL_GAP_MAX = 2.3;    // was 3.0 at CAR_SCALE 1.3
         function speedRatio01() {
             // per-car ceiling (playerMaxSpeed), not the fixed shared reference — this is "how close to THIS car's own top speed am I," used for feel-based effects (close-call gap, handling, screen shake), not the score multiplier (see maxSpeed).
             return Math.max(0, Math.min(1, (currentSpeed - baseSpeed) / (playerMaxSpeed - baseSpeed)));
@@ -3237,7 +3221,7 @@
         // Share of NPC drivers who will NOT brake for the car in front. Every crash traces to one.
         const NPC_INATTENTIVE_CHANCE = 0.10;
         // How close an attentive driver gets before matching the speed of the car ahead.
-        const NPC_BRAKE_GAP_PX = 14;
+        const NPC_BRAKE_GAP_PX = 11;   // was 14 at CAR_SCALE 1.3
         let ambulanceCooldown = 0;
         let devFrequentNpcCrashes = false; // Batch 266 — dev-menu toggle; loosens the NPC-vs-NPC same-lane crash proximity threshold so it's easy to encounter for testing
         let laneSwitchesThisRun = 0; // Batch 61 stat — reset in launchGame(), see Player.update()
@@ -3841,7 +3825,7 @@
         const LANE_CHANGE_INDICATOR_MAX = 150;   // frames — ceiling so it's never absurdly long at low speed
 
         // Vertical movement (Batch 33, physics reworked in Batch 45): Up/Down held moves the car between these bounds.
-        const PLAYER_MIN_Y = 40;   // near top: aggressive, close to where traffic spawns — same for every car regardless of height
+        const PLAYER_MIN_Y = 31;   // was 40 at CAR_SCALE 1.3   // near top: aggressive, close to where traffic spawns — same for every car regardless of height
         // PLAYER_MAX_Y (the bottom bound) is no longer a shared constant as of Batch 90 — it depends on the selected car's actual height, so it's computed per-instance as `this.maxY` in the Player constructor instead.
         const V_MAX_BASE = 1.3 * CAR_SCALE * 0.5; // top vertical speed at base game speed (px/frame)
         const V_MAX_TOP = 2.2 * CAR_SCALE * 0.5;  // top vertical speed at max game speed (px/frame)
@@ -3880,8 +3864,8 @@
         // (ABILITY_MIN_ENERGY) - that is a threshold, not a cost, and was not part of the ask.
         const JUMP_FULL_DRAIN_MS = 4571;
         const JUMP_DRAIN_PER_FRAME = (100 / JUMP_FULL_DRAIN_MS) * 16.66;
-        const MAX_FLIGHT_HEIGHT = 14;       // px
-        const FLIGHT_RISE_SPEED = 0.8;      // px/frame while held
+        const MAX_FLIGHT_HEIGHT = 11;       // px (was 14 at CAR_SCALE 1.3)
+        const FLIGHT_RISE_SPEED = 0.62;     // px/frame while held (was 0.8; same rise TIME to the same relative height)
         const FLIGHT_FALL_SPEED = 1.2;      // px/frame while landing
         const JUMP_RECHARGE_DELAY = 500;    // ms pause after landing before energy starts refilling
 
@@ -4273,28 +4257,36 @@
             // ended on `-width / 2`, which is fractional for any odd width - 23 gave -11.5 - and that
             // half pixel went straight into the destination coordinate along with the fractional pad.
             if (!angle) {
-                // Batch 472 — the sprite bypasses the world transform and lands straight on the device
-                // grid: 4 device pixels per sprite pixel under a 3x world (m.a = 3 -> ds = 4, integers
-                // everywhere), nearest-neighbour, so it is exact - no resampling, no invented colours,
-                // no deformation. For a 1x context (the crushed-wreck buffer) ds is 4/3 and the resample
-                // returns, which is acceptable there: wrecks are blurred and darkened by design.
-                const m = gctx.getTransform();
-                const ds = m.a * CAR_SCALE;
-                gctx.save();
-                gctx.setTransform(1, 0, 0, 1, 0, 0);
-                gctx.imageSmoothingEnabled = ds % 1 !== 0;
+                const prevS = gctx.imageSmoothingEnabled;
+                gctx.imageSmoothingEnabled = true;
+                gctx.imageSmoothingQuality = 'high';
                 gctx.drawImage(vehBuf, 0, 0, vehBuf.width, vehBuf.height,
-                    Math.round(x * m.a + m.e) - VEH_PAD_X * ds, Math.round(y * m.d + m.f) - VEH_PAD_Y * ds,
-                    vehBuf.width * ds, vehBuf.height * ds);
-                gctx.restore();
+                    Math.round(x) - VEH_PAD_X * CAR_SCALE, Math.round(y) - VEH_PAD_Y * CAR_SCALE,
+                    vehBuf.width * CAR_SCALE, vehBuf.height * CAR_SCALE);
+                gctx.imageSmoothingEnabled = prevS;
                 gctx.restore();
                 return;
             }
             gctx.translate(Math.round(x + width / 2), Math.round(y + height / 2));
             gctx.rotate(angle);
             gctx.translate(-width / 2, -height / 2);
-            // Rotated path (launched vehicles only): rotation resamples no matter what, so smoothing is
-            // the right choice here, and a spinning airborne car hides it completely.
+            // Batch 469, direct report: donut not round, piano keys misplaced, "black lines added",
+            // shapes changed - on gameplay sprites but not the Garage's.
+            //
+            // Batch 461 blitted this NEAREST-NEIGHBOUR, and nearest-neighbour at 1.3x cannot keep pixel
+            // art intact. Measured: of 32 source rows, 22 map to ONE destination row and 10 map to TWO.
+            // So 31% of every sprite is drawn double-height and 69% is not, and the same happens across.
+            // A 1px outline becomes 1px in places and 2px in others - the "added black lines" - and a
+            // circle picks up flat sides. Measured on the donut: native row widths run
+            // 18,18,18,20,20,20,20,18 through the middle; nearest gave 23,23,26,26,26,26,26,26,23.
+            //
+            // Smoothing back ON. It is NOT a return to the pre-461 state: that antialiased each fillRect
+            // straight onto the road, so edges blended with the asphalt and left the grey fringe that
+            // started all this. Drawing into a transparent buffer first means edges blend with
+            // TRANSPARENCY instead, so the shapes stay true and the fringe stays gone.
+            //
+            // Neither is perfect, because 1.3 is not an integer. The real fix is integer scaling end to
+            // end - see PLAN.md.
             const prevSmoothing = gctx.imageSmoothingEnabled;
             gctx.imageSmoothingEnabled = true;
             gctx.imageSmoothingQuality = 'high';
@@ -4430,7 +4422,7 @@
             sctx.globalCompositeOperation = 'source-over';
 
             // direct feedback: the earlier squashed version (0.4 vertical scale) read as much smaller than the car, not really as a shadow at all.
-            const heightRatio = Math.min(1, flightHeight / 40);
+            const heightRatio = Math.min(1, flightHeight / 31);
             // direct feedback: a fixed offset looked wrong because the shadow never moved while the car rose and fell — "it starts under the car and goes to the back, and when it lands the shadow goes back under the car." Offset now tracks heightRatio directly: 0 at liftoff (shadow right under the car), growing to maxShift at the peak, shrinking back to 0 on landing. maxShift=5 keeps the already-approved "just a little bit" feel at a typical mid-jump height instead of introducing a new magnitude.
             const maxShift = 5;
             const shiftDown = heightRatio * maxShift;
@@ -4492,7 +4484,7 @@
             sctx.fillRect(0, 0, nativeW, nativeH);
             sctx.globalCompositeOperation = 'source-over';
 
-            const heightRatio = Math.min(1, flightHeight / 40);
+            const heightRatio = Math.min(1, flightHeight / 31);
             const shiftDown = heightRatio * 5;
             gctx.save();
             gctx.globalAlpha = 0.35 * (1 - heightRatio * 0.4);
@@ -4836,15 +4828,56 @@
                 drawFlameFx(gctx, drawX, drawY, flameType, flameFxFrame, flameAlts()[flameFxAlt[flameFxFrame]], flameFxMirror);
             }
 
-            // Batch 472, direct request: the in-game stock renderer was this function's own inline art
-            // from the very first version of the game, while the Garage tile long ago moved to
-            // drawBodySedan53 - so the SAME car looked different in play and in the Garage (182 of 332
-            // sprite pixels differed, found by the Batch 471 audit). The body is delegated to the
-            // Garage's renderer now, and because every stock-car depiction in the game funnels through
-            // this function (tutorial scenes, boost previews, menu traffic, the crash snapshot), they
-            // all updated together with zero call-site changes. The jump machinery above is untouched.
-            gctx.translate(drawX, drawY);
-            drawBodySedan53(gctx, color);
+            // 1. Black border
+            gctx.fillStyle = '#000000';
+            gctx.fillRect(drawX + 1, drawY, 12, 24);
+            gctx.fillRect(drawX, drawY + 1, 14, 22);
+
+            // 2. Wheels
+            gctx.fillStyle = '#111111';
+            gctx.fillRect(drawX, drawY + 4, 1, 5);
+            gctx.fillRect(drawX + 13, drawY + 4, 1, 5);
+            gctx.fillRect(drawX, drawY + 15, 1, 5);
+            gctx.fillRect(drawX + 13, drawY + 15, 1, 5);
+
+            // 3. Main body color
+            gctx.fillStyle = color;
+            gctx.fillRect(drawX + 2, drawY + 2, 10, 20);
+            gctx.fillRect(drawX + 1, drawY + 3, 12, 18);
+
+            // 4. Shading & 3D bevel effect
+            gctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // Highlight
+            gctx.fillRect(drawX + 2, drawY + 3, 4, 18);
+            gctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Shadows
+            gctx.fillRect(drawX + 7, drawY + 3, 5, 18);
+
+            // 5. Window structures
+            gctx.fillStyle = '#2c3e50';
+            gctx.fillRect(drawX + 3, drawY + 7, 8, 3); // Windshield
+            gctx.fillStyle = '#ffffff';
+            gctx.fillRect(drawX + 4, drawY + 8, 1, 1); // Windshield reflection
+
+            gctx.fillStyle = '#2c3e50';
+            gctx.fillRect(drawX + 3, drawY + 17, 8, 2); // Rear glass
+
+            gctx.fillStyle = '#1e272e';
+            gctx.fillRect(drawX + 2, drawY + 10, 1, 7);
+            gctx.fillRect(drawX + 11, drawY + 10, 1, 7);
+
+            // 6. Grill detailing
+            gctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            gctx.fillRect(drawX + 4, drawY + 3, 6, 1);
+
+            // 7. Headlights
+            gctx.fillStyle = '#ffeaa7';
+            gctx.fillRect(drawX + 2, drawY + 1, 2, 1);
+            gctx.fillRect(drawX + 10, drawY + 1, 2, 1);
+
+            // 8. Taillights
+            gctx.fillStyle = '#ff4757';
+            gctx.fillRect(drawX + 2, drawY + 22, 2, 1);
+            gctx.fillRect(drawX + 10, drawY + 22, 2, 1);
+
             gctx.restore();
         }
 
@@ -8713,7 +8746,7 @@
                 }
                 this.targetX = this.x; // lane-snap destination (Batch 44)
                 this.tiltAngle = 0;    // always 0 now (Batch 210 — banking tilt removed); kept only because draw() still reads it as the rotation angle param
-                this.y = Math.min(VIEW_H - 35, this.maxY); // clamped for tall cars, unchanged for every other one
+                this.y = Math.min(canvas.height - 27, this.maxY); // clamped for tall cars, unchanged for every other one
                 this.vVelocity = 0;    // signed vertical speed — accel/friction/brake model (Batch 45)
                 this.energy = 100;
                 // eases toward `this.energy` for the ability bar's fill ANIMATION on the new discrete pass-triggered refills (see creditVehiclePass()).
@@ -9205,7 +9238,7 @@
                 // Jitter is UPWARD only, so it can never reduce the clearance canSpawnAt() checked.
                 const startJitter = type === 'ambulance' || type === 'obstacle' ? 0 : Math.random() * 46;
                 const dressingReach = this.height + 36;   // car + barrier offset (6) + lowest cone (30)
-                this.y = type === 'ambulance' ? VIEW_H + 10
+                this.y = type === 'ambulance' ? canvas.height + 10
                        : type === 'obstacle' ? -dressingReach - 10
                        : -this.height - 10 - startJitter;
 
@@ -9302,7 +9335,7 @@
                 if (this.launched) {
                     this.x += this.launchVx;
                     this.y += this.launchVy;
-                    this.launchVy += 0.12;
+                    this.launchVy += 0.092;
                     this.launchAngle += this.launchSpin;
                     this.launchScale = Math.max(0.15, (this.launchScale === undefined ? 1 : this.launchScale) - 0.012);
                     return;
@@ -9422,7 +9455,7 @@
                     if (hit) {
                         // thrown away from the player's centre, and always forward down the road
                         const away = (pos[0] + 4) < (pr.x + pr.width / 2) ? -1 : 1;
-                        this.cones[i] = { dx: 0, dy: 0, vx: away * (1.2 + Math.random() * 1.1), vy: 1.4 + Math.random() };
+                        this.cones[i] = { dx: 0, dy: 0, vx: away * (0.92 + Math.random() * 0.85), vy: 1.08 + Math.random() * 0.77 };
                     }
                 });
             }
@@ -10892,7 +10925,7 @@
             const t = Math.max(0, Math.min(1, (kmh - SPEED_FLOW_MIN_KMH) / (240 - SPEED_FLOW_MIN_KMH)));
             const strength = Math.max(ramming ? 0.55 : 0, t);
             for (const f of flowParts) { f.y += f.spd; f.x += f.drift; f.life--; }
-            flowParts = flowParts.filter(f => f.life > 0 && f.y < VIEW_H + 8);
+            flowParts = flowParts.filter(f => f.life > 0 && f.y < canvas.height + 8);
             if (strength > 0) {
                 for (let k = 0; k < 3; k++) {
                     if (flowParts.length >= 24) break;
@@ -10919,7 +10952,7 @@
                 const px = Math.round(f.x);
                 for (let k = 0; k < f.len; k++) {
                     const y = Math.round(f.y) - k;
-                    if (y < 0 || y >= VIEW_H) continue;
+                    if (y < 0 || y >= canvas.height) continue;
                     const aa = f.a * lifeFade * (k === 0 ? 1 : (1 - k / f.len) * 0.7);
                     ctx.fillStyle = k === 0
                         ? 'rgba(235,246,255,' + aa.toFixed(3) + ')'
@@ -10984,7 +11017,7 @@
             // LAST SEGMENT - so the beam alternated between touching the edge and stopping a segment
             // short of it, every few frames, exactly the flicker described. Points now live until they
             // are far past the edge; the per-row clip already stops them painting anything off-screen.
-            snailTrail = snailTrail.filter(pt => pt.y < VIEW_H + 60);
+            snailTrail = snailTrail.filter(pt => pt.y < canvas.height + 60);
             if (t > 0) {
                 // Batch 467, direct report: the trail looked like it came out of the snail's back end
                 // rather than from under it. Two causes. The declared height was 28 while the art is 32
@@ -11026,17 +11059,17 @@
                 // growing downward). Once the beam runs off the bottom, the screen edge is the cut and
                 // softening near it just made the last rows shimmer as the point count fluctuated.
                 const age = i / snailTrail.length;
-                const endsOnScreen = snailTrail[snailTrail.length - 1].y < VIEW_H;
+                const endsOnScreen = snailTrail[snailTrail.length - 1].y < canvas.height;
                 const fade = (0.55 + t * 0.45) * (endsOnScreen && age > 0.88 ? (1 - age) / 0.12 : 1);
                 if (fade <= 0.02) continue;
-                const w = 4;
+                const w = 3;   // was 4 at CAR_SCALE 1.3
                 const y0 = Math.round(a.y), y1 = Math.round(b.y);
                 const rows = Math.max(1, y1 - y0);
                 for (let k = 0; k < rows; k++) {
                     const f = k / rows;
                     const x = Math.round(a.x + (b.x - a.x) * f);
                     const y = y0 + k;
-                    if (y < 0 || y >= VIEW_H) continue;
+                    if (y < 0 || y >= canvas.height) continue;
                     // Batch 469 — the three layers are drawn as NON-OVERLAPPING bands. They used to be
                     // stacked concentric rects, and under 'lighter' every overlap ADDS: the centre got
                     // deep + mid + core at once, summed past 1.0 and clipped to white. That is what made
@@ -11083,14 +11116,14 @@
             for (let i = 0; i < AIR_MAX_PARTICLES; i++) {
                 airField.push({
                     x: ROAD_BORDER_LEFT + Math.random() * ROAD_WIDTH,
-                    y: Math.random() * VIEW_H,
+                    y: Math.random() * canvas.height,
                     len: Math.random() < 0.45 ? 1 : 2 + Math.floor(Math.random() * 3),
                     a: 0.16 + Math.random() * 0.5,
                     dust: Math.random() < 0.3,          // the doc's own third-warm-dust mix
                     spd: 0.8 + Math.random() * 0.7      // so they do not travel as one rigid sheet
                 });
             }
-            airFieldW = ROAD_WIDTH; airFieldH = VIEW_H;
+            airFieldW = ROAD_WIDTH; airFieldH = canvas.height;
         }
         function airAlpha(a) {
             const q = a >= 0.7 ? 0.72 : a >= 0.45 ? 0.46 : a >= 0.25 ? 0.26 : 0.14;
@@ -11101,7 +11134,7 @@
         function drawAmbientAir(boostKmh) {
             const kmh = speedToKmh(currentSpeed) + (boostKmh || 0);
             if (kmh < AIR_MIN_KMH) return;
-            if (!airField || airFieldW !== ROAD_WIDTH || airFieldH !== VIEW_H) buildAirField();
+            if (!airField || airFieldW !== ROAD_WIDTH || airFieldH !== canvas.height) buildAirField();
             const t = Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH));
             const n = Math.max(1, Math.round(AIR_MAX_PARTICLES * t));
             const fade = 0.3 + t * 0.7;
@@ -11117,11 +11150,11 @@
             for (let i = 0; i < n; i++) {
                 const p = airField[i];
                 p.y += advance * p.spd;
-                if (p.y > VIEW_H) { p.y -= VIEW_H + p.len; p.x = ROAD_BORDER_LEFT + Math.random() * ROAD_WIDTH; }
+                if (p.y > canvas.height) { p.y -= canvas.height + p.len; p.x = ROAD_BORDER_LEFT + Math.random() * ROAD_WIDTH; }
                 const px = Math.floor(p.x);
                 for (let k = 0; k < p.len; k++) {
                     const y = Math.floor(p.y) - k;
-                    if (y < 0 || y >= VIEW_H) continue;
+                    if (y < 0 || y >= canvas.height) continue;
                     const decay = p.len === 1 ? 0 : k / p.len;
                     const a = p.a * fade;
                     ctx.fillStyle = p.dust
@@ -11135,8 +11168,8 @@
 
         // ---------- Main menu live background (Batch 53) ---------- Batch 55 bug fix: the demo cars' x positions used to be hand-picked/eyeballed numbers (60, 29, 91) that didn't actually match the menu road's real lane centers — off by ~4.5px each, which read as "cars not centered in the lanes." Computed properly here from the menu's fixed road geometry (roadL=18, roadW=124, lanes=4 — matches the literal args drawMenuScene() passes to drawRoadScene()).
         const MENU_LANE_X = [0, 1, 2, 3].map(lane => {
-            const lw = 124 / 4;
-            return 18 + lane * lw + lw / 2 - PLAYER_WIDTH / 2;
+            const lw = 80 / 4;
+            return 21 + lane * lw + lw / 2 - PLAYER_WIDTH / 2;
         });
         let menuRoadOffset = 0;
         let menuBufsReady = false;
@@ -11149,7 +11182,7 @@
             // page-load background warm-up; this used to let that first tick trigger (and block on)
             // the real 1-8s build instead. drawRoadScene() already no-ops cleanly (just skips the
             // verge art for that frame) while stripBufs isn't ready yet.
-            menuRoadBufs = { A: makeAsphalt53(124, 4) };
+            menuRoadBufs = { A: makeAsphalt53(80, 4) };
             menuBufsReady = true;
         }
         let menuRoadBufs = null;
@@ -11157,14 +11190,14 @@
             ensureMenuBufs();
             const savedBufs = roadBufs;
             roadBufs = menuRoadBufs;
-            menuRoadOffset = (menuRoadOffset + 1.4) % ROAD_OFFSET_WRAP;
-            drawRoadScene(menuCtx, 160, 260, 18, 142, 124, 4, menuRoadOffset);
+            menuRoadOffset = (menuRoadOffset + 1.08) % ROAD_OFFSET_WRAP;
+            drawRoadScene(menuCtx, 123, 200, 21, 101, 80, 4, menuRoadOffset);
             roadBufs = savedBufs;
             // A couple of decorative cars drifting down the demo road, centered in lanes 0/1/2 of the menu's fixed 4-lane/124px-wide road (see MENU_LANE_X below).
             const demoCars = [
-                { x: MENU_LANE_X[1], y: (t * 0.09) % 340 - 40, color: resolvePlayerColor() },
-                { x: MENU_LANE_X[0], y: (t * 0.05 + 90) % 340 - 40, color: '#3d7bd6' },
-                { x: MENU_LANE_X[2], y: (t * 0.06 + 200) % 340 - 40, color: '#f5b32a' }
+                { x: MENU_LANE_X[1], y: (t * 0.069) % 260 - 30, color: resolvePlayerColor() },
+                { x: MENU_LANE_X[0], y: (t * 0.038 + 69) % 260 - 30, color: '#3d7bd6' },
+                { x: MENU_LANE_X[2], y: (t * 0.046 + 154) % 260 - 30, color: '#f5b32a' }
             ];
             // Batch 444 easter egg: remember where each demo car was actually drawn, so the click
             // hit-test below matches what the player can see rather than recomputing positions from
@@ -11212,8 +11245,8 @@
             if (e.target.closest('button, a, input, select, label, .mm-tab, .dev-menu-trigger, .mm-level, .level-badge')) return;
             const r = menuCanvas.getBoundingClientRect();
             if (!r.width || !r.height) return;
-            const cx = (e.clientX - r.left) * (menuCanvas.width / RENDER_SCALE / r.width);
-            const cy = (e.clientY - r.top) * (menuCanvas.height / RENDER_SCALE / r.height);
+            const cx = (e.clientX - r.left) * (menuCanvas.width / r.width);
+            const cy = (e.clientY - r.top) * (menuCanvas.height / r.height);
             const hit = menuDemoRects.findIndex((d, i) => !menuWrecks[i]
                 && cx >= d.x && cx <= d.x + d.w && cy >= d.y && cy <= d.y + d.h);
             if (hit < 0) return;
@@ -12241,7 +12274,7 @@
             e.preventDefault();
             if (touchStartX === null || !player) return;
             const rect = canvas.getBoundingClientRect();
-            const dx = (e.touches[0].clientX - touchStartX) * (VIEW_W / rect.width);
+            const dx = (e.touches[0].clientX - touchStartX) * (canvas.width / rect.width);
             const roadMin = ROAD_BORDER_LEFT;
             const roadMax = ROAD_BORDER_RIGHT - player.width;
             player.targetX = Math.max(roadMin, Math.min(roadMax, touchStartPlayerX + dx));
@@ -12371,7 +12404,7 @@
         }
 
         // direct request ("finally add the tank beam... shooting effect from the file"): the doc's own spec for the tracer says to "stretch or clip the tracer to the real gap between barrel and target, it's a straight line by design" — previously the tracer always drew a tiny fixed-length flash regardless of how far anything actually was.
-        const TANK_TRACER_MAX_RANGE_PX = 230;
+        const TANK_TRACER_MAX_RANGE_PX = 177;   // was 230 at CAR_SCALE 1.3
         function findTankShotTarget() {
             let best = null, bestY = -Infinity;
             for (const v of vehicles) {
@@ -12520,7 +12553,7 @@
                 const STAGGER = [0, 24, 10]; // per-responder Y jitter (police1/police2/ambulance) — deliberately non-monotonic so it doesn't just read as a staircase either
                 const minTargetY = 2;
                 const maxTargetY = CANVAS_HEIGHT - PLAYER_HEIGHT - 2;
-                const entryY = VIEW_H + 40;
+                const entryY = canvas.height + 40;
                 const entryStep = 55;
 
                 const wreckTopY = Math.min(CS.wrecks[0].y, CS.wrecks[1].y);
@@ -12793,11 +12826,6 @@
         }
 
         function loop() {
-            // Batch 472 — all drawing below is in world units; this maps them onto the 3x backing store.
-            // Smoothing off: every buffer blit (road tiles, verge strips, wrecks) lands on integer device
-            // pixels under this transform, so nearest-neighbour is exact and can never invent a colour.
-            ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-            ctx.imageSmoothingEnabled = false;
             // Batch 326 — "Addicted?" secret: 1 hour of real wall-clock time since page load, in one sitting.
             if (performance.now() - SESSION_START_TS >= 3600000) unlockAchievement('addicted');
             // FPS counter, measured over a rolling ~500ms window (not per-frame, which would flicker unreadably) and only touched when the Settings toggle is on.
@@ -12814,8 +12842,6 @@
 
             if (menuView.classList.contains('active')) {
                 startMenuMusic(); // Batch 297 — chill music for the Menu/Garage/Stats/Setup screens, none of which had any before this
-                menuCtx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-                menuCtx.imageSmoothingEnabled = false;
                 drawMenuScene(performance.now());
                 requestAnimationFrame(loop);
                 return;
@@ -12839,7 +12865,7 @@
                 return;
             }
 
-            ctx.clearRect(0, 0, VIEW_W, VIEW_H);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (gameActive) {
                 // Keep road art in perfect, crisp scrolling sync
@@ -12849,17 +12875,17 @@
                 if (vehicles.filter(v => v.type === 'ambulance').length >= 2) unlockAchievement('two_of_a_kind');
                 if (currentSpeed < playerMaxSpeed) {
                     // Batch 71: cut ~40% per direct feedback ("game speeds up way too fast") — was 0.0005/frame, first-pass tuning number.
-                    currentSpeed += 0.000308;   // 0.0003 x (4/3)/1.3, so the km/h-per-second ramp matches the pre-3.0 game exactly
+                    currentSpeed += 0.000231;   // was 0.0003 at CAR_SCALE 1.3 — same km/h-per-second ramp
                 }
             } else if (CS.active) {
                 // Batch 74: the crash sequence controls its own scroll — decelerate to a stop on impact, then hold at 0 for the rest of the sequence.
                 if (CS.phase === 'flash' || CS.phase === 'hold') {
-                    currentSpeed = Math.max(0, currentSpeed - 0.15);
+                    currentSpeed = Math.max(0, currentSpeed - 0.115);   // was 0.15 at CAR_SCALE 1.3
                 }
                 roadOffset = (roadOffset + currentSpeed) % ROAD_OFFSET_WRAP;
             }
 
-            drawRoadScene(ctx, VIEW_W, VIEW_H, ROAD_BORDER_LEFT, ROAD_BORDER_RIGHT, ROAD_WIDTH, config.lanes, roadOffset);
+            drawRoadScene(ctx, canvas.width, canvas.height, ROAD_BORDER_LEFT, ROAD_BORDER_RIGHT, ROAD_WIDTH, config.lanes, roadOffset);
             // Batch 446 — ramming pushes the air past what raw speed alone would give. Direct request:
             // the particles should fire "when using the RAM ability" too, because that is what sells it
             // as speed rather than as a button that turns a shield on.
@@ -12888,13 +12914,13 @@
                             const lw = Math.floor(ROAD_WIDTH / config.lanes);
                             const lx = ROAD_BORDER_LEFT + pa.lane * lw;
                             ctx.fillStyle = 'rgba(255, 50, 50, 0.55)';
-                            ctx.fillRect(lx + 1, 0, lw - 2, VIEW_H);
+                            ctx.fillRect(lx + 1, 0, lw - 2, canvas.height);
                             // Danger bar at top of lane
                             ctx.fillStyle = '#ff0000';
                             ctx.fillRect(lx + 1, 0, lw - 2, 5);
                             // Large sideways white "AMBULANCE" running down the flashing lane — replaces the old tiny HUD corner badge (unreadable at its size); flashes in sync with the red stripe since it's drawn in the same conditional block, using the game's own pixel font at a size that actually reads at a glance.
                             ctx.save();
-                            ctx.translate(lx + lw / 2, VIEW_H / 2);
+                            ctx.translate(lx + lw / 2, canvas.height / 2);
                             ctx.rotate(Math.PI / 2);
                             ctx.fillStyle = '#ffffff';
                             ctx.font = "bold 11px 'Silkscreen', monospace";
@@ -13082,7 +13108,7 @@
                             '#ffd700'
                         ));
                         letterPickups.splice(i, 1);
-                    } else if (lp.y > VIEW_H) {
+                    } else if (lp.y > canvas.height) {
                         letterPickups.splice(i, 1);
                     }
                 }
@@ -13094,7 +13120,7 @@
                     v.draw();
 
                     // "spot" a Garage-car NPC the moment it's actually visible on screen (not just spawned off-canvas) — per direct spec, no need to crash into it or interact, "it
-                    if (v.garageCar && !isCarDiscovered(v.garageCar) && v.y + v.height >= 0 && v.y <= VIEW_H) {
+                    if (v.garageCar && !isCarDiscovered(v.garageCar) && v.y + v.height >= 0 && v.y <= canvas.height) {
                         allTimeStats.discoveredCars.push(v.garageCar.key);
                         allTimeStats.newlySpottedCars.push(v.garageCar.key); // Batch 104 — drives the "NEW!" badge until the Garage is next opened and exited
                         if (v.garageCar.key === 'monster') unlockAchievement('what_a_monster'); // Batch 325 — "first time ever spotted" is exactly what this lifetime-discovery gate already means
@@ -13102,7 +13128,7 @@
                     }
 
                     // Daily Missions rare-car spotting.
-                    if (v.garageCar && !v.missionRaritySpotted && v.y + v.height >= 0 && v.y <= VIEW_H) {
+                    if (v.garageCar && !v.missionRaritySpotted && v.y + v.height >= 0 && v.y <= canvas.height) {
                         v.missionRaritySpotted = true;
                         if (creditRareCarSpot(v.garageCar)) saveAllTimeStats();
                         // "Spotter" achievement: 3 DISTINCT legendary cars in one run.
@@ -13184,8 +13210,8 @@
                             // instant death is the ambulance's whole identity. If either fails, control falls
                             // through to the ordinary crash branches, which is the "then you just crash" ask.
                             v.launched = true;
-                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (2.2 + Math.random() * 1.6);
-                            v.launchVy = -(6 + Math.random() * 3);
+                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (1.7 + Math.random() * 1.2);
+                            v.launchVy = -(4.6 + Math.random() * 2.3);
                             v.launchSpin = (Math.random() < 0.5 ? -1 : 1) * (0.18 + Math.random() * 0.22);
                             v.launchAngle = 0;
                             v.speedOffset = 0;
@@ -13272,8 +13298,8 @@
                     // Batch 446 — a launched vehicle exits upward or sideways, so the usual bottom-edge
                     // cull would never fire on it and it would linger forever just off-frame.
                     const exited = v.launched
-                        ? (v.y < -v.height - 40 || v.y > VIEW_H + 40 || v.x < -v.width - 40 || v.x > VIEW_W + 40)
-                        : v.type === 'ambulance' ? (v.y < -v.height - 20) : (v.y > VIEW_H);
+                        ? (v.y < -v.height - 40 || v.y > canvas.height + 40 || v.x < -v.width - 40 || v.x > canvas.width + 40)
+                        : v.type === 'ambulance' ? (v.y < -v.height - 20) : (v.y > canvas.height);
                     if (exited) {
                         if (v.siren) stopSiren(v.siren);
                         vehicles.splice(i, 1);
@@ -13375,7 +13401,7 @@
                     const age = performance.now() - s.start;
                     if (age > s.lifeMs) { wreckSmoke.splice(i, 1); continue; }
                     const x = s.vehicle.x + s.dx, y = s.vehicle.y + s.dy - age * 0.015; // slow upward drift
-                    if (y < -20 || y > VIEW_H + 20) { wreckSmoke.splice(i, 1); continue; }
+                    if (y < -20 || y > canvas.height + 20) { wreckSmoke.splice(i, 1); continue; }
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, 1 - age / s.lifeMs);
                     ctx.fillStyle = s.color;
@@ -13390,19 +13416,19 @@
                     if (f > 11) { sbExplosions.splice(i, 1); continue; }
                     const exCx = ex.vehicle.x + ex.vehicle.width / 2, exCy = ex.vehicle.y + ex.vehicle.height / 2;
                     // same defensive off-screen expiry as wreckSmoke above, in case the host vehicle was removed (fully scrolled off) mid-explosion.
-                    if (exCy < -20 || exCy > VIEW_H + 20) { sbExplosions.splice(i, 1); continue; }
+                    if (exCy < -20 || exCy > canvas.height + 20) { sbExplosions.splice(i, 1); continue; }
                     drawSbExplosionFrame(ctx, exCx, exCy, ex.v, f, ex.parts, ex.debrisTint);
                 }
 
                 // Bridges composite over traffic/the player (drawn last, not part of drawRoadScene's background pass) so vehicles genuinely disappear underneath for the ~0.5s it takes to cross — purely visual, collision is unaffected.
-                drawBridges(ctx, roadOffset, VIEW_W, VIEW_H);
+                drawBridges(ctx, roadOffset, canvas.width, canvas.height);
 
                 // Batch 438 — lifetime distance. km/h over one frame at 60fps is kmh / 3600 / 60;
                 // this is the same speedToKmh() the HUD shows, so the number agrees with what the
                 // player was watching rather than being a second, private idea of speed.
                 distanceThisRunKm += speedToKmh(currentSpeed) / 216000;
                 // "Double Shift" — two ambulances actually on screen together.
-                if (vehicles.filter(v => v.type === 'ambulance' && v.y + v.height > 0 && v.y < VIEW_H).length >= 2) {
+                if (vehicles.filter(v => v.type === 'ambulance' && v.y + v.height > 0 && v.y < canvas.height).length >= 2) {
                     unlockAchievement('double_shift');
                 }
 
@@ -13433,7 +13459,7 @@
             } else {
                 // Game Over — dark canvas overlay (text shown via DOM #gameOverHud)
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-                ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 for (let i = particles.length - 1; i >= 0; i--) {
                     particles[i].update();
@@ -13557,7 +13583,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.1.0';
+        const GAME_VERSION = '3.0.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

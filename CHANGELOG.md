@@ -6,6 +6,26 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.1.0 — 2026-09-22 11:30: Batch 472 — Render-scale architecture: old proportions back, everything sharp; stock renderer unified
+
+Direct correction on v3.0: shrinking the world made the road and every raw-pixel object ~30% bigger relative to the cars. The proportions should be what they always were — the requirement is only that nothing is blurry or deformed. Backup: git tag `v3.0.0-pre-renderscale` + `backup/carCrash.3.0.0.pre-renderscale.html`.
+
+### The scheme
+
+**The world is back in its original units** — canvas 260 tall, ~26px lanes, and every raw constant restored to its pre-3.0 value (margins, player bounds, flight height, close-call gaps, launch arc, menu scene, all of it). Sharpness now comes from **resolution, not from changing the world**: the canvas backing store is `RENDER_SCALE = 3`× the world, applied as one transform at the top of each frame.
+
+- **Road art** lands on a whole 3-device-pixel grid — integer, exact, sharp.
+- **Cars** bypass the world transform and blit straight onto the device grid at **4 device pixels per sprite pixel** — integer, exact, sharp.
+- 4:3 = 1.333, within 2.6% of the old 1.3 car-to-road ratio, so the game *looks* like it always did. `CAR_SCALE` is now literally `4 / 3`.
+
+Measured: the letter token fills **67%** of its lane (the old game: 69%; v3.0 had pushed it to 90%). The bumper car paints exactly **72 device pixels wide** (18 × 4) in its own 9 colours + outline — zero resampling. The speed ramp was re-derived so 120 km/h still arrives at frame **6667** (pre-3.0: 6673). Verified end to end: spawning, jump to full height, ram, bumper launch, complete crash sequence into the result screen, snail trail past the screen edge, airflow at speed, and menu demo cars exactly on their lane centres with the easter-egg click mapping corrected for the 3× backing store.
+
+The plumbing that made it safe: world code now reads `VIEW_W`/`VIEW_H` (world units) instead of `canvas.width/height` (now device units) — 31 call sites, mechanically converted; only the two attribute assignments know the multiplier exists. Frame text (score popups) rasterises at 3× as a free side effect, so it is crisper too.
+
+### Stock renderer unified
+
+Direct request. The in-game stock car was still `drawPixelCar`'s own inline art from the very first version of the game, while the Garage tile long ago moved to `drawBodySedan53` — the same car genuinely looked different in play and in the Garage (182 of 332 sprite pixels differed, per the Batch 471 audit). The body is now **delegated to the Garage's renderer inside `drawPixelCar`**, and because every stock-car depiction funnels through that one function — tutorial scenes, boost previews, menu traffic, the crash snapshot — they all updated together with zero call-site changes. The jump machinery is untouched. Verified: **0 mismatched pixels** between `drawPixelCar` and `drawBodySedan53`.
+
 ## 3.0.0 — 2026-09-22 09:20: Batch 471 — THE INTEGER-SCALE REFACTOR, plus outlines, trail end, and real speed airflow
 
 A major-version bump because the entire rendering coordinate system changed. Rollback exists twice over: git tag `pre-integer-scale` and `backup/carCrash.2.243.1.pre-integer-scale.html`.
