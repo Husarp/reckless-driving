@@ -6,6 +6,22 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.2.0 — 2026-09-22 14:10: Batch 474 — Tutorial overhaul: build stats, special vehicles, section order, real explosion; score popups with a toggle; one scrollbar
+
+**HOW IT WAS BUILT — the requested statistics card**, in ABOUT after THE PRICES ARE REAL. Counted from the change log itself: **473 batches across 474 shipped versions, over 2,150 recorded individual changes** (a renamed label counts, and so does a single repainted pixel), in **26 working days spread over 33 calendar days**, Aug 21 to Sep 22, 2026. Static figures with an "as of v3.1.1" stamp — they will need a refresh at milestones, noted in PLAN.md.
+
+**SPECIAL VEHICLES card** at the end of PROGRESSION, per direct instruction never to call them jokes. It says what matters — no price, never on the road, Extra Boxes are the only way in, most trade their ability for a coin bonus — and deliberately reveals nothing else: no names, no count, and "one or two learned something stranger" is all the SHIP and BUMPER CAR get.
+
+**PROGRESSION now sits before MASTER.** A new player meets the Garage, levels and dailies by their second run; MASTER is expert multiplier play. Reading order now matches encounter order — it was always odd that the beginner-facing section came after the expert one.
+
+**Stale-copy audit, two real finds:** "Nine heavy vehicles trade Jump for the ram" — the SHIP made it ten, and the count is now computed from the roster so it can never go stale again. And SPOTTING CARS claimed *every* Garage car drives the road with "58 cars to find" — box-exclusives are excluded from traffic by design, so it promised six cars the road can never show. Now says "every car you can buy" and counts 52. The multiplier figures (×1.30 / ×1.40 / +1% / ×2.5 at 200) all checked out against the live constants.
+
+**The SHIELD BUMP scene plays the real explosion.** It used to fake the impact with three static spark rectangles; it now runs `drawSbExplosionFrame` — same renderer, same 12 frames at 45ms — so what the tutorial shows is exactly what the road does.
+
+**Score popups, with a Settings toggle.** Floating `+points` on every credited pass and jump-over. Placement follows where the points happened: a pass is credited the moment you draw level with the car, so the popup sits **on that car, beside you** — "you earned this off him" — while a jump-over pops **above the player** (tagged ×2 JUMP), because the car you cleared is underneath you at that moment. ON by default — the tutorial's HOW YOU SCORE scene shows floating points, and the game should match what the tutorial promises — with a SCORE POPUPS toggle under Settings, persisted across sessions.
+
+**One scrollbar everywhere.** Batch 469 already unified the style; the tutorial rail still carried a 10px-width override from before. Removed — the exact same bar now appears in the Garage, the results screen, the tutorial and everywhere else.
+
 ## 3.1.1 — 2026-09-22 12:20: Batch 473 — The startup flash was the unstyled first paint; boot veil added
 
 Direct report: for about a second at startup "the old design" appeared — smooth round text, a plain number with no ring, a grey half-built screen. **It was never an old design.** It was the very first paint, drawn before anything was ready:

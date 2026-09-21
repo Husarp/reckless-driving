@@ -187,7 +187,6 @@
            The veil hides the body's CHILDREN, not the body, so the dark page background still paints and
            boot is a clean dark screen instead of a white or grey one. */
         body.booting > * { visibility: hidden; }
-        .tut-rail::-webkit-scrollbar { width: 10px; }
         /* Batch 424 — first-launch nudge. Replaces the forced tutorial: the menu loads normally
            and this blinks until the screen has been opened once. steps(2) so it snaps on and off
            like everything else in this UI rather than glowing smoothly, and a hard 2px ring rather
@@ -1822,7 +1821,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.1.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.0</span></div>
                 </div>
             </div>
         </div>
@@ -1981,6 +1980,21 @@
                 <select id="skipCrashSetting" style="display:none;">
                     <option value="no" selected>Off</option>
                     <option value="yes">On</option>
+                </select>
+            </div>
+
+            <div class="stg-row">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">SCORE POPUPS</div>
+                    <div class="stg-row-hint">Floating +points when you pass or jump over a car.</div>
+                </div>
+                <div class="stg-toggle" id="scorePopupsToggle">
+                    <span class="stg-toggle-label" id="scorePopupsToggleLabel">ON</span>
+                    <div class="stg-toggle-track" id="scorePopupsToggleTrack"><div class="stg-toggle-knob"></div></div>
+                </div>
+                <select id="scorePopupsSetting" style="display:none;">
+                    <option value="yes" selected>On</option>
+                    <option value="no">Off</option>
                 </select>
             </div>
 
@@ -2428,7 +2442,7 @@
                         <div class="tut-card-body">
                             <div class="tut-art tut-scene"><canvas id="tutSceneRam"></canvas></div>
                             <div class="tut-copy">
-                                <p>Nine heavy vehicles trade Jump for the ram. Tap Space: <span class="k">+40% speed</span> and a front guard that smashes traffic aside &mdash; but only head-on. A side-swipe still kills you.</p>
+                                <p><span class="k" id="tutRamCount"></span> heavy vehicles trade Jump for the ram. Tap Space: <span class="k">+40% speed</span> and a front guard that smashes traffic aside &mdash; but only head-on. A side-swipe still kills you.</p>
                                 <p>It runs at least 1 second, drains about a cell per second, and every kill refunds a little &mdash; trucks refund double. Chain them.</p>
                             </div>
                         </div>
@@ -2445,44 +2459,6 @@
                     </div>
                 </div>
 
-                <div class="tut-section" data-tut-section="master">
-                    <div class="tut-sec-head"><span class="tut-sec-name">MASTER</span><span class="tut-sec-rule"></span></div>
-                    <div class="tut-sec-sub">Reading the road, and the trades good players make.</div>
-                    <div class="tut-card">
-                        <div class="tut-card-head"><span class="tut-card-label">READ THE ROAD</span><span class="tut-card-rule"></span></div>
-                        <div class="tut-card-body">
-                            <div class="tut-art tut-scene"><canvas id="tutSceneRoad"></canvas></div>
-                            <div class="tut-copy">
-                                <p>Traffic spawns ahead &mdash; but ambulances hunt you from behind.</p>
-                                <p>Ride low and you have maximum time to thread traffic, but the siren reaches you first. Ride high and passes bank earlier and ambulances take longest to catch you &mdash; but new traffic is in your face.</p>
-                                <p>Pick your row for the problem in front of you. When a lane flashes red, that lane is cleared for a reason. Leave it, or jump.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tut-card">
-                        <div class="tut-card-head"><span class="tut-card-label">THE AMBULANCE TRADE</span><span class="tut-card-rule"></span></div>
-                        <div class="tut-card-body">
-                            <div class="tut-art"><canvas id="tutArtAmbTrade"></canvas></div>
-                            <div class="tut-copy">
-                                <p>An ambulance passed on the ground refills <span class="k">5 cells</span> &mdash; over half your bar, the best energy in the game.</p>
-                                <p>Jumped over, it pays <span class="k" id="tutCoinAmbJump"></span> coins but only <span class="k">+1 cell</span>.</p>
-                                <p>Broke? Jump it. Low on energy? Hold your nerve and let it pass. Never spend a jump on one by reflex.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tut-card">
-                        <div class="tut-card-head"><span class="tut-card-label">STAY CLOSE, STAY PAID</span><span class="tut-card-rule"></span></div>
-                        <div class="tut-card-body">
-                            <div class="tut-art"><canvas id="tutArtStayA"></canvas><canvas id="tutArtStayB"></canvas></div>
-                            <div class="tut-copy">
-                                <p>Passes only count within one lane of you. Hugging the thick of traffic scores; cruising an empty edge lane scores nothing.</p>
-                                <p>Reckless drivers &mdash; about one in eight &mdash; never stop switching lanes. Treat any car with a blinker as already moving.</p>
-                                <p>Breakdowns don't move at all, which makes them the fastest thing on the road. The flashing warning sign is your only notice.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="tut-section" data-tut-section="progress">
                     <div class="tut-sec-head"><span class="tut-sec-name">PROGRESSION</span><span class="tut-sec-rule"></span></div>
                     <div class="tut-sec-sub">Everything that carries over between runs.</div>
@@ -2492,7 +2468,7 @@
                             <div class="tut-art"><canvas id="tutArtSpot"></canvas></div>
                             <div class="tut-copy">
                                 <p>You cannot buy a car you have never seen.</p>
-                                <p>Every car in the Garage also drives the road as ordinary traffic. The moment one is actually <b>on screen</b> it is discovered &mdash; you do not have to pass it, hit it or do anything at all &mdash; and its Garage tile turns from <span class="k">???</span> into a real car with a price.</p>
+                                <p>Every car you can buy also drives the road as ordinary traffic. The moment one is actually <b>on screen</b> it is discovered &mdash; you do not have to pass it, hit it or do anything at all &mdash; and its Garage tile turns from <span class="k">???</span> into a real car with a price.</p>
                                 <p>Rarer cars show up less often, so the Garage fills in slowly by itself. There are <span class="k" id="tutCarCount2"></span> to find.</p>
                             </div>
                         </div>
@@ -2541,6 +2517,54 @@
                                 <p>One lucky run does not make you good, so the Scores screen does not rank you on one.</p>
                                 <p>Your best runs are sorted, and each counts for <span class="k">95%</span> of the one above it &mdash; your best in full, the next at 95%, the one after at 90%, on down to a hundred runs.</p>
                                 <p>A single huge score still moves it most, but a pile of consistent ones catches up. Beating an old run replaces it rather than adding to it.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">SPECIAL VEHICLES</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-copy">
+                                <p>A few machines in the Garage are not cars at all.</p>
+                                <p>They have no price, and no amount of driving will ever reveal one on the road. The only way in is the Daily Gift&rsquo;s <b>Extra Boxes</b> &mdash; each box rolls a chance at one, and the Garage keeps their shapes hidden until a box says otherwise.</p>
+                                <p>Most trade their ability away for a <b>coin bonus</b>. One or two learned something stranger instead.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tut-section" data-tut-section="master">
+                    <div class="tut-sec-head"><span class="tut-sec-name">MASTER</span><span class="tut-sec-rule"></span></div>
+                    <div class="tut-sec-sub">Reading the road, and the trades good players make.</div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">READ THE ROAD</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-art tut-scene"><canvas id="tutSceneRoad"></canvas></div>
+                            <div class="tut-copy">
+                                <p>Traffic spawns ahead &mdash; but ambulances hunt you from behind.</p>
+                                <p>Ride low and you have maximum time to thread traffic, but the siren reaches you first. Ride high and passes bank earlier and ambulances take longest to catch you &mdash; but new traffic is in your face.</p>
+                                <p>Pick your row for the problem in front of you. When a lane flashes red, that lane is cleared for a reason. Leave it, or jump.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">THE AMBULANCE TRADE</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-art"><canvas id="tutArtAmbTrade"></canvas></div>
+                            <div class="tut-copy">
+                                <p>An ambulance passed on the ground refills <span class="k">5 cells</span> &mdash; over half your bar, the best energy in the game.</p>
+                                <p>Jumped over, it pays <span class="k" id="tutCoinAmbJump"></span> coins but only <span class="k">+1 cell</span>.</p>
+                                <p>Broke? Jump it. Low on energy? Hold your nerve and let it pass. Never spend a jump on one by reflex.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">STAY CLOSE, STAY PAID</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-art"><canvas id="tutArtStayA"></canvas><canvas id="tutArtStayB"></canvas></div>
+                            <div class="tut-copy">
+                                <p>Passes only count within one lane of you. Hugging the thick of traffic scores; cruising an empty edge lane scores nothing.</p>
+                                <p>Reckless drivers &mdash; about one in eight &mdash; never stop switching lanes. Treat any car with a blinker as already moving.</p>
+                                <p>Breakdowns don't move at all, which makes them the fastest thing on the road. The flashing warning sign is your only notice.</p>
                             </div>
                         </div>
                     </div>
@@ -2597,6 +2621,22 @@
                                 <p>Every price tag in the garage is based on what the real vehicle costs. That's why a Formula 1 car runs to millions and a go-kart is pocket change.</p>
                                 <p>It also means rarity and price don't always agree. A bin lorry outcosting a supercar isn't a bug &mdash; that's simply what they cost.</p>
                             </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">HOW IT WAS BUILT</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-copy">
+                                <p>Built in conversation, one batch of changes at a time, and every batch is written down &mdash; a renamed label counts as a change, and so does a single repainted pixel.</p>
+                                <p>The log is longer than most of the code.</p>
+                            </div>
+                        </div>
+                        <div class="tut-vals">
+                            <div class="tut-vals-title">AS OF v3.1.1 &mdash; AUG 21 TO SEP 22, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">473</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-val"><span class="tut-val-num">474</span><span class="tut-val-cap">VERSIONS SHIPPED</span></div>
+                            <div class="tut-val"><span class="tut-val-num">2,150+</span><span class="tut-val-cap">RECORDED CHANGES</span></div>
+                            <div class="tut-val tut-val-total"><span class="tut-val-num">26 / 33</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
+                        </div>
+                    </div>
                         </div>
                     </div>
                 </div>
@@ -2955,6 +2995,10 @@
         const STEERING_TRACK_HEIGHT = 44; // px, must match .steering-track's CSS height
         const selectMultiLaneHold = document.getElementById('multiLaneHoldSetting');
         const selectSkipCrash = document.getElementById('skipCrashSetting');
+        const scorePopupsToggle = document.getElementById('scorePopupsToggle');
+        const scorePopupsToggleLabel = document.getElementById('scorePopupsToggleLabel');
+        const scorePopupsToggleTrack = document.getElementById('scorePopupsToggleTrack');
+        const selectScorePopups = document.getElementById('scorePopupsSetting');
         const selectDifficulty = document.getElementById('difficultySetting');
         const fpsCounterToggle = document.getElementById('fpsCounterToggle');
         const fpsCounterToggleLabel = document.getElementById('fpsCounterToggleLabel');
@@ -11298,6 +11342,7 @@
             abilityBar.style.display = config.ability === 'none' ? 'none' : '';
             config.difficulty = selectDifficulty.value; // Batch 127
             config.skipCrashAnimation = selectSkipCrash.value === 'yes';
+            config.scorePopupsEnabled = selectScorePopups.value === 'yes';
             config.soundVolume = parseFloat(selectSound.value);
             config.soundEnabled = config.soundVolume > 0;
             config.sirenVolume = parseFloat(selectSirenVolume.value);
@@ -12408,6 +12453,18 @@
             const pts = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10); // Batch 135
             const jumpMult = v.jumpedOver ? 2 : 1;
             score += pts * multiplier * jumpMult; // no per-event rounding — see endRun()
+            // Batch 474, direct request: floating +points, placed where the POINTS happened. A pass is
+            // credited the moment you draw level with the car, so the car is beside you - the popup sits
+            // ON that car, which reads as "you earned this off HIM". A jump-over pops above the player
+            // instead, because the car you cleared is underneath you at that moment.
+            if (config.scorePopupsEnabled) {
+                const gained = '+' + Math.round(pts * multiplier * jumpMult);
+                if (v.jumpedOver) {
+                    scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y - 4, gained, 'x2 JUMP', '#f5b32a'));
+                } else {
+                    scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2, gained, '', '#2ee6b0'));
+                }
+            }
             gainXP(pts * jumpMult);
             dodgedCount++;
             if (!v.jumpedOver) coinsThisRun += Math.round(pts / 10 * COIN_EARN_SCALE);
@@ -13565,7 +13622,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.1.1';
+        const GAME_VERSION = '3.2.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -13574,7 +13631,10 @@
         // direct request; the contents rail is the only navigation now.
         // Source of truth for tier order. The DOM order matches this; the contents list and the ALL
         // view both read it rather than each hardcoding their own sequence.
-        const TUT_ORDER = ['basics', 'advanced', 'master', 'progress', 'about'];
+        // Batch 474, direct request: PROGRESSION now comes BEFORE master. A new player meets the
+        // Garage, levels and dailies by their second run; MASTER is expert multiplier play. Reading
+        // order should match encounter order, and progression sitting after master never did.
+        const TUT_ORDER = ['basics', 'advanced', 'progress', 'master', 'about'];
         const TUT_TIER_LABEL = { basics: 'BEGINNER', advanced: 'INTERMEDIATE', master: 'MASTER', progress: 'PROGRESSION', about: 'ABOUT' };
         // Difficulty colour ramp, reusing the palette's existing tokens rather than new hexes:
         // green reads as safe, amber as caution, red as hard — a gradient players already know from
@@ -13789,12 +13849,15 @@
             set('tutMsnLadder', MISSIONS_LADDER_COINS.map(coinDisplay).join(', '));
             set('tutMsnTotal', coinDisplay(MISSIONS_LADDER_COINS.reduce((a, b) => a + b, 0)));
             set('tutCarCount', GARAGE_CARS.length);
+            set('tutRamCount', ['Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'][GARAGE_CARS.filter(c => c.ramAbility).length - 2] || GARAGE_CARS.filter(c => c.ramAbility).length);
             set('tutBiomeCount', BIOME_DEFS.length);
             // Batch 425 — PROGRESSION section. Every figure here is read from the system it
             // describes, so none of it can drift: the level curve from levelReq(), the gift
             // threshold from dailyScoreThreshold(), the mission ladder from MISSIONS_LADDER_COINS,
             // and the player's own level/rank/performance score live.
-            set('tutCarCount2', GARAGE_CARS.length + ' cars');
+            // Batch 474 — spotting only applies to BUYABLE cars: box-exclusives are excluded from
+            // traffic by design, so counting them here promised the player 6 cars the road can never show.
+            set('tutCarCount2', GARAGE_CARS.filter(c => !c.boxOnly).length + ' cars');
             set('tutLevelNum', allTimeStats.playerLevel);
             set('tutLevelRank', rankName(allTimeStats.playerLevel).toUpperCase());
             set('tutLvlReq1', levelReq(1).toLocaleString('en-US'));
@@ -13910,6 +13973,7 @@
         const tutEase = (t, a, b) => { const p = Math.max(0, Math.min(1, (t - a) / (b - a))); return p * p * (3 - 2 * p); };
         let tutAsphalt = null;
         let tutWreckBuf = null;
+        let tutRamBurst = null;   // Batch 474 — the tutorial ram scene's cached explosion parts
         let tutSceneRaf = 0;
 
         function tutRoad(c, off) {
@@ -14007,9 +14071,13 @@
                     }
                     const wy = Math.floor(hitY + 10 + 0.07 * (lt - tc));
                     c.drawImage(tutWreckBuf, tutLaneX(1), wy, 14, 14);
-                    if (lt - tc < 220) {
-                        c.fillStyle = '#ffb02e'; c.fillRect(tutLaneX(1) + 2, wy - 2, 3, 2); c.fillRect(tutLaneX(1) + 9, wy - 3, 2, 2);
-                        c.fillStyle = '#fff8d0'; c.fillRect(tutLaneX(1) + 6, wy - 1, 2, 2);
+                    // Batch 474, direct request: the scene used to fake the impact with three static
+                    // sparks. It now plays the REAL Shield Bump burst - same renderer, same 12 frames at
+                    // 45ms - so what the tutorial shows is exactly what the road does.
+                    const ef = Math.floor((lt - tc) / 45);
+                    if (ef <= 11) {
+                        if (!tutRamBurst) tutRamBurst = sbExplosionParts('A');
+                        drawSbExplosionFrame(c, tutLaneX(1) + 7, wy + 7, 'A', ef, tutRamBurst, '#dfe6e9');
                     }
                 });
                 // Same origin relationship between sprite and effects that Batch 418 measured.
@@ -14449,6 +14517,15 @@
         bindToggle(multiLaneToggle, multiLaneToggleLabel, multiLaneToggleTrack, selectMultiLaneHold, 'yes', 'no');
         bindToggle(tiltToggle, tiltToggleLabel, tiltToggleTrack, selectTilt, 'yes', 'no');
         bindToggle(skipCrashToggle, skipCrashToggleLabel, skipCrashToggleTrack, selectSkipCrash, 'yes', 'no');
+        // Batch 474 — SCORE POPUPS toggle, persisted under its own key like sound/garageSort are. On by
+        // default: the tutorial's HOW YOU SCORE scene shows the floating points, so the real game should
+        // match what the tutorial promises unless the player opts out.
+        {
+            try { const v = localStorage.getItem('scorePopups'); if (v === 'no' || v === 'yes') selectScorePopups.value = v; } catch (e) {}
+            const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
+            refreshSp();
+            selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
+        }
         // FPS counter toggle. Persisted (unlike the run-config toggles above) since it's a display preference, not a per-run gameplay setting.
         selectFpsCounter.value = localStorage.getItem('fpsCounterOn') === 'yes' ? 'yes' : 'no';
         bindToggle(fpsCounterToggle, fpsCounterToggleLabel, fpsCounterToggleTrack, selectFpsCounter, 'yes', 'no');
