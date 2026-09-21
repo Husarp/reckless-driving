@@ -6,6 +6,12 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.234.3 — 2026-09-21 18:40: Batch 451 — BUMPER CAR bumps with every side, and stops paying close calls for it
+
+**Every side, not just the nose.** Direct correction — the `isFrontHit()` gate is gone. A real bumper car is ringed in rubber, so restricting the launch to the front was the wrong instinct. Two gates remain: the bar must be **full**, and ambulances stay exempt for the same reason ramming spares them. Verified from all four sides — front, rear, left and right all launch, and the player survives each.
+
+**No close call for a car you just launched.** This became a real problem the moment every side could bump: a launched car spends its first frames sliding away through exactly the "real gap, no overlap" band a close call looks for, so it paid a near-miss bonus for a hit you had *already* been rewarded for. Verified zero close calls credited across a full launch and the whole flight that follows.
+
 ## 2.234.2 — 2026-09-21 18:25: Batch 450 — Every car states its ability on the hover card
 
 Direct request. The row used to appear only for ram cars, which made JUMP look like "no ability" rather than the default it is, and left the ability-free joke vehicles saying nothing at all — when having none is their entire identity.
