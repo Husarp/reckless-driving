@@ -6,6 +6,22 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.237.0 — 2026-09-21 21:10: Batch 456 — Paint the GIANT SNAIL and it colours the trail
+
+Snail only, as decided. `paintsTrail` is an **exception** to `noPaint`, not a removal of it: the shell is still fixed art that takes no colour argument, but the trail does take one, so the picker opens and the paint goes somewhere real. Every other `noPaint` car has no effect to colour and stays locked — verified for PIANO, DONUT, BATHTUB, BUMPER CAR and SHIP, and the Tank stays locked too.
+
+**Direct correction accepted: a red trail is not "less turbo" than a blue one — it is a red neon trail.** I had that backwards. What makes something read as neon is one hue plus a white-hot centre, and that holds for any hue. So all three layers derive from the paint rather than being tinted toward blue:
+
+| layer | derivation | example at `#e63946` |
+|---|---|---|
+| outer bloom | `shade(paint, -0.45)` | `#7f1f27` |
+| mid band | the paint itself | `#e63946` |
+| hot core | `shade(paint, +0.75)` | `#f9ced1` |
+
+Alphas are unchanged at 0.22 / 0.45 / 0.55, so it stays semi-transparent at any colour and the lane markings still read straight through it.
+
+**The Garage says where the paint goes.** The PAINT heading reads **PAINT · TRAIL** for the snail. Someone recolouring it and seeing the shell not change would reasonably assume the picker was broken; one word prevents that.
+
 ## 2.236.1 — 2026-09-21 20:40: Batch 455 — The snail's trail is real; Batch 454's "impossible" was wrong
 
 Direct correction, and it was right. Batch 454 claimed a trail behind the car could not exist and built a halo in its place. **That conclusion came from measuring the player at REST** — y 217 of a 260px canvas, one pixel behind the tail — and generalising from that single number.

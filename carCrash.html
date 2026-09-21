@@ -1772,7 +1772,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.236.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.237.0</span></div>
                 </div>
             </div>
         </div>
@@ -5972,7 +5972,7 @@
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40 , turboTrail: true },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
             { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
@@ -6095,7 +6095,11 @@
         // Batch 445 - `noPaint` generalises what used to be a hardcoded Tank check. The v4 joke vehicles
         // each have one fixed look by direct instruction, and unlike the Tank their draw functions do not
         // even accept a colour, so this lock and the art agree rather than the UI merely hiding a choice.
-        function carCanRepaint(car) { return car.key !== 'tank' && !car.noPaint; }
+        // Batch 456 — `paintsTrail` is an exception to `noPaint`, not a removal of it: the GIANT SNAIL's
+        // shell is still fixed art that takes no colour argument, but its turbo trail does take one. So
+        // the picker opens for it and the paint goes somewhere real. Every other noPaint car has no
+        // effect to colour, so nothing else changes.
+        function carCanRepaint(car) { return car.key !== 'tank' && (!car.noPaint || !!car.paintsTrail); }
         function carFlameAvailable(car, key) {
             const disabled = car.disabledFlames || (car.ramAbility ? ['pods'] : []);
             return !disabled.includes(key);
@@ -10613,11 +10617,23 @@
         // "Glowing but semi-transparent, like in the Turbo movie": three stacked layers per point - a wide
         // dim outer bloom, a mid band, and a bright core that only survives the first third of the trail.
         // No layer is opaque, so the lane markings read straight through it.
+        // A neon tube is one hue plus a white-hot centre - that is what makes it read as neon rather than
+        // as a coloured smear, and it holds for ANY hue. Direct correction, and it was right: a red trail
+        // is not "less turbo" than a blue one, it is a red neon trail. So all three layers derive from the
+        // paint - a deep bloom, the colour itself, and a core pushed most of the way to white.
+        function rgba(hex, a) {
+            const n = parseInt(hex.slice(1), 16);
+            return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a.toFixed(3) + ')';
+        }
+        function neonRamp(hex) {
+            return { deep: shade(hex, -0.45), mid: hex, core: shade(hex, 0.75) };
+        }
         const SNAIL_TRAIL_MAX = 80;
         let snailTrail = [];
         function drawSnailTrail(player, drawX, drawY) {
             const kmh = speedToKmh(currentSpeed);
             const t = Math.max(0, Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH)));
+            const neon = neonRamp(resolvePlayerColor());
             for (const pt of snailTrail) pt.y += currentSpeed;
             snailTrail = snailTrail.filter(pt => pt.y < canvas.height + 4);
             if (t > 0) {
@@ -10633,12 +10649,12 @@
                 if (fade <= 0.03) continue;
                 const px = Math.round(pt.x), py = Math.round(pt.y);
                 const w = Math.max(1, Math.round((1 - age) * 5));
-                ctx.fillStyle = 'rgba(31,111,208,' + (fade * 0.22).toFixed(3) + ')';
+                ctx.fillStyle = rgba(neon.deep, fade * 0.22);
                 ctx.fillRect(px - w - 2, py, w * 2 + 4, 1);
-                ctx.fillStyle = 'rgba(79,195,255,' + (fade * 0.45).toFixed(3) + ')';
+                ctx.fillStyle = rgba(neon.mid, fade * 0.45);
                 ctx.fillRect(px - w, py, w * 2, 1);
                 if (age < 0.35) {
-                    ctx.fillStyle = 'rgba(223,246,255,' + (fade * 0.55 * (1 - age / 0.35)).toFixed(3) + ')';
+                    ctx.fillStyle = rgba(neon.core, fade * 0.55 * (1 - age / 0.35));
                     ctx.fillRect(px - 1, py, 2, 1);
                 }
             }
@@ -10649,7 +10665,7 @@
                 const pulse = 0.82 + 0.18 * Math.sin(performance.now() / 110);
                 const hh = player.height / 2, cy = drawY + hh;
                 for (let r = 2; r >= 1; r--) {
-                    ctx.fillStyle = 'rgba(79,195,255,' + ((0.06 + t * 0.12) * pulse / r).toFixed(3) + ')';
+                    ctx.fillStyle = rgba(neon.mid, (0.06 + t * 0.12) * pulse / r);
                     for (let y = drawY - r; y < drawY + player.height + r; y++) {
                         const dy = Math.min(1, Math.abs(y - cy) / (hh + r));
                         const pinch = Math.round((1 - Math.sqrt(1 - dy * dy)) * (player.width / 2));
@@ -13094,7 +13110,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.236.1';
+        const GAME_VERSION = '2.237.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14327,6 +14343,9 @@
             const box = document.getElementById('colorPicker');
             const label = document.getElementById('paintLabel');
             box.innerHTML = '';
+            // Batch 456 — a player painting the snail and seeing its shell not change would reasonably
+            // think the picker was broken. Saying where the colour actually goes costs one word.
+            label.textContent = getSelectedCar().paintsTrail ? 'PAINT · TRAIL' : 'PAINT';
             // direct request: Tank can't be repainted at all (its color is baked into drawGarageTankArt53's shading, and painting it never made much visual sense for a fixed-metal vehicle anyway).
             if (!carCanRepaint(getSelectedCar())) {
                 box.innerHTML = '<div class="showroom-empty-note">No paint customization for this vehicle</div>';
