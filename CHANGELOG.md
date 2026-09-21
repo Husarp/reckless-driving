@@ -6,6 +6,16 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 2.238.1 — 2026-09-21 22:50: Batch 459 — Smaller snail, and its trail is actually reachable
+
+**The trail was working — it was unreachable.** Direct report: "I don't see any trail behind it." It shared the air particles' 120 km/h floor, and the speed ramp is `+0.0003`/frame, which puts 120 km/h about **111 seconds** into a run. Almost no run lasts that long, so in practice the trail may as well not have existed.
+
+It has its own floor now at **60 km/h — about 16 seconds in** — reaching full intensity at 160. Verified: 32 trail points at 70 km/h, 36 at 150, spanning 189px. The air keeps its 120 km/h, which was a direct instruction.
+
+**Worth flagging for the same reason: the air particles are also ~111 seconds away.** 120 km/h was your number and it is unchanged, but at the current ramp most runs will end before any air appears. Say if it should come down.
+
+**GIANT SNAIL is smaller**: h 32→28, hitboxW 20→18. Its multiplier follows automatically, ×1.16 → **×1.08**, since the formula reads those two fields directly. Top speed is untouched at 250 km/h.
+
 ## 2.238.0 — 2026-09-21 22:30: Batch 458 — Bumper car stopped traffic spawning; bumps now score; empty bar hidden; result-screen wash covers the frame
 
 **Traffic stopped spawning after a couple of bumps.** Direct bug report, reproduced and root-caused. `canSpawnAt()` refuses a lane when a vehicle sits near the top of it — and a **launched** vehicle flies *up* the screen, so its `y` goes small or negative, which is exactly that condition. It also kept its `lane`, so every car you bumped silently reserved a lane for the whole of its arc. A few launches in a row starved the spawner completely, which is why it recovered on the next run.

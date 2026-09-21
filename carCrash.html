@@ -1786,7 +1786,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.238.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v2.238.1</span></div>
                 </div>
             </div>
         </div>
@@ -5988,7 +5988,7 @@
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
+            { key: 'snail',   label: 'GIANT SNAIL', h: 28, hitboxW: 18, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
             { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
@@ -10667,11 +10667,21 @@
         function neonRamp(hex) {
             return { deep: shade(hex, -0.45), mid: hex, core: shade(hex, 0.75) };
         }
+        // Batch 459, direct report: "I don't see any trail behind it." It was working - it was just
+        // unreachable. The trail shared the air particles' 120 km/h floor, and the speed ramp is
+        // +0.0003/frame, so 120 km/h is about 111 SECONDS into a run. Almost no run lasts that long, so
+        // in practice the trail may as well not have existed.
+        //
+        // It gets its own floor at 60 km/h - roughly 16 seconds in - and reaches full intensity at 160.
+        // The air keeps its 120, which was a direct instruction; this is the snail's signature effect and
+        // has to actually be seen to be one.
+        const SNAIL_TRAIL_MIN_KMH = 60;
+        const SNAIL_TRAIL_FULL_KMH = 160;
         const SNAIL_TRAIL_MAX = 80;
         let snailTrail = [];
         function drawSnailTrail(player, drawX, drawY) {
             const kmh = speedToKmh(currentSpeed);
-            const t = Math.max(0, Math.min(1, (kmh - AIR_MIN_KMH) / (AIR_FULL_KMH - AIR_MIN_KMH)));
+            const t = Math.max(0, Math.min(1, (kmh - SNAIL_TRAIL_MIN_KMH) / (SNAIL_TRAIL_FULL_KMH - SNAIL_TRAIL_MIN_KMH)));
             const neon = neonRamp(resolvePlayerColor());
             for (const pt of snailTrail) pt.y += currentSpeed;
             snailTrail = snailTrail.filter(pt => pt.y < canvas.height + 4);
@@ -13162,7 +13172,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '2.238.0';
+        const GAME_VERSION = '2.238.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
