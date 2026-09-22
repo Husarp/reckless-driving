@@ -8,3 +8,15 @@ assets/icon64.png
 
 # Release installers are attached to GitHub Releases, not committed - they are build output.
 dist-releases/
+
+# Android/Capacitor wrapper. The native project in mobile/android is committed so the build is
+# reproducible, but its build output, dependencies and machine-specific SDK path are not.
+mobile/node_modules/
+mobile/www/index.html
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/capacitor-cordova-android-plugins/
+mobile/android/app/src/main/assets/public/
+mobile/android/app/src/main/assets/capacitor.config.json

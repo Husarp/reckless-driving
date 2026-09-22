@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Reckless Driving</string>
+    <string name="title_activity_main">Reckless Driving</string>
+    <string name="package_name">com.husarp.recklessdriving</string>
+    <string name="custom_url_scheme">com.husarp.recklessdriving</string>
+</resources>

@@ -1,0 +1,11 @@
+{
+  "appId": "com.husarp.recklessdriving",
+  "appName": "Reckless Driving",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

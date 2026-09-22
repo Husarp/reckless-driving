@@ -72,6 +72,38 @@ disagrees with the game's own `GAME_VERSION`, or if `carCrash.html` still refere
 runs the built exe hidden first to check the game boots, the fonts resolve offline and `localStorage`
 is writable — a build that fails any of those is never packaged. `-NoSelfTest` skips that last step.
 
+## Building the Android app
+
+`carCrash.html` is wrapped for Android with [Capacitor](https://capacitorjs.com/). The game is still a
+single file — `mobile/sync-web.js` copies it into `mobile/www/index.html` at build time, and that copy is
+build output, gitignored, never edited by hand.
+
+```powershell
+cd mobile
+npm install
+npm run sync
+cd android
+.\gradlew.bat assembleDebug
+```
+
+Produces `mobile\android\app\build\outputs\apk\debug\app-debug.apk` (~4.9 MB). The copy step repeats the
+Windows build's font guard: it refuses to run if `carCrash.html` still references Google Fonts.
+
+Requires the Android SDK, a JDK 21 and Node. On the current build machine all three are installed but
+**none are on `PATH`**, so Gradle needs them pointed at explicitly:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+$env:ANDROID_HOME = "C:\Users\adam\AppData\Local\Android\Sdk"
+```
+
+`mobile\android\local.properties` holds the SDK path and is gitignored, being machine-specific — Gradle
+regenerates it, or write `sdk.dir=<path>` by hand.
+
+The APK is **debug-signed**, so it installs by sideloading (allow "install unknown apps" on the phone).
+That is all a personal build needs. Publishing to the Play Store would require a release keystore, which
+is deliberately not kept in this repo.
+
 ## Development (Coder workspace — note: the app build above runs on Windows, not in the workspace)
 
 Development happens in a Coder workspace. Two servers run from `~/game/`:
@@ -99,6 +131,7 @@ can be rolled back.
 | `app/` | The Windows app host — `main.py` (WebView2 window) and `version.py` |
 | `installer/` | `game.spec` (PyInstaller) and `setup.py` (the install/update/uninstall window) |
 | `scripts/build.ps1` | Builds `build\RecklessDrivingSetup.exe` |
+| `mobile/` | Capacitor wrapper that packages the game as an Android APK |
 | `tools/` | `embed_fonts.py` (inline the fonts), `make_icon.py` (icon from the game's own sprite) |
 | `assets/` | `recklessdriving.ico` — the app icon |
 | `backup/` | Manual safety copies of `carCrash.html` |

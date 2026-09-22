@@ -6,6 +6,26 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.5.0 — 2026-09-22 13:35: Batch 480 — Android build: the game now ships as an APK too
+
+**The game builds for Android.** Until now `scripts\build.ps1` produced one artifact, a Windows installer. There was no Android packaging in the project at all — no Capacitor, no Gradle, no `android/` folder. Now there is, and a release carries both an `.exe` and an `.apk`.
+
+**The single-file rule is intact.** `carCrash.html` is still the one source of truth. `mobile/sync-web.js` copies it to `mobile/www/index.html` at build time, and that copy is gitignored — it is build output, never edited by hand. The copy step repeats the Windows build's own guard: if the game still references Google Fonts it refuses to run, because a packaged app must not need the network for its fonts.
+
+**What was added**
+
+- `mobile/` — a Capacitor wrapper: `package.json`, `capacitor.config.json`, `sync-web.js`
+- `mobile/android/` — the native Android project, committed so the build is reproducible
+- App id `com.husarp.recklessdriving`, app name "Reckless Driving"
+
+**Why Capacitor rather than a rewrite.** The mobile work in Batches 478–479 (on-screen controls, safe-area insets, the hover audit) was all done in the HTML. A WebView wrapper inherits every bit of it for free. A native rewrite throws that away and re-earns it.
+
+**The APK is debug-signed.** 4.3 MB, installs by sideloading, which is all a personal build needs. A Play Store upload would need a release keystore — a signing key that has to be created and kept by hand, and is deliberately not in this repo.
+
+**Toolchain note.** The Android SDK, JDK 21 and Android Studio were already installed on the build machine but none of them are on `PATH`; the Gradle build is pointed at them explicitly via `JAVA_HOME`/`ANDROID_HOME` and a generated `local.properties`, which is gitignored because it holds a machine-specific path.
+
+**Not done:** the launcher icon and splash screen are still Capacitor's defaults, and orientation is left at the Android default. Both are cosmetic and untouched on purpose — no game behaviour changed in this batch, and the version bump is for the new build target alone.
+
 ## 3.4.1 — 2026-09-22 21:15: Batch 479 — Tilt steering removed; "joke vehicles" renamed throughout
 
 **Tilt steering is gone.** Direct decision: "it's not really possible to control every movement with this and this is way too hard." It was real and shipping — a Settings row, a `deviceorientation` listener, an iOS motion-permission request and per-frame steering that wrote `targetX` directly. All of it removed.

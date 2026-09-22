@@ -1,0 +1,16 @@
+{
+  "name": "reckless-driving-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor wrapper that packages carCrash.html as an Android APK. The game itself lives in ../carCrash.html and is copied into www/ at build time - never edit www/index.html by hand.",
+  "scripts": {
+    "sync": "node sync-web.js && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}
