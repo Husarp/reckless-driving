@@ -20,12 +20,9 @@ completed item's story is in CHANGELOG.md.
 - [x] **DONE (2026-09-22, Batch 486, v3.6.4) — Last cutscene: wrong police positioning.** User-reported, never pinned down — reproduce
   in the crash sequence's final phase and fix.
 
-- [ ] **DEFERRED by direct instruction (2026-09-22) — do not action without asking.** Make the DEV
-  menu unreachable in normal play. It is currently a plain `DEV` label in the main-menu footer that
-  opens on one click, next to the version number, and it grants Add XP / Add Coins / Reset All — so
-  any player can hand themselves everything by accident. Options when it is wanted: hide it behind a
-  deliberate gesture, gate it on a localStorage flag, or strip it from packaged builds only. User
-  still uses it as-is, so it stays until they say otherwise.
+- [x] **DONE (2026-09-22, Batch 489, v3.7.1) — DEV menu closed off.** Hidden and inert unless
+  `localStorage.devMenu === 'on'`. The same gate now covers `?testcoins=1` (999,999 coins) and
+  `?resetprogress=1` (wipes every save), both of which were reachable by any player in a public repo.
 
 - [x] **DONE (2026-09-22, Batch 487, v3.6.5) — `witness_crash` removed from the daily pool.** Measured at ~1 crash per 21 simulated minutes and 0 on 4+ lanes; `NPC_INATTENTIVE_CHANCE` proved NOT to be the cause (100% inattentive still gave 0). Achievement kept.
   Measured then: 0 crashes in 5 simulated minutes at 4 lanes/RECKLESS. `NPC_INATTENTIVE_CHANCE`

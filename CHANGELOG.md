@@ -6,6 +6,37 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.7.1 — 2026-09-22 21:40: Batch 489 — Tap steering fixed, DEV closed off, and a save that could brick the game
+
+### A tap moves one lane again
+
+Direct report: with MULTI-LANE KEY PRESS on, "even the slightest key tap changes at least 2 lanes (cannot change only one)."
+
+The release grace kept `hHeldDir` TRUE, so the car went on gliding for a further 80ms after the key was already up. Measured at top speed, that is a **fixed 18.7px added to every tap, however short** — on a 17ms tap it was 83% of the total travel. Against a 27px lane the two-lane snap threshold is 40.5px, and an ordinary **100ms tap travelled 41.1px** — over the line by 0.6px. That is the whole bug: the overshoot, not the input.
+
+Movement now stops the instant the key comes up. The grace stays, but only for the snap decision, which is all it was ever for — re-pressing inside the window still resumes one continuous hold rather than snapping back first (`pressStartLane` is kept when a pending release timer means the gesture is being continued).
+
+Measured after, at top speed: 20ms, 50ms, 100ms and 150ms taps all move **exactly one lane**, where 100ms used to move two. Holding still sweeps — 400ms crosses 2 lanes, 600ms 3, 900ms 5 — and with the setting off it is one lane per press as always.
+
+### The DEV menu is closed, and so are two URL cheats
+
+The menu was a plain `DEV` label in the main-menu footer, beside the version number, opening on one click, granting Add XP / Add Coins / Reset All. Any player could hand themselves the whole game, or wipe it, by misreading three letters.
+
+Auditing around it turned up two more of the same kind, both worse for being in a **public** repo:
+
+- **`?testcoins=1`** set coins to 999,999. Anyone who read the source — or guessed — skipped the entire economy.
+- **`?resetprogress=1`** wiped every save with no confirmation. Not a link you would want to be sent.
+
+None is deleted; all three now share one gate, off unless the machine opts in with `localStorage.setItem('devMenu', 'on')`. With it off the label is not rendered, the overlay cannot be opened, and both parameters do nothing. Verified both ways: as a player the cheat left coins at 500, with the flag it still gives 999,999.
+
+### A corrupt save stopped the game booting at all
+
+`allTimeStats` was parsed bare at the top level of the script, so one malformed character — an interrupted write, a quota error, a hand edit — threw a SyntaxError during evaluation and the game never defined `GAME_VERSION`, never drew, never booted. **Verified by truncating the stored JSON: blank screen, no menu, no way back** — and with the DEV menu now hidden, no in-game reset to reach for either. The two fixes together would have been a trap.
+
+Every save read goes through `readSavedJSON()` now, which also rejects a JSON scalar where an object or array belongs, and moves a bad blob aside to `<key>.corrupt` instead of deleting it, so the data survives if it is ever worth recovering by hand. Same treatment for `runHistory` and the three unguarded `highscores` reads — those never blocked boot, but would have broken the Scores screen and score-saving. Verified: with both `allTimeStats` and `highscores` deliberately corrupted, the game boots on defaults and the Scores screen opens without throwing.
+
+**Scope, honestly:** this was a targeted pass over save handling, the economy, the dev surface and steering — not a line-by-line audit of all 14,000 lines.
+
 ## 3.7.0 — 2026-09-22 17:30: Batch 488 — Every achievement has its own icon
 
 **59 achievements shared six shapes.** `star` alone covered 17 of them, `road` and `car` 12 each, so most cards showed a picture with nothing to do with what was earned. They now have one distinct 16x16 icon each, ported from `Achievement Icons.dc.html`.

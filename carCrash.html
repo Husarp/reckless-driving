@@ -1932,7 +1932,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.1</span></div>
                 </div>
             </div>
         </div>
@@ -3420,7 +3420,42 @@
         let score = 0;
         let dodgedCount = 0; // vehicles successfully passed, shown on the pause screen
         // one-time progress reset via URL parameter, per direct request ("reset all stats... remove all scores... remove all bought things... i want like the new fresh game").
-        if (new URLSearchParams(location.search).get('resetprogress') === '1') {
+        // Batch 489: the two URL cheats below, and the DEV menu far further down, now share one gate.
+        // `?testcoins=1` handed out 999,999 coins to anyone who typed it, and this repo is public, so
+        // it was a documented way to skip the entire economy. `?resetprogress=1` wipes every save with
+        // no confirmation, which is not a link you would want to be sent. Neither is deleted - both are
+        // useful for testing - but they do nothing unless the machine has deliberately opted in:
+        //     localStorage.setItem('devMenu', 'on')     (and removeItem to put them away again)
+        const DEV_TOOLS_ENABLED = (() => {
+            try { return localStorage.getItem('devMenu') === 'on'; } catch (e) { return false; }
+        })();
+
+        // Batch 489: every save read goes through this. The save used to be parsed bare, at the top
+        // level of the script, so ONE malformed character - a write interrupted by a crash or a closing
+        // lid, a quota error mid-write, anything - threw a SyntaxError during script evaluation and the
+        // game never defined GAME_VERSION, never drew, never booted. Verified by truncating the stored
+        // JSON: blank screen, no menu, no way back, and now that the DEV menu is hidden there is no
+        // in-game reset to reach for either.
+        //
+        // A bad blob is moved aside rather than deleted, so the data still exists if it is ever worth
+        // recovering by hand, and the game starts on defaults instead of not starting at all.
+        function readSavedJSON(key, fallback) {
+            let raw = null;
+            try { raw = localStorage.getItem(key); } catch (e) { return fallback; }
+            if (raw === null) return fallback;
+            try {
+                const parsed = JSON.parse(raw);
+                // A JSON scalar where an object/array belongs is just as unusable as a parse failure.
+                if (parsed === null || typeof parsed !== 'object') throw new Error('not an object');
+                if (Array.isArray(fallback) !== Array.isArray(parsed)) throw new Error('wrong shape');
+                return parsed;
+            } catch (e) {
+                try { localStorage.setItem(key + '.corrupt', raw); localStorage.removeItem(key); } catch (e2) {}
+                return fallback;
+            }
+        }
+
+        if (DEV_TOOLS_ENABLED && new URLSearchParams(location.search).get('resetprogress') === '1') {
             localStorage.removeItem('allTimeStats');
             localStorage.removeItem('highscores');
             localStorage.removeItem('runHistory');
@@ -3432,8 +3467,8 @@
         }
 
         // same one-shot URL-parameter pattern as `resetprogress` above, for the opposite need: "give me a lot of money for testing" (the new Garage cars needed buying to test).
-        if (new URLSearchParams(location.search).get('testcoins') === '1') {
-            const stats = JSON.parse(localStorage.getItem('allTimeStats') || '{}');
+        if (DEV_TOOLS_ENABLED && new URLSearchParams(location.search).get('testcoins') === '1') {
+            const stats = readSavedJSON('allTimeStats', {});
             stats.totalCoins = 999999;
             localStorage.setItem('allTimeStats', JSON.stringify(stats));
             const url = new URL(location.href);
@@ -3598,10 +3633,10 @@
             obstaclesJumped: 0,       // Batch 438 — breakdowns cleared by jumping. jumpedOverCount counts any vehicle, and a breakdown IS a Vehicle, so this needs its own counter to be distinguishable
             totalDistanceKm: 0,       // Batch 438 — lifetime distance, integrated from speedToKmh() each frame. Nothing tracked distance before this
             hoursPlayed: []           // Batch 325 — "Round The Clock" achievement: which of the 24 local hours (0-23) a run has ever been started in
-        }, JSON.parse(localStorage.getItem('allTimeStats') || '{}'));
+        }, readSavedJSON('allTimeStats', {}));
 
         // lightweight chronological run log (score + real timestamp), separate from `highscores` (which only keeps the top 100 BY SCORE and silently drops everything else) and from `allTimeStats.recentScores` (last 50 only, no dates).
-        let runHistory = JSON.parse(localStorage.getItem('runHistory') || '[]');
+        let runHistory = readSavedJSON('runHistory', []);
         const RUN_HISTORY_CAP = 5000;
         function saveRunHistory() {
             localStorage.setItem('runHistory', JSON.stringify(runHistory));
@@ -11933,7 +11968,7 @@
                 time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                 isLatest: true
             };
-            let scores = JSON.parse(localStorage.getItem('highscores') || '[]');
+            let scores = readSavedJSON('highscores', []);
             // real bug fix, direct feedback: the old perfScore below was JUST this run's own isolated weighted value (score × 0.95^(rank-1)) — but inserting a new entry bumps every entry ranked below it down one notch too, shrinking THEIR own weight (and can push the old #100 out of the top-100 entirely), so that isolated value always overstated the run's TRUE net contribution to the aggregate total.
             const perfBefore = weightedPerformanceSum(scores);
             const isNewBest = scores.length === 0 || score > Math.max(...scores.map(s => s.score));
@@ -12281,7 +12316,7 @@
         function renderStatsTiles() {
             const d = allTimeStats;
             const n = x => x.toLocaleString('en-US');
-            const highscores = JSON.parse(localStorage.getItem('highscores') || '[]');
+            const highscores = readSavedJSON('highscores', []);
             const best = highscores.length ? Math.max(...highscores.map(sc => sc.score)) : 0;
             const perf = calculatePerformanceScore();
             // direct request: 0-score runs (died before scoring anything) shouldn't count toward an AVERAGE score — they add nothing to totalScore anyway, so counting them in the denominator only drags the average down without being a real "score" to average in. `scoringRunsPlayed` excludes them from the lifetime average; `recentScores` (last 50) is filtered the same way for the "last 50" average.
@@ -12419,7 +12454,7 @@
         addLbTip(document.getElementById('lbTotalPerf'), 'PERFORMANCE SCORE — the weighted sum of every run below');
 
         function showLeaderboard() {
-            const allScores = JSON.parse(localStorage.getItem('highscores') || '[]');
+            const allScores = readSavedJSON('highscores', []);
             const laneCounts = [...new Set(allScores.map(s => s.lanes))].sort((a, b) => a - b);
 
             lbFilters.innerHTML = '';
@@ -12814,8 +12849,13 @@
             if (!player) return;
             const side = dir < 0 ? 'left' : 'right';
             if (config.multiLaneHold) {
+                // A pending release timer means this press is CONTINUING the gesture that just let go
+                // (see steerRelease), so the original start lane is kept - the whole point of the grace.
+                // Without that check, now that the release stops the glide immediately, a re-press
+                // inside the window would reset the start lane and lose the hold's history.
+                const resuming = !!hHeldReleaseTimer[side];
                 if (hHeldReleaseTimer[side]) { clearTimeout(hHeldReleaseTimer[side]); hHeldReleaseTimer[side] = null; }
-                if (!hHeldDir[side]) pressStartLane = currentLaneIndex();
+                if (!hHeldDir[side] && !resuming) pressStartLane = currentLaneIndex();
                 hHeldDir[side] = true;
             } else {
                 const lane = dir < 0 ? Math.max(0, currentLaneIndex() - 1)
@@ -12826,9 +12866,21 @@
         function steerRelease(dir) {
             const side = dir < 0 ? 'left' : 'right';
             if (config.multiLaneHold) {
+                // Batch 489, direct report: with MULTI-LANE KEY PRESS on, "even the slightest key tap
+                // changes at least 2 lanes (cannot change only one)".
+                //
+                // The grace window used to keep hHeldDir TRUE, so the car went on gliding for a further
+                // 80ms after the key was already up. Measured at top speed: that is a fixed 18.7px added
+                // to EVERY tap, however short. A 100ms tap - an ordinary quick press - travelled 41.1px
+                // against a 40.5px two-lane threshold, so it crossed by 0.6px. The same tap without the
+                // post-release glide is 22.4px, comfortably one lane.
+                //
+                // Movement stops the instant the key comes up. The grace stays, but only for the SNAP
+                // decision, which is all it was ever needed for: re-pressing within the window resumes
+                // one continuous hold instead of snapping back first.
+                hHeldDir[side] = false;
                 if (hHeldReleaseTimer[side]) clearTimeout(hHeldReleaseTimer[side]);
                 hHeldReleaseTimer[side] = setTimeout(() => {
-                    hHeldDir[side] = false;
                     snapToNearestLane(dir, pressStartLane);
                     hHeldReleaseTimer[side] = null;
                 }, HOLD_RELEASE_GRACE_MS);
@@ -14242,7 +14294,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.7.0';
+        const GAME_VERSION = '3.7.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14876,7 +14928,24 @@
         });
 
         // dev menu, direct request ("for me, for testing").
-        devMenuTrigger.addEventListener('click', () => devMenuOverlay.classList.add('active'));
+        // Batch 489, direct request: the DEV menu is not reachable in normal play any more. It was a
+        // plain `DEV` label sitting in the main-menu footer next to the version number, opening on a
+        // single click, and it grants Add XP, Add Coins and Reset All - so any player could hand
+        // themselves the entire game, or wipe it, by misreading a three-letter label.
+        //
+        // Not deleted, because it is genuinely useful for testing: it is gated behind a flag that has
+        // no path through the UI. To use it during development, run this once in the console and
+        // reload -  localStorage.setItem('devMenu', 'on')  - and to put it away again,
+        // localStorage.removeItem('devMenu'). With the flag off, the label is not rendered at all and
+        // the overlay cannot be opened, so there is nothing to find by accident.
+        const DEV_MENU_ENABLED = (() => {
+            try { return localStorage.getItem('devMenu') === 'on'; } catch (e) { return false; }
+        })();
+        if (DEV_MENU_ENABLED) {
+            devMenuTrigger.addEventListener('click', () => devMenuOverlay.classList.add('active'));
+        } else {
+            devMenuTrigger.style.display = 'none';
+        }
         devMenuCloseBtn.addEventListener('click', () => devMenuOverlay.classList.remove('active'));
         devMenuOverlay.addEventListener('click', (e) => { if (e.target === devMenuOverlay) devMenuOverlay.classList.remove('active'); });
         // custom amounts instead of the old fixed 500/1000, per direct request.
