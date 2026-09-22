@@ -6,6 +6,34 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.4.0 — 2026-09-22 19:40: Batch 478 — Mobile pass: on-screen controls, safe areas, and the hover audit
+
+### Controls
+
+**The drag-to-steer line is gone on touch**, as instructed. It was a 1:1 finger-follow that put the player's own hand over the road they were reading, and it offered no way to accelerate, brake or use an ability. Movement on a phone is now **arrows or a stick**, chosen in Settings, with three new rows (hidden entirely on non-touch devices, so a desktop player never sees controls that can do nothing for them):
+
+- **TOUCH CONTROLS: ARROWS / STICK / OFF.**
+- **FLOATING STICK** — the stick is invisible until a thumb lands in the lower-left of the playfield, then appears *there*. Your suggestion, and it is the default.
+- **FULLSCREEN** — hides the phone's navigation bar. It must be requested from a real user gesture, which the toggle click is; there is no way to do it from script alone.
+
+**Diagonals work**, which was the explicit requirement: the stick is a true vector — horizontal drives lane steering and vertical drives accelerate/brake independently, so up-and-right does both at once. The arrows manage it too, tracked per touch id so a thumb can slide from one arrow onto another mid-corner without the first sticking down. Verified: up + right engage together and release cleanly.
+
+**SMOOTH LANE CHANGE works on touch**, verified. Getting there meant extracting `steerPress()` / `steerRelease()` as the single implementation of "a steer input went down / came up" — the keyboard held that logic inline, and duplicating it for touch would have guaranteed the two drifted, with `multiLaneHold` the first thing to break.
+
+**The controls sit in a reserved strip below the road, not on top of it.** The first version overlaid them, and a screenshot showed the USE button sitting directly on the player's car — the road is the one thing a driving game cannot cover. The strip reserves its height through the same frame mechanism the steering track already used. The floating stick is the one deliberate exception, because being summoned anywhere is its entire point.
+
+### Fit and safe areas
+
+`viewport-fit=cover` plus `env(safe-area-inset-*)` padding: the page now extends under a phone's camera island and home indicator, and the frame keeps clear of both. Also `overscroll-behavior: none` (no pull-to-refresh mid-run) and no tap-highlight flash.
+
+**The HUD needed a floor, not just Batch 475's ceiling.** On a 375px phone `--hud-scale` computed to **0.62**, which rendered the pause button at **24px** — the CSS minimum was being applied and then scaled away underneath it. A mouse can hit 24px; a thumb cannot. Floored at 0.8 on touch only: the button is now 31px and the HUD still fits the canvas (285px of 316px).
+
+### The hover audit — six ways to soft-lock
+
+Six UI paths reveal something on `mouseenter`: the two DROP CHANCES tips, the missions help and sweep tips, the leaderboard tooltips, the Garage car card and the booster preview. On a phone a tap fires a synthetic `mouseenter` but **never a `mouseleave`** — so each of these opens and then stays open forever, covering the screen. One capture-phase listener now closes anything open on the next touch outside it, fixing all six without touching their own code. Verified on a tooltip and on the Garage card.
+
+Also confirmed reachable without a keyboard: pause and resume both work from their buttons, and the USE button hides itself for the ability-free special vehicles rather than showing a dead control.
+
 ## 3.3.0 — 2026-09-22 17:00: Batch 477 — Stats screen regrouped: hero row + themed ledgers
 
 "15 stats feels like a lot" — resolved by **grouping, not hiding**. Tabs would bury stats behind a fuzzy taxonomy, an expander would bury eleven of them behind a click on every visit, and removal punishes the players who like statistics. Grouping fixes the actual problem, which was fifteen equal tiles shouting at once.

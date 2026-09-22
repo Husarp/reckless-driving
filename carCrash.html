@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Highway Reckless Driving</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,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">
     <!-- VT323: numbers font (Silkscreen's digits read as letters; kept distinct from the rest of the UI). -->
@@ -104,8 +106,14 @@
             height: 100vh;
             height: 100dvh; /* mobile browser chrome-aware; falls back to 100vh above on old browsers */
             margin: 0;
-            padding: 20px;
+            /* Batch 478 - safe-area aware. With viewport-fit=cover the page now extends UNDER a phone's
+               camera island and home indicator, so the padding has to grow to match those insets or the
+               frame sits beneath them. max() keeps the 20px desktop padding everywhere else. */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+                     max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
+            overscroll-behavior: none;              /* no pull-to-refresh mid-run */
+            -webkit-tap-highlight-color: transparent;
             overflow-y: auto; /* safety net only — the layout below is meant to always fit without it */
         }
 
@@ -1470,6 +1478,66 @@
            (the two numbers that answer "how good am I"), then one small ledger panel per theme. The
            screen reads as five objects instead of fifteen equal tiles, with nothing removed and nothing
            behind a click. Rows use the same label-left / value-right language as the Scores ledger. */
+        /* ---------- Batch 478: on-screen touch controls ---------- */
+        /* Sized deliberately small and semi-transparent: the direct brief was that they must not cover
+           the road. They sit in the frame's bottom corners, outside the lanes the player actually uses. */
+        /* The controls live in their own RESERVED STRIP below the canvas, not on top of it. Verified by
+           screenshot that an overlay put the USE button directly on the player's car - the road is the
+           one thing a driving game cannot afford to cover. sizeGameFrame() reserves this height the same
+           way it already reserves the steering track's. */
+        #touchControls {
+            display: none; flex: none; height: 96px; box-sizing: border-box;
+            position: relative; margin-top: 6px;
+            border: 2px solid var(--c-panel-border); background: var(--c-panel);
+        }
+        body.touch #touchControls.on { display: block; }
+        .tc-pad { position: absolute; left: 12px; top: 50%; margin-top: -54px; width: 108px; height: 108px; pointer-events: auto; transform: scale(.82); transform-origin: left center; }
+        .tc-btn {
+            position: absolute; width: 34px; height: 34px;
+            background: rgba(20,26,38,.5); border: 2px solid rgba(226,242,255,.28);
+            color: rgba(226,242,255,.75); font-family: 'Silkscreen', monospace; font-size: 11px;
+            display: flex; align-items: center; justify-content: center;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+        .tc-btn.pressed { background: rgba(46,230,176,.32); border-color: var(--c-mint); color: #fff; }
+        .tc-up    { left: 37px; top: 0; }
+        .tc-down  { left: 37px; top: 74px; }
+        .tc-left  { left: 0; top: 37px; }
+        .tc-right { left: 74px; top: 37px; }
+        /* Joystick. The base is only a guide; the KNOB is what the finger owns. */
+        .tc-stick { position: absolute; left: 12px; top: 50%; margin-top: -42px; width: 84px; height: 84px; pointer-events: auto; touch-action: none; }
+        /* Floating mode is the one deliberate exception: it is FIXED to the viewport so it can appear
+           under the thumb wherever that lands, which is the whole point of the setting. It is invisible
+           until touched, so it never covers anything it has not been summoned onto. */
+        .tc-stick.floating { position: fixed; left: 0; top: 0; margin: 0; z-index: 30; display: none !important; }
+        .tc-stick.floating.active { display: block !important; }
+        .tc-stick-base {
+            position: absolute; inset: 0; border: 2px solid rgba(226,242,255,.22);
+            background: rgba(20,26,38,.35); border-radius: 50%;
+        }
+        .tc-stick-knob {
+            position: absolute; left: 50%; top: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px;
+            background: rgba(46,230,176,.35); border: 2px solid rgba(46,230,176,.8); border-radius: 50%;
+        }
+        /* Floating mode: invisible until a finger lands, then it appears there. */
+        .tc-stick.floating { display: none; }
+        .tc-stick.floating.active { display: block; }
+        /* In floating mode the summon zone is the lower-left of the PLAYFIELD, so a thumb resting at the
+           bottom-left of the screen (where a thumb naturally sits) summons the stick. */
+        #tcStickZone { position: absolute; left: 0; bottom: 0; width: 60%; height: 55%; pointer-events: auto; touch-action: none; display: none; z-index: 8; }
+        .tc-ability {
+            position: absolute; right: 14px; top: 50%; margin-top: -29px; width: 58px; height: 58px; border-radius: 50%;
+            background: rgba(20,26,38,.5); border: 2px solid rgba(245,179,42,.55);
+            color: rgba(245,179,42,.9); font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px;
+            display: flex; align-items: center; justify-content: center; pointer-events: auto;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+        .tc-ability.pressed { background: rgba(245,179,42,.4); color: #fff; }
+        .tc-ability.hidden { display: none; }
+        /* A touch device gets a bigger pause button - 24px is a mouse target, not a thumb target. */
+        body.touch .pause-btn { min-width: 34px; min-height: 34px; }
+        .touch-only { display: none; }
+        body.touch .touch-only { display: flex; }
         .stz-tiles { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .stz-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .stz-group { background: var(--c-card); border: 2px solid var(--c-card-border); padding: 8px 10px 7px; }
@@ -1832,7 +1900,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.3.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.4.0</span></div>
                 </div>
             </div>
         </div>
@@ -1989,6 +2057,55 @@
                     <div class="stg-toggle-track" id="skipCrashToggleTrack"><div class="stg-toggle-knob"></div></div>
                 </div>
                 <select id="skipCrashSetting" style="display:none;">
+                    <option value="no" selected>Off</option>
+                    <option value="yes">On</option>
+                </select>
+            </div>
+
+            <!-- Batch 478 — touch settings. Hidden entirely on a device with no touch, so a desktop
+                 player never sees three controls that can do nothing for them. -->
+            <div class="stg-row touch-only">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">TOUCH CONTROLS</div>
+                    <div class="stg-row-hint">On-screen steering. Arrows are precise; the stick allows diagonals.</div>
+                </div>
+                <div class="stg-seg" id="touchModeSeg">
+                    <button type="button" data-val="arrows">ARROWS</button>
+                    <button type="button" data-val="stick">STICK</button>
+                    <button type="button" data-val="off">OFF</button>
+                </div>
+                <select id="touchModeSetting" style="display:none;">
+                    <option value="arrows">Arrows</option>
+                    <option value="stick" selected>Stick</option>
+                    <option value="off">Off</option>
+                </select>
+            </div>
+
+            <div class="stg-row touch-only">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">FLOATING STICK</div>
+                    <div class="stg-row-hint">The stick appears wherever your thumb lands instead of sitting in a fixed spot.</div>
+                </div>
+                <div class="stg-toggle" id="floatStickToggle">
+                    <span class="stg-toggle-label" id="floatStickToggleLabel">ON</span>
+                    <div class="stg-toggle-track" id="floatStickToggleTrack"><div class="stg-toggle-knob"></div></div>
+                </div>
+                <select id="floatStickSetting" style="display:none;">
+                    <option value="yes" selected>On</option>
+                    <option value="no">Off</option>
+                </select>
+            </div>
+
+            <div class="stg-row touch-only">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">FULLSCREEN</div>
+                    <div class="stg-row-hint">Hides the phone's navigation bar while you play.</div>
+                </div>
+                <div class="stg-toggle" id="fullscreenToggle">
+                    <span class="stg-toggle-label" id="fullscreenToggleLabel">OFF</span>
+                    <div class="stg-toggle-track" id="fullscreenToggleTrack"><div class="stg-toggle-knob"></div></div>
+                </div>
+                <select id="fullscreenSetting" style="display:none;">
                     <option value="no" selected>Off</option>
                     <option value="yes">On</option>
                 </select>
@@ -2745,8 +2862,22 @@
                     </div>
                     <div class="pause-hint">SPACE or ESC to resume</div>
                 </div>
+                <div id="tcStickZone"></div>
             </div>
             <div id="steeringTrack" class="steering-track" style="display:none;"></div>
+            <div id="touchControls">
+                <div class="tc-pad" id="tcPad">
+                    <div class="tc-btn tc-up"    data-tc="up">&#9650;</div>
+                    <div class="tc-btn tc-down"  data-tc="down">&#9660;</div>
+                    <div class="tc-btn tc-left"  data-tc="left">&#9664;</div>
+                    <div class="tc-btn tc-right" data-tc="right">&#9654;</div>
+                </div>
+                <div class="tc-stick" id="tcStick">
+                    <div class="tc-stick-base"></div>
+                    <div class="tc-stick-knob" id="tcKnob"></div>
+                </div>
+                <div class="tc-ability" id="tcAbility">USE</div>
+            </div>
         </div>
     </div>
 
@@ -3004,12 +3135,30 @@
         const selectSteeringButtonMode = document.getElementById('steeringButtonModeSetting');
         const steeringTrackEl = document.getElementById('steeringTrack');
         const STEERING_TRACK_HEIGHT = 44; // px, must match .steering-track's CSS height
+        // Batch 478 - the touch strip's reserved height, same contract as STEERING_TRACK_HEIGHT above:
+        // this number must match #touchControls' CSS height (96) plus its 6px margin.
+        const TOUCH_UI_HEIGHT = 102;
+        function gameExtraBottom() {
+            let extra = config.steeringButtonEnabled && !IS_TOUCH ? STEERING_TRACK_HEIGHT : 0;
+            if (IS_TOUCH && touchControlsEl && touchControlsEl.classList.contains('on')) extra += TOUCH_UI_HEIGHT;
+            return extra;
+        }
         const selectMultiLaneHold = document.getElementById('multiLaneHoldSetting');
         const selectSkipCrash = document.getElementById('skipCrashSetting');
         const scorePopupsToggle = document.getElementById('scorePopupsToggle');
         const scorePopupsToggleLabel = document.getElementById('scorePopupsToggleLabel');
         const scorePopupsToggleTrack = document.getElementById('scorePopupsToggleTrack');
         const selectScorePopups = document.getElementById('scorePopupsSetting');
+        const touchModeSeg = document.getElementById('touchModeSeg');
+        const selectTouchMode = document.getElementById('touchModeSetting');
+        const floatStickToggle = document.getElementById('floatStickToggle');
+        const floatStickToggleLabel = document.getElementById('floatStickToggleLabel');
+        const floatStickToggleTrack = document.getElementById('floatStickToggleTrack');
+        const selectFloatStick = document.getElementById('floatStickSetting');
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const fullscreenToggleLabel = document.getElementById('fullscreenToggleLabel');
+        const fullscreenToggleTrack = document.getElementById('fullscreenToggleTrack');
+        const selectFullscreen = document.getElementById('fullscreenSetting');
         const selectDifficulty = document.getElementById('difficultySetting');
         const fpsCounterToggle = document.getElementById('fpsCounterToggle');
         const fpsCounterToggleLabel = document.getElementById('fpsCounterToggleLabel');
@@ -3077,7 +3226,7 @@
             canvas.width = VIEW_W * RENDER_SCALE;
             canvas.height = VIEW_H * RENDER_SCALE;
             canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
-            sizeFrame(gameContainerEl, VIEW_W, VIEW_H, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
+            sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
             ROAD_BORDER_LEFT = SIDE_MARGIN;
             ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
             ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
@@ -3111,7 +3260,7 @@
         // rather than just track the width.
         const PANEL_DESIGN_W = 506, PANEL_DESIGN_H = 822;
         function sizeGameFrame() {
-            const contentW = sizeFrame(gameContainerEl, VIEW_W, VIEW_H, config.steeringButtonEnabled ? STEERING_TRACK_HEIGHT : 0);
+            const contentW = sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
             // Batch 433 - no longer capped at 1. The cap meant the HUD shrank on a small window but
             // stopped growing on a large one, so the chips crept smaller relative to the road the
             // bigger the window got. Uncapped, the gameplay screen holds one set of proportions at
@@ -3121,7 +3270,13 @@
             // at fullscreen with a high lane count the frame gets very wide and the chips scale with it -
             // there is a size past which bigger stops being readable and starts being ridiculous. 1.5x
             // is that line: the HUD still grows with the window, then stops.
-            canvasContainerEl.style.setProperty('--hud-scale', Math.min(1.5, contentW / HUD_SCALE_REFERENCE_WIDTH));
+            // Batch 478 - a FLOOR as well as Batch 475's ceiling, and only on touch. On a 375px phone
+            // the frame is narrow enough that --hud-scale computed to 0.62, which rendered the pause
+            // button at 24px - the CSS min-size was being applied and then scaled away underneath it.
+            // A mouse can hit 24px; a thumb cannot.
+            const rawHud = contentW / HUD_SCALE_REFERENCE_WIDTH;
+            canvasContainerEl.style.setProperty('--hud-scale',
+                Math.min(1.5, IS_TOUCH ? Math.max(0.8, rawHud) : rawHud));
             // Batch 469, direct report: maximised, "all the UI is getting so much bigger than it should"
             // and the pause screen came out broken - PAUSED clipped off the top, the hint clipped off the
             // bottom. --hud-scale is derived from WIDTH ALONE, which is right for the HUD chips (they are
@@ -11345,7 +11500,9 @@
             config.controlScheme = selectControlType.value; // 'keys' (Arrows+WASD together) | 'buttons'
             config.steeringButtonEnabled = config.controlScheme === 'buttons';
             config.steeringButtonHoverMode = selectSteeringButtonMode.value === 'hover';
-            steeringTrackEl.style.display = config.steeringButtonEnabled ? 'flex' : 'none';
+            // Batch 478 — the steering track is a MOUSE control (click a lane zone). On touch the
+            // on-screen arrows/stick replace it entirely, so it never shows there.
+            steeringTrackEl.style.display = (config.steeringButtonEnabled && !IS_TOUCH) ? 'flex' : 'none';
             if (config.steeringButtonEnabled) buildSteeringTrack(config.lanes);
             config.multiLaneHold = selectMultiLaneHold.value === 'yes';
             applyLaneLayout(config.lanes);
@@ -11367,6 +11524,7 @@
             // reads as a bar stuck at zero rather than as a car that simply has no bar. Set here, once per
             // run, rather than every frame - config.ability cannot change mid-run.
             abilityBar.style.display = config.ability === 'none' ? 'none' : '';
+            applyTouchControls();   // Batch 478 — also hides the USE button for ability-free cars
             config.difficulty = selectDifficulty.value; // Batch 127
             config.skipCrashAnimation = selectSkipCrash.value === 'yes';
             config.scorePopupsEnabled = selectScorePopups.value === 'yes';
@@ -12255,22 +12413,10 @@
             if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') vKeys.down = true;
             // Lane-change keys: Arrows and WASD both work together (Control Type: Arrows/WASD), or are both ignored (Control Type: Steering Buttons) — no longer split into separate exclusive schemes, per direct user feedback.
             if (!config.steeringButtonEnabled && (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')) {
-                if (config.multiLaneHold) {
-                    if (hHeldReleaseTimer.left) { clearTimeout(hHeldReleaseTimer.left); hHeldReleaseTimer.left = null; }
-                    if (!hHeldDir.left) pressStartLane = currentLaneIndex();
-                    hHeldDir.left = true;
-                } else if (!e.repeat && player) {
-                    player.targetX = laneCenterX(Math.max(0, currentLaneIndex() - 1));
-                }
+                if (config.multiLaneHold || !e.repeat) steerPress(-1);
             }
             if (!config.steeringButtonEnabled && (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')) {
-                if (config.multiLaneHold) {
-                    if (hHeldReleaseTimer.right) { clearTimeout(hHeldReleaseTimer.right); hHeldReleaseTimer.right = null; }
-                    if (!hHeldDir.right) pressStartLane = currentLaneIndex();
-                    hHeldDir.right = true;
-                } else if (!e.repeat && player) {
-                    player.targetX = laneCenterX(Math.min(config.lanes - 1, currentLaneIndex() + 1));
-                }
+                if (config.multiLaneHold || !e.repeat) steerPress(1);
             }
             if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && gameView.classList.contains('active') && gameActive) {
                 setPaused(!gamePaused);
@@ -12280,30 +12426,8 @@
         window.addEventListener('keyup', (e) => {
             if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') vKeys.up = false;
             if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') vKeys.down = false;
-            if (!config.steeringButtonEnabled && (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')) {
-                if (config.multiLaneHold) {
-                    if (hHeldReleaseTimer.left) clearTimeout(hHeldReleaseTimer.left);
-                    hHeldReleaseTimer.left = setTimeout(() => {
-                        hHeldDir.left = false;
-                        snapToNearestLane(-1, pressStartLane);
-                        hHeldReleaseTimer.left = null;
-                    }, HOLD_RELEASE_GRACE_MS);
-                } else {
-                    hHeldDir.left = false;
-                }
-            }
-            if (!config.steeringButtonEnabled && (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')) {
-                if (config.multiLaneHold) {
-                    if (hHeldReleaseTimer.right) clearTimeout(hHeldReleaseTimer.right);
-                    hHeldReleaseTimer.right = setTimeout(() => {
-                        hHeldDir.right = false;
-                        snapToNearestLane(1, pressStartLane);
-                        hHeldReleaseTimer.right = null;
-                    }, HOLD_RELEASE_GRACE_MS);
-                } else {
-                    hHeldDir.right = false;
-                }
-            }
+            if (!config.steeringButtonEnabled && (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')) steerRelease(-1);
+            if (!config.steeringButtonEnabled && (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')) steerRelease(1);
             if ((e.key === ' ' || e.code === 'Space') && player && player.abilityState === 'jumping') {
                 player.jumpHeld = false;
             }
@@ -12323,31 +12447,180 @@
         abilityBar.addEventListener('touchend', (e) => { e.preventDefault(); abilityBarRelease(); }, { passive: false });
 
 
-        // Touch drag on canvas to steer (mobile, deferred): 1:1 finger-follow, sets the same `targetX` lane-snap destination keys use (Batch 44) so it doesn't fight the
-        let touchStartX = null;
-        let touchStartPlayerX = null;
+        // ---------- Batch 478: on-screen touch controls ----------
+        // Direct decision: the drag-to-steer line is GONE on touch. It was a 1:1 finger-follow that put
+        // the player's own hand over the road they were reading, and it offered no way to accelerate,
+        // brake or use an ability. Movement on a phone is now arrows or a stick, chosen in Settings.
+        const IS_TOUCH = matchMedia('(hover: none) and (pointer: coarse)').matches ||
+                         (navigator.maxTouchPoints || 0) > 0;
+        if (IS_TOUCH) document.body.classList.add('touch');
 
-        canvas.addEventListener('touchstart', (e) => {
+        const touchControlsEl = document.getElementById('touchControls');
+        const tcPad = document.getElementById('tcPad');
+        const tcStick = document.getElementById('tcStick');
+        const tcStickZone = document.getElementById('tcStickZone');
+        const tcKnob = document.getElementById('tcKnob');
+        const tcAbility = document.getElementById('tcAbility');
+
+        // The stick's live direction, so changing direction releases the old side before pressing the
+        // new one - without this, flicking left-to-right leaves the left hold latched forever.
+        let tcSteerDir = 0;
+        function tcSetSteer(dir) {
+            if (dir === tcSteerDir) return;
+            if (tcSteerDir) steerRelease(tcSteerDir);
+            tcSteerDir = dir;
+            if (dir) steerPress(dir);
+        }
+        function tcSetVertical(up, down) { vKeys.up = up; vKeys.down = down; }
+        function tcReleaseAll() {
+            tcSetSteer(0);
+            tcSetVertical(false, false);
+            tcPad.querySelectorAll('.tc-btn').forEach(b => b.classList.remove('pressed'));
+        }
+
+        // ---- arrows ----
+        // Tracked per touch id so a thumb can SLIDE from one arrow onto another (up, then up+right mid
+        // corner) without the first one sticking down.
+        const tcActive = new Map();
+        function tcApplyHeld() {
+            const held = new Set(tcActive.values());
+            tcPad.querySelectorAll('.tc-btn').forEach(b => b.classList.toggle('pressed', held.has(b.dataset.tc)));
+            tcSetVertical(held.has('up'), held.has('down'));
+            tcSetSteer(held.has('left') ? -1 : held.has('right') ? 1 : 0);
+        }
+        function tcHitArrow(t) {
+            const el = document.elementFromPoint(t.clientX, t.clientY);
+            const btn = el && el.closest ? el.closest('.tc-btn') : null;
+            return btn ? btn.dataset.tc : null;
+        }
+        function tcPadTouch(e) {
             e.preventDefault();
-            if (!player) return;
-            touchStartX = e.touches[0].clientX;
-            touchStartPlayerX = player.x;
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
+            for (const t of e.touches) {
+                const hit = tcHitArrow(t);
+                if (hit) tcActive.set(t.identifier, hit); else tcActive.delete(t.identifier);
+            }
+            tcApplyHeld();
+        }
+        tcPad.addEventListener('touchstart', tcPadTouch, { passive: false });
+        tcPad.addEventListener('touchmove', tcPadTouch, { passive: false });
+        function tcPadEnd(e) {
             e.preventDefault();
-            if (touchStartX === null || !player) return;
-            const rect = canvas.getBoundingClientRect();
-            const dx = (e.touches[0].clientX - touchStartX) * (VIEW_W / rect.width);
-            const roadMin = ROAD_BORDER_LEFT;
-            const roadMax = ROAD_BORDER_RIGHT - player.width;
-            player.targetX = Math.max(roadMin, Math.min(roadMax, touchStartPlayerX + dx));
-        }, { passive: false });
+            for (const t of e.changedTouches) tcActive.delete(t.identifier);
+            tcApplyHeld();
+        }
+        tcPad.addEventListener('touchend', tcPadEnd, { passive: false });
+        tcPad.addEventListener('touchcancel', tcPadEnd, { passive: false });
 
-        canvas.addEventListener('touchend', () => {
-            touchStartX = null;
-            touchStartPlayerX = null;
+        // ---- joystick ----
+        // A real vector, which is the whole point: horizontal drives lane steering and vertical drives
+        // accelerate/brake INDEPENDENTLY, so up-and-right at once does both, as asked.
+        const TC_STICK_RADIUS = 42;      // px of travel before the knob clamps
+        const TC_DEADZONE = 0.34;        // fraction of the radius that still counts as centred
+        let tcStickId = null, tcStickOx = 0, tcStickOy = 0;
+        function tcStickStart(e) {
+            e.preventDefault();
+            if (tcStickId !== null) return;
+            const t = e.changedTouches[0];
+            tcStickId = t.identifier;
+            if (selectFloatStick.value === 'yes') {
+                // floating: the stick is placed under the thumb, wherever that landed
+                const host = touchControlsEl.getBoundingClientRect();
+                tcStick.style.left = (t.clientX - host.left - 48) + 'px';
+                tcStick.style.bottom = (host.bottom - t.clientY - 48) + 'px';
+                tcStick.classList.add('active');
+            }
+            const r = tcStick.getBoundingClientRect();
+            tcStickOx = r.left + r.width / 2;
+            tcStickOy = r.top + r.height / 2;
+            tcStickMove(e);
+        }
+        function tcStickMove(e) {
+            e.preventDefault();
+            if (tcStickId === null) return;
+            let t = null;
+            for (const c of e.touches) if (c.identifier === tcStickId) t = c;
+            if (!t) return;
+            let dx = t.clientX - tcStickOx, dy = t.clientY - tcStickOy;
+            const len = Math.hypot(dx, dy);
+            if (len > TC_STICK_RADIUS) { dx = dx / len * TC_STICK_RADIUS; dy = dy / len * TC_STICK_RADIUS; }
+            tcKnob.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
+            const nx = dx / TC_STICK_RADIUS, ny = dy / TC_STICK_RADIUS;
+            tcSetSteer(nx < -TC_DEADZONE ? -1 : nx > TC_DEADZONE ? 1 : 0);
+            tcSetVertical(ny < -TC_DEADZONE, ny > TC_DEADZONE);
+        }
+        function tcStickEnd(e) {
+            if (tcStickId === null) return;
+            let ended = false;
+            for (const c of e.changedTouches) if (c.identifier === tcStickId) ended = true;
+            if (!ended) return;
+            e.preventDefault();
+            tcStickId = null;
+            tcKnob.style.transform = '';
+            if (selectFloatStick.value === 'yes') tcStick.classList.remove('active');
+            tcReleaseAll();
+        }
+        [tcStick, tcStickZone].forEach(el => {
+            el.addEventListener('touchstart', tcStickStart, { passive: false });
+            el.addEventListener('touchmove', tcStickMove, { passive: false });
+            el.addEventListener('touchend', tcStickEnd, { passive: false });
+            el.addEventListener('touchcancel', tcStickEnd, { passive: false });
         });
+
+        // ---- ability button ----
+        // Press and HOLD, because Jump is a hold: a tap would give the shortest possible hop.
+        tcAbility.addEventListener('touchstart', (e) => {
+            e.preventDefault(); tcAbility.classList.add('pressed'); abilityBarPress();
+        }, { passive: false });
+        function tcAbilityUp(e) { e.preventDefault(); tcAbility.classList.remove('pressed'); abilityBarRelease(); }
+        tcAbility.addEventListener('touchend', tcAbilityUp, { passive: false });
+        tcAbility.addEventListener('touchcancel', tcAbilityUp, { passive: false });
+
+        // Applies the three touch settings. Called on change and at every run start.
+        // Batch 478 — the mobile hover audit. Six UI paths reveal something on `mouseenter`: the
+        // DROP CHANCES tips (gift + word), the missions help and sweep tips, the leaderboard tooltips,
+        // the Garage car card and the booster preview. On a phone a tap fires a synthetic mouseenter but
+        // NEVER a mouseleave, so each of these opens and then stays open forever, covering the screen -
+        // the "no soft locks" case exactly. One capture-phase listener closes anything open on the next
+        // touch that is not inside it, which fixes all six without touching their own code.
+        if (IS_TOUCH) {
+            document.addEventListener('touchstart', (e) => {
+                const t = e.target;
+                ['dgDropChancesTip', 'dgWordDropChancesTip', 'msnSweepsTip', 'msnTip', 'lbTooltip'].map(id => document.getElementById(id)).filter(Boolean).forEach(tip => {
+                    if (tip.style.display !== 'none' && !tip.contains(t)) tip.style.display = 'none';
+                });
+                const card = document.getElementById('garageHoverCard');
+                if (card && card.style.display !== 'none' && !card.contains(t) && !(t.closest && t.closest('.car-tile'))) {
+                    hideGarageHoverCard();
+                }
+                const boost = document.getElementById('boostHoverPreview');
+                if (boost && boost.style.display !== 'none' && !(t.closest && t.closest('.flame-swatch'))) {
+                    stopFlamePreview();
+                    boost.style.display = 'none';
+                }
+            }, { capture: true, passive: true });
+        }
+
+        function applyTouchControls() {
+            if (!IS_TOUCH) return;
+            // Every element is set EXPLICITLY for every mode. An earlier version left the stick at ''
+            // (meaning "CSS default", which is visible) in arrows mode, so the stick sat on top of the
+            // arrow pad and swallowed its taps - the arrows looked present but did nothing.
+            const mode = selectTouchMode.value;
+            const stickMode = mode === 'stick';
+            const floating = selectFloatStick.value === 'yes';
+            touchControlsEl.classList.toggle('on', mode !== 'off');
+            tcPad.style.display = mode === 'arrows' ? 'block' : 'none';
+            tcStick.classList.toggle('floating', stickMode && floating);
+            tcStick.style.display = (stickMode && !floating) ? 'block' : 'none';
+            tcStickZone.style.display = (stickMode && floating) ? 'block' : 'none';
+            if (!stickMode) tcStick.classList.remove('active');
+            // No ability, no button - the ability-free specials would otherwise show a dead control.
+            tcAbility.classList.toggle('hidden', config.ability === 'none');
+            tcReleaseAll();
+            // The strip changes how much height the canvas can have, so re-fit the frame whenever it
+            // appears or disappears - otherwise turning controls on pushes the canvas off the bottom.
+            if (gameView.classList.contains('active')) sizeGameFrame();
+        }
 
         // Target X for the player's car to be centered in a given lane index — shared by snapToNearestLane() below and the steering-buttons control.
         function laneCenterX(lane) {
@@ -12365,6 +12638,37 @@
         }
 
         // Called on key release (and safe to call any time) — rounds the car's ACTUAL current position to its nearest lane center.
+        // Batch 478 — ONE implementation of "a steer input went down / came up", shared by the keyboard
+        // and by both touch controls. The key handlers used to hold this logic inline; duplicating it for
+        // touch would have guaranteed the two drifted, and SMOOTH LANE CHANGE (multiLaneHold) is exactly
+        // the kind of subtlety that drifts first.
+        function steerPress(dir) {
+            if (!player) return;
+            const side = dir < 0 ? 'left' : 'right';
+            if (config.multiLaneHold) {
+                if (hHeldReleaseTimer[side]) { clearTimeout(hHeldReleaseTimer[side]); hHeldReleaseTimer[side] = null; }
+                if (!hHeldDir[side]) pressStartLane = currentLaneIndex();
+                hHeldDir[side] = true;
+            } else {
+                const lane = dir < 0 ? Math.max(0, currentLaneIndex() - 1)
+                                     : Math.min(config.lanes - 1, currentLaneIndex() + 1);
+                player.targetX = laneCenterX(lane);
+            }
+        }
+        function steerRelease(dir) {
+            const side = dir < 0 ? 'left' : 'right';
+            if (config.multiLaneHold) {
+                if (hHeldReleaseTimer[side]) clearTimeout(hHeldReleaseTimer[side]);
+                hHeldReleaseTimer[side] = setTimeout(() => {
+                    hHeldDir[side] = false;
+                    snapToNearestLane(dir, pressStartLane);
+                    hHeldReleaseTimer[side] = null;
+                }, HOLD_RELEASE_GRACE_MS);
+            } else {
+                hHeldDir[side] = false;
+            }
+        }
+
         function snapToNearestLane(direction, startLane) {
             if (!player) return;
             let lane = currentLaneIndex();
@@ -13686,7 +13990,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.3.0';
+        const GAME_VERSION = '3.4.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14584,6 +14888,35 @@
         // Batch 474 — SCORE POPUPS toggle, persisted under its own key like sound/garageSort are. On by
         // default: the tutorial's HOW YOU SCORE scene shows the floating points, so the real game should
         // match what the tutorial promises unless the player opts out.
+        // Batch 478 — touch settings, each persisted under its own key like sound/garageSort.
+        {
+            try {
+                const tm = localStorage.getItem('touchMode');
+                if (tm === 'arrows' || tm === 'stick' || tm === 'off') selectTouchMode.value = tm;
+                const fs = localStorage.getItem('floatStick');
+                if (fs === 'yes' || fs === 'no') selectFloatStick.value = fs;
+            } catch (e) {}
+            bindSeg(touchModeSeg, selectTouchMode);
+            const refreshFloat = bindToggle(floatStickToggle, floatStickToggleLabel, floatStickToggleTrack, selectFloatStick, 'yes', 'no');
+            refreshFloat();
+            bindToggle(fullscreenToggle, fullscreenToggleLabel, fullscreenToggleTrack, selectFullscreen, 'yes', 'no');
+            selectTouchMode.addEventListener('change', () => {
+                try { localStorage.setItem('touchMode', selectTouchMode.value); } catch (e) {}
+                applyTouchControls();
+            });
+            selectFloatStick.addEventListener('change', () => {
+                try { localStorage.setItem('floatStick', selectFloatStick.value); } catch (e) {}
+                applyTouchControls();
+            });
+            // Fullscreen must be requested from a real user gesture, which the toggle click is. This is
+            // what hides an Android navigation bar - there is no way to do it from script alone.
+            selectFullscreen.addEventListener('change', () => {
+                try {
+                    if (selectFullscreen.value === 'yes') document.documentElement.requestFullscreen?.();
+                    else if (document.fullscreenElement) document.exitFullscreen?.();
+                } catch (e) {}
+            });
+        }
         {
             try { const v = localStorage.getItem('scorePopups'); if (v === 'no' || v === 'yes') selectScorePopups.value = v; } catch (e) {}
             const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
