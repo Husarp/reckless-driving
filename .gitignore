@@ -20,3 +20,29 @@ mobile/android/local.properties
 mobile/android/capacitor-cordova-android-plugins/
 mobile/android/app/src/main/assets/public/
 mobile/android/app/src/main/assets/capacitor.config.json
+
+# ── Not part of the program ───────────────────────────────────────────────────────────────────────
+# This repository is PUBLIC. Anything not listed here is published the moment it is committed, so
+# working material stays on disk only.
+
+# Private notes and plans. Put new ones in notes/ and they are ignored automatically.
+notes/
+
+# Design working material: conversation exports and delivery archives.
+*.dc.html
+*.zip
+
+# The icons the build actually uses are assets/cone-*.png and carsprite.ico. This folder is the
+# working copy they were exported from - the same five files again.
+cone ico files/
+
+# Editors and operating systems leaving things behind
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+*~
+*.tmp
+*.bak
+*.log
