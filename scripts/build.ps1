@@ -29,6 +29,11 @@ if (Select-String -Path "$Root\carCrash.html" -Pattern "fonts\.(googleapis|gstat
     throw "carCrash.html still references Google Fonts - run: python tools\embed_fonts.py"
 }
 
+# Clear the build stamp before anything in build\ is touched. If the build then fails partway,
+# the dashboard sees no stamp at all rather than last run's version sitting next to this run's
+# half-replaced files.
+Remove-Item "$Build\BUILT.json" -ErrorAction SilentlyContinue
+
 # 2. the game
 & $Py -m PyInstaller --noconfirm --log-level WARN --distpath "$Build\dist" --workpath "$Build\work" installer\game.spec
 if ($LASTEXITCODE) { throw "Building the game failed" }
@@ -56,3 +61,15 @@ if ($LASTEXITCODE) { throw "Building the installer failed" }
 
 $size = "{0:N0}" -f ((Get-Item "$Build\RecklessDrivingSetup.exe").Length / 1MB)
 Write-Output "Built $Build\RecklessDrivingSetup.exe ($size MB)"
+
+# 5. build stamp for the dev-status dashboard. It can see build\ and when the files were made,
+# but not WHICH version made them - this records that. Last statement in the script on purpose:
+# every failure above is a throw, so reaching this line means the build genuinely succeeded.
+$built = [ordered]@{
+    version   = $appVersion
+    builtAt   = Get-Date -Format "yyyy-MM-ddTHH:mm:ss"
+    artifacts = @([ordered]@{ name = "RecklessDrivingSetup.exe"; kind = "Windows" })
+}
+# WriteAllText, not Out-File: .NET writes UTF-8 with no BOM, which strict JSON readers need.
+[System.IO.File]::WriteAllText("$Build\BUILT.json", ($built | ConvertTo-Json -Depth 3))
+Write-Output "Wrote $Build\BUILT.json ($appVersion)"
