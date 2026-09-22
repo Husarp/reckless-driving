@@ -6,6 +6,16 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.4.1 — 2026-09-22 21:15: Batch 479 — Tilt steering removed; "joke vehicles" renamed throughout
+
+**Tilt steering is gone.** Direct decision: "it's not really possible to control every movement with this and this is way too hard." It was real and shipping — a Settings row, a `deviceorientation` listener, an iOS motion-permission request and per-frame steering that wrote `targetX` directly. All of it removed.
+
+It should have gone in Batch 478 and did not. Three reasons it had to: it was never finished or tested on a real device, it **fought the new on-screen controls over the same `targetX`** (both writing it in the same frame, tilt last), and it asked iOS users to grant motion-sensor access for a feature the game no longer has any use for.
+
+**"Joke vehicles" is now "special vehicles" everywhere** — 12 code comments and 16 changelog references. The term was **mine, never the user's**, and the instruction not to use it was given back in Batch 474; that batch only fixed the tutorial card and left the term throughout the source and the log. Fixed properly this time, including the surrounding phrasing ("a special vehicle is a novelty, not a reward for winning one"). Two mentions of the word survive on purpose: the line recording the instruction itself, and an unrelated joke about a menu label.
+
+Verified after both changes: a full run plays and ends normally, the crash sequence completes into the result screen, all 16 Settings rows render, and the tutorial and Garage open cleanly.
+
 ## 3.4.0 — 2026-09-22 19:40: Batch 478 — Mobile pass: on-screen controls, safe areas, and the hover audit
 
 ### Controls
@@ -74,7 +84,7 @@ Also logged to PLAN.md, verbatim: "booster for special vehicles???" — with the
 
 **HOW IT WAS BUILT — the requested statistics card**, in ABOUT after THE PRICES ARE REAL. Counted from the change log itself: **473 batches across 474 shipped versions, over 2,150 recorded individual changes** (a renamed label counts, and so does a single repainted pixel), in **26 working days spread over 33 calendar days**, Aug 21 to Sep 22, 2026. Static figures with an "as of v3.1.1" stamp — they will need a refresh at milestones, noted in PLAN.md.
 
-**SPECIAL VEHICLES card** at the end of PROGRESSION, per direct instruction never to call them jokes. It says what matters — no price, never on the road, Extra Boxes are the only way in, most trade their ability for a coin bonus — and deliberately reveals nothing else: no names, no count, and "one or two learned something stranger" is all the SHIP and BUMPER CAR get.
+**SPECIAL VEHICLES card** at the end of PROGRESSION, per direct instruction never to call them jokes (the term was mine, never the user's). It says what matters — no price, never on the road, Extra Boxes are the only way in, most trade their ability for a coin bonus — and deliberately reveals nothing else: no names, no count, and "one or two learned something stranger" is all the SHIP and BUMPER CAR get.
 
 **PROGRESSION now sits before MASTER.** A new player meets the Garage, levels and dailies by their second run; MASTER is expert multiplier play. Reading order now matches encounter order — it was always odd that the beginner-facing section came after the expert one.
 
@@ -393,7 +403,7 @@ Direct request. All six now carry `rarity: 'special'` instead of borrowing RARE 
 
 ## 2.234.2 — 2026-09-21 18:25: Batch 450 — Every car states its ability on the hover card
 
-Direct request. The row used to appear only for ram cars, which made JUMP look like "no ability" rather than the default it is, and left the ability-free joke vehicles saying nothing at all — when having none is their entire identity.
+Direct request. The row used to appear only for ram cars, which made JUMP look like "no ability" rather than the default it is, and left the ability-free special vehicles saying nothing at all — when having none is their entire identity.
 
 Every car now shows one: **JUMP**, **SHIELD BUMP**, **TANK SHOOT**, **BUMPER LAUNCH**, or **NONE**.
 
@@ -430,7 +440,7 @@ Verified: section order reads COMMON / RARE / EPIC / LEGENDARY / SPECIAL, zero c
 
 ## 2.233.0 — 2026-09-21 16:20: Batch 447 — BICYCLE, FISH and COUCH removed
 
-Direct decision. The three hand-drawn joke vehicles from Batch 443 are gone, leaving the roster at **58 cars — 52 buyable, 6 box-exclusive**, all six of those transcribed from the user's own v4 doc. COLLECTOR's amethyst tier follows automatically: 61 → 58.
+Direct decision. The three hand-drawn special vehicles from Batch 443 are gone, leaving the roster at **58 cars — 52 buyable, 6 box-exclusive**, all six of those transcribed from the user's own v4 doc. COLLECTOR's amethyst tier follows automatically: 61 → 58.
 
 Removed their three `drawGarage*53` functions (~6,200 characters of sprite code), their roster entries, and reworded the two comments elsewhere that named them. Nothing else referenced them.
 
@@ -456,7 +466,7 @@ It cannot be triggered by a key, and that is enforced structurally rather than b
 
 **A bug caught in testing, and it was mine.** The cooldown was being topped up by passing traffic, because the ability bar's normal refill is "+1 cell per car passed". So on a busy road the launch came back early and on an empty one it did not — precisely the dependence on traffic that a flat timer exists to remove. Passing refill is now skipped for `'launch'` and `'none'` cars. Verified: the bar reads 20/40/60/80/100 across five seconds regardless of traffic.
 
-**The other seven joke vehicles have no ability, and earn more instead.** A jump would hand them thruster flames that assume a car silhouette and a flat underside; a donut with rockets under it reads as broken art, not as a joke. They get `'none'` — which the ability-bar renderer already hid, so the HUD needed no change — and a coin bonus applied to the run payout:
+**The other seven special vehicles have no ability, and earn more instead.** A jump would hand them thruster flames that assume a car silhouette and a flat underside; a donut with rockets under it reads as broken art, not as a gag. They get `'none'` — which the ability-bar renderer already hid, so the HUD needed no change — and a coin bonus applied to the run payout:
 
 | | bonus | | | bonus |
 |---|---|---|---|---|
@@ -469,7 +479,7 @@ Scaled against what each already has: the snail is the joint-fastest car in the 
 
 These numbers are a judgement call, not a spec. The brief was "some should have more and some should have less"; the floor is deliberately high because jump is a survival tool, not flavour, and +10% would never be worth giving it up.
 
-## 2.231.0 — 2026-09-21 13:10: Batch 445 — Six more joke vehicles from "Reckless Vehicles v4.dc.html"
+## 2.231.0 — 2026-09-21 13:10: Batch 445 — Six more special vehicles from "Reckless Vehicles v4.dc.html"
 
 GRAND PIANO, GIANT SNAIL, SHIP, BUMPER CAR, BATHTUB and GIANT DONUT. All `boxOnly`, bringing the roster to **61 cars — 52 buyable, 9 box-exclusive**. COLLECTOR's tiers follow automatically: diamond 52, amethyst 61.
 
@@ -479,7 +489,7 @@ They are stored as run data rather than ~1,700 `fillRect` lines. The doc's paths
 
 **One fixed look each, no repainting** — the direct instruction, "similar to the tank". `carCanRepaint()` used to be a hardcoded `key !== 'tank'` check; it now honours a `noPaint` flag. This goes further than the Tank does: these six draw functions **take no colour argument at all**, so the lock and the art agree rather than the UI merely hiding a choice that the sprite would still have honoured.
 
-**Speeds** — four are direct user specs, and the joke only works if the absurd thing is genuinely quick, so none of them is "realistically" slow:
+**Speeds** — four are direct user specs, and the gag only works if the absurd thing is genuinely quick, so none of them is "realistically" slow:
 
 | | km/h | source |
 |---|---|---|
@@ -515,20 +525,20 @@ Two things this needed that were not obvious:
 
 The listener is on the document, not on `#menuCanvas`. The canvas sits *under* `#menuBackdrop` and `#menuOverlay`, so a click aimed at a background car never reaches the canvas at all — in testing it landed on `.mm-gap`. Hit-testing therefore maps the click into canvas coordinates itself, against the rects the last drawn frame actually used rather than positions recomputed from `t` (which would drift a frame out of step). Clicks on real controls are handed straight back: a demo car drifting behind a button must not swallow the button. Verified — clicking GARAGE while a car sat underneath opened the Garage and left the car intact.
 
-## 2.229.0 — 2026-09-21 01:22: Batch 443 — The joke vehicles land: BICYCLE, FISH, COUCH
+## 2.229.0 — 2026-09-21 01:22: Batch 443 — The special vehicles land: BICYCLE, FISH, COUCH
 
 The three the box system has been waiting on, all `boxOnly: true`. That one flag is the entire wiring — it already excludes a car from NPC traffic, from `canAffordCar()` at any coin total, and from the "own every car" check that gates Extra Boxes. **No other system needed changing**; the mystery tile, the LOCKED marker, the "BOX EXCLUSIVE — NOT FOR SALE" hover line, duplicate compensation and COLLECTOR's amethyst tier all switched back on by themselves. Verified: COLLECTOR now reads diamond 52 (every buyable car) / amethyst 55 (those plus all three exclusives).
 
 **They are legendary, and that does not put a fish in traffic.** The spawn table is built by a loop that skips `boxOnly` outright, so `rarity` on these three only does two things: groups them in the Garage's legendary section, and sets what a duplicate roll refunds — the top rate, correct for the only prizes a box can still give. Confirmed none of the three appears in `GARAGE_NPC_RARITY`. No `unlock` price either: `buildCarTile()` shows LOCKED instead of a price for box-exclusives and the price sort already pushes them last, so a number would never have been displayed.
 
-**Sizes, and what they do to the multiplier:** BICYCLE `h20/w8` → ×0.90, FISH `h22/w12` → ×0.97, COUCH `h18/w20` → ×1.00. All three sit inside the existing ×0.83–×1.79 spread from Batch 440, so none is a stealth upgrade — a joke car is a joke, not a reward for winning one.
+**Sizes, and what they do to the multiplier:** BICYCLE `h20/w8` → ×0.90, FISH `h22/w12` → ×0.97, COUCH `h18/w20` → ×1.00. All three sit inside the existing ×0.83–×1.79 spread from Batch 440, so none is a stealth upgrade — a special vehicle is a novelty, not a reward for winning one.
 
 **The sprites are hand-drawn, not shells.** `bodyShell53`/`bodyShellW53` draw a *car* — headlights, taillights, a windscreen — and inheriting a windscreen is exactly what would make a fish read as broken rather than funny. All three use `sil53()` for the same black outline every other vehicle gets and nothing else. Two were redrawn after looking at them:
 
 - **The couch** came out as a striped box. The arms were only shaded -.12 against the cushions, and a couch from above is read almost entirely through contrast between solid mass and the lit hollow between it. Arms and back went to -.38 with a lit crown; now the three cushions and the rear backrest are legible.
 - **The bicycle** was a dark smudge — a 2px frame tube left almost no painted surface, so the player's chosen paint barely appeared. The frame is 4 wide through the middle now.
 
-**A real bug this exposed, and it was mine.** `extraBoxCanStillGive()` (Batch 440) asked `boxExclusiveCars().length > 0` — "do box-exclusive cars exist". That was only ever correct while the list was empty. The joke cars made it permanently true, so boxes would have stayed on sale forever, including to a player owning all 55 cars and every gift paint: the exact guaranteed-loss the function was written to prevent, relocated to the endgame. It now asks whether a box can give something you do not already **have**.
+**A real bug this exposed, and it was mine.** `extraBoxCanStillGive()` (Batch 440) asked `boxExclusiveCars().length > 0` — "do box-exclusive cars exist". That was only ever correct while the list was empty. The special vehicles made it permanently true, so boxes would have stayed on sale forever, including to a player owning all 55 cars and every gift paint: the exact guaranteed-loss the function was written to prevent, relocated to the endgame. It now asks whether a box can give something you do not already **have**.
 
 Verified across four states: all 52 buyable cars owned → boxes available; only the fish missing → available; literally everything owned → hidden; ordinary save → available.
 
@@ -562,7 +572,7 @@ Verified: all eight tabs render, the two 8x8 icons still measure a 3x ratio and 
 
 **Extra Boxes were quietly selling a guaranteed loss, and that traces back to Batch 422.** A box rolls from the word pool — coins, XP, a gift paint, or a box-exclusive car. Making every car buyable emptied the car tier *and* pushed the unlock from "own all 39 buyable cars" to "own all 52". So boxes only appeared once you owned everything, by which point the pool was usually just coins and XP, and a box costs more coins than it tends to return.
 
-Fixed by gating on whether a box can still give something you do not have: an unowned gift paint, or a box-exclusive car existing. Both the buy path and the panel check it, so the boxes hide themselves when pointless and come back on their own the moment the joke cars land with `boxOnly` set. Verified: everything owned with no exclusives → panel hidden and `buyExtraBox()` refuses; one missing paint → available; a flagged exclusive car → available.
+Fixed by gating on whether a box can still give something you do not have: an unowned gift paint, or a box-exclusive car existing. Both the buy path and the panel check it, so the boxes hide themselves when pointless and come back on their own the moment the special vehicles land with `boxOnly` set. Verified: everything owned with no exclusives → panel hidden and `buyExtraBox()` refuses; one missing paint → available; a flagged exclusive car → available.
 
 **Car multipliers rebalanced.** The ask was "the lowest should be 1x or below, go-kart below 1x, no unnecessarily big mults, and check lanes/mode aren't worth more than the best car". Three changes, one per part:
 1. The base is **1.0, not 1.3** — a reference 24x14 car (Stock) is now exactly x1.00 instead of collecting +0.3 for existing.
@@ -844,7 +854,7 @@ Three fixes, all real bugs rather than test scaffolding:
 
 **Kept: the version-keyed URL** (`carCrash.html?v=<VERSION>`), added while chasing the wrong cause but justified on its own. Verified in the source: pywebview sets `Cache-Control: no-store` on `bottle.response` and then returns `bottle.static_file(...)`, which builds its **own** `HTTPResponse` — so those headers never reach the browser, leaving only `Last-Modified` and heuristic caching. An update landing at an identical URL could therefore serve the previous build. A query string changes the URL but not the origin, so localStorage — the save — carries over untouched.
 
-## 2.216.0 — 2026-09-20 04:44: Batch 422 — Every car is now buyable; boxes reserved for the joke vehicles still to come
+## 2.216.0 — 2026-09-20 04:44: Batch 422 — Every car is now buyable; boxes reserved for the special vehicles still to come
 
 Direct decision, reversing Batch 406: the 13 box-exclusive cars become ordinary purchases — found in traffic, bought with coins at a real price — and the box system is kept empty and waiting for the fun vehicles (bicycle, fish, couch) being added next.
 
@@ -854,11 +864,11 @@ Direct decision, reversing Batch 406: the 13 box-exclusive cars become ordinary 
 
 **The car tier is now dropped from the reward roll entirely while no car is box-exclusive**, rather than quietly paying coins instead. The roll and the DROP CHANCES panel read the same `rewardWeightsFor()` helper, so a panel advertising a 10% CAR chance that could never pay out would have been a straight lie to the player. The Daily Word panel now shows XP / COINS / PAINT re-based to the real odds, and the CAR row is gone. Confirmed over 20,000 rolls that the car tier never comes up.
 
-**The machinery is intact and was proven so**, since that is the point of leaving it: flagging a single car `boxOnly` at runtime immediately restored the 10% car weight, the CAR row in the panel, and the achievement's top tier — no other change needed. Adding the joke vehicles is therefore a data change, not a code change.
+**The machinery is intact and was proven so**, since that is the point of leaving it: flagging a single car `boxOnly` at runtime immediately restored the 10% car weight, the CAR row in the panel, and the achievement's top tier — no other change needed. Adding the special vehicles is therefore a data change, not a code change.
 
 **Two consequences worth knowing, both found by checking rather than by running the game:**
 - **COLLECTOR would have shown two identical tiers.** Diamond is "own every buyable car" and Amethyst "own every car there is"; with nothing box-exclusive those both compute to 52. Amethyst is now omitted while that is true (the Missions ladder already sets the precedent of a tiered achievement capping at Diamond) and returns by itself once a box car exists.
-- **Extra Boxes now require owning all 52 cars to appear, up from 39.** `ownsAllPurchasables()` gates them, and "purchasable" just grew to mean the whole roster. Unchanged in intent — boxes remain the after-everything-else chase — but it is a real raise in the bar, and until the joke cars land those boxes pay only coins, XP and paint. Flagged rather than silently adjusted.
+- **Extra Boxes now require owning all 52 cars to appear, up from 39.** `ownsAllPurchasables()` gates them, and "purchasable" just grew to mean the whole roster. Unchanged in intent — boxes remain the after-everything-else chase — but it is a real raise in the bar, and until the special vehicles land those boxes pay only coins, XP and paint. Flagged rather than silently adjusted.
 
 Kept deliberately: the `discoveredOnly` filter on the car pool (currently a no-op, since box-exclusives have always been exempt from it) and the Garage's mystery-tile, LOCKED and "BOX EXCLUSIVE — NOT FOR SALE" rendering, all of which apply again the moment a car is flagged. The formerly box-only cars already spawned as traffic, so discovery needed no change — verified in the Garage, which now shows them with prices instead of a lock.
 
