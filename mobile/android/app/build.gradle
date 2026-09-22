@@ -1,5 +1,22 @@
 apply plugin: 'com.android.application'
 
+// The APK's version comes from the project's own single source, app\version.py - the same literal
+// scripts\build.ps1 checks against the game's GAME_VERSION and refuses to build on a mismatch.
+// Capacitor generates this file with a frozen versionCode 1 / versionName "1.0", so without this
+// every APK ever built would claim to be 1.0 while the game inside said something else.
+def gameVersionName = "0.0.0"
+try {
+    def matcher = (file("../../../app/version.py").text =~ /VERSION\s*=\s*"([^"]+)"/)
+    if (matcher) gameVersionName = matcher[0][1]
+    else logger.warn("No VERSION found in app/version.py - the APK will be marked $gameVersionName")
+} catch (Exception e) {
+    logger.warn("Could not read app/version.py (" + e.message + ") - the APK will be marked $gameVersionName")
+}
+// Android wants one increasing integer, so 3.6.0 becomes 30600. Padded so a version with fewer
+// than three parts still yields a number rather than failing the build.
+def versionParts = (gameVersionName.tokenize('.') + ['0', '0', '0'])[0..2].collect { it.toInteger() }
+def gameVersionCode = versionParts[0] * 10000 + versionParts[1] * 100 + versionParts[2]
+
 android {
     namespace "com.husarp.recklessdriving"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +24,8 @@ android {
         applicationId "com.husarp.recklessdriving"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode gameVersionCode
+        versionName gameVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

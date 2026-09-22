@@ -27,9 +27,12 @@ import json
 import os
 import shutil
 import socket
+import subprocess
 import sys
 import tempfile
+import threading
 import time
+import urllib.request
 from pathlib import Path
 
 import webview
@@ -189,6 +192,49 @@ def run_selftest(window, report: Path) -> None:
     window.destroy()
 
 
+class UpdateApi:
+    """What the game calls to update the Windows app - reachable as window.pywebview.api.
+
+    The game decides on its own that an update exists (it asks GitHub directly, from a real
+    http://127.0.0.1 origin, so fetch works). This only does the part a web page is not allowed
+    to: save an exe and run it. The installer already recognises an existing install and switches
+    its own button to Update, so there is nothing to pass it, and nothing asks for admin because
+    the install is per-user.
+    """
+
+    def install_update(self, url: str) -> str:
+        try:
+            # The URL arrives from a web page, so it is not trusted to point anywhere: this app
+            # downloads and EXECUTES what comes back, which is worth one guard.
+            if not url.lower().startswith("https://github.com/husarp/"):
+                return "failed: refusing to download from an unexpected location"
+
+            target = Path(tempfile.gettempdir()) / "RecklessDrivingSetup-update.exe"
+            request = urllib.request.Request(url, headers={"User-Agent": APP})
+            with urllib.request.urlopen(request, timeout=180) as response:
+                payload = response.read()
+
+            # A truncated download would fail as a baffling "not a valid Win32 application".
+            if len(payload) < 1_000_000:
+                return f"failed: the download looks incomplete ({len(payload)} bytes)"
+
+            target.write_bytes(payload)
+            subprocess.Popen([str(target)], close_fds=True)
+        except Exception as e:
+            return f"failed: {e}"
+
+        # The installer replaces the program folder, and Windows will not overwrite a running exe,
+        # so this app has to be gone before it gets that far. Delayed slightly so this call can
+        # return to the page first - otherwise the game sees a dead bridge instead of "ok".
+        threading.Timer(0.5, _quit).start()
+        return "ok"
+
+
+def _quit() -> None:
+    for window in list(webview.windows):
+        window.destroy()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog=APP, add_help=True)
     parser.add_argument("--selftest", metavar="REPORT", help="run hidden, write a report, exit")
@@ -199,7 +245,7 @@ def main() -> None:
         return
 
     window = webview.create_window(
-        APP, game_url(), hidden=bool(args.selftest), **WINDOW
+        APP, game_url(), hidden=bool(args.selftest), js_api=UpdateApi(), **WINDOW
     )
     if args.selftest:
         # Isolated on every axis: its own port, and a throwaway profile so a build can never read

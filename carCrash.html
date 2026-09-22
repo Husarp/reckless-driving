@@ -1762,6 +1762,18 @@
            means free space fills this first; whatever is left over goes to .mm-endgap. */
         .mm-gap { flex: none; height: 119px; }   /* fixed: the design height is fixed now */
         .mm-endgap { flex: 1 1 0; min-height: 44px; }   /* keeps the tabs well clear of the footer */
+        /* Batch 482 - update banner. Sits above the footer rather than above START RUN: an update
+           is worth telling you about, not worth pushing the game's own button down the screen. */
+        /* nearly opaque on purpose: the menu's road art scrolls behind this, and at 0.35 the car
+           sprite showed straight through the text. */
+        .mm-update { display: none; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 10px; border: 2px solid var(--c-mint); background: rgba(6,12,10,0.94); }
+        .mm-update.on { display: flex; }
+        .mm-update-text { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .mm-update-title { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; color: var(--c-mint); }
+        .mm-update-sub { font-size: 10px; color: var(--c-text-dim); }
+        .mm-update-btn { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; padding: 7px 11px; border: none; background: var(--c-mint); color: #06240f; cursor: pointer; }
+        .mm-update-btn:disabled { opacity: .55; cursor: default; }
+        .mm-update-x { font-family: 'Silkscreen', monospace; font-size: 11px; line-height: 1; padding: 6px 8px; border: 2px solid var(--c-text-dimmer); background: transparent; color: var(--c-text-dim); cursor: pointer; }
         .mm-setup { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
         .mm-setup-row { display: flex; gap: 8px; align-items: stretch; }
         .mm-lanebox { width: 64px; height: 64px; box-sizing: border-box; flex: none; background: var(--c-panel); border: 2px solid var(--c-card-border); box-shadow: 3px 3px 0 #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 8px 0; }
@@ -1899,8 +1911,16 @@
                         <button id="setupBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M1 2h10v1h-10zM3 1h2v3h-2zM1 6h10v1h-10zM7 5h2v3h-2zM1 10h10v1h-10zM4 9h2v3h-2z"></path></svg><span>SETTINGS</span></button>
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
+                    <div class="mm-update" id="mmUpdateBanner">
+                        <div class="mm-update-text">
+                            <span class="mm-update-title">UPDATE AVAILABLE</span>
+                            <span class="mm-update-sub" id="mmUpdateSub">A newer version is ready.</span>
+                        </div>
+                        <button class="mm-update-btn" id="mmUpdateBtn">UPDATE</button>
+                        <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
+                    </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.5.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.6.0</span></div>
                 </div>
             </div>
         </div>
@@ -2157,6 +2177,29 @@
                     <option value="no">Off</option>
                     <option value="yes" selected>On</option>
                 </select>
+            </div>
+
+            <div class="stg-row">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">CHECK FOR UPDATES</div>
+                    <div class="stg-row-hint">Ask GitHub for a newer version when the game starts.</div>
+                </div>
+                <div class="stg-toggle" id="updateCheckToggle">
+                    <span class="stg-toggle-label" id="updateCheckToggleLabel">ON</span>
+                    <div class="stg-toggle-track" id="updateCheckToggleTrack"><div class="stg-toggle-knob"></div></div>
+                </div>
+                <select id="updateCheckSetting" style="display:none;">
+                    <option value="yes" selected>On</option>
+                    <option value="no">Off</option>
+                </select>
+            </div>
+
+            <div class="stg-row">
+                <div class="stg-row-label">
+                    <div class="stg-row-title">VERSION</div>
+                    <div class="stg-row-hint" id="updateStatusHint">&nbsp;</div>
+                </div>
+                <button class="btn" id="checkUpdateBtn" style="flex:none;width:auto;padding:7px 12px;font-size:9px;">CHECK NOW</button>
             </div>
 
             <div style="display:flex;gap:10px;margin-top:18px;">
@@ -13938,7 +13981,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.5.1';
+        const GAME_VERSION = '3.6.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14870,6 +14913,154 @@
             refreshSp();
             selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
         }
+        // ---------- Batch 482: in-app updates ----------
+        // One check, three platforms. The game asks GitHub which release is newest and compares it
+        // with its own GAME_VERSION; only what happens when the player says yes differs:
+        //   Windows app - Python downloads the setup exe and runs it (window.pywebview.api). The
+        //                 installer already recognises an existing install and updates in place.
+        //   Android     - a small Capacitor plugin downloads the APK and hands it to Android's own
+        //                 installer. Android ALWAYS shows its confirmation for a sideloaded app -
+        //                 that is the OS, not something to work around. What this removes is the
+        //                 browser, the downloads folder and the hunt for the file.
+        //   browser     - nothing to install, so just open the release page.
+        // The repo is public, so this needs no token, and GitHub's API sends CORS headers that let
+        // a page read it. The Windows app serves the game over http://127.0.0.1, a real origin, so
+        // fetch works there too.
+        const UPDATE_REPO = 'Husarp/reckless-driving';
+        const UPDATE_API = 'https://api.github.com/repos/' + UPDATE_REPO + '/releases/latest';
+        const UPDATE_PAGE = 'https://github.com/' + UPDATE_REPO + '/releases/latest';
+
+        function updatePlatform() {
+            if (window.pywebview && window.pywebview.api) return 'windows';
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppUpdate) return 'android';
+            return 'browser';
+        }
+
+        // Compared number by number on purpose: as plain strings '3.9.0' sorts above '3.10.0',
+        // so a string compare would hide exactly the update most worth having.
+        function versionIsNewer(candidate, current) {
+            const a = String(candidate).split('.').map(n => parseInt(n, 10) || 0);
+            const b = String(current).split('.').map(n => parseInt(n, 10) || 0);
+            for (let i = 0; i < Math.max(a.length, b.length); i++) {
+                const x = a[i] || 0, y = b[i] || 0;
+                if (x !== y) return x > y;
+            }
+            return false;
+        }
+
+        let updateInfo = null;   // { version, apkUrl, exeUrl } once a NEWER release has been found
+
+        async function fetchLatestRelease() {
+            const res = await fetch(UPDATE_API, { headers: { 'Accept': 'application/vnd.github+json' } });
+            if (!res.ok) throw new Error('GitHub answered ' + res.status);
+            const data = await res.json();
+            const version = String(data.tag_name || '').replace(/^v/i, '');
+            if (!version) throw new Error('that release has no version tag');
+            const assets = data.assets || [];
+            const urlEndingIn = ext => {
+                const hit = assets.find(a => String(a.name || '').toLowerCase().endsWith(ext));
+                return hit ? hit.browser_download_url : null;
+            };
+            return { version: version, apkUrl: urlEndingIn('.apk'), exeUrl: urlEndingIn('.exe') };
+        }
+
+        function showUpdateBanner(version) {
+            const el = document.getElementById('mmUpdateBanner');
+            if (!el) return;
+            // A dismissal is remembered per version, so saying "not now" is not undone by the next
+            // restart - but a genuinely newer release still gets to speak up.
+            try { if (localStorage.getItem('updateDismissed') === version) return; } catch (e) {}
+            const sub = document.getElementById('mmUpdateSub');
+            if (sub) sub.textContent = 'v' + version + ' is ready to install.';
+            el.classList.add('on');
+        }
+
+        async function checkForUpdates(manual) {
+            const hint = document.getElementById('updateStatusHint');
+            const btn = document.getElementById('checkUpdateBtn');
+            if (manual) {
+                if (hint) hint.textContent = 'Checking…';
+                if (btn) btn.disabled = true;
+            }
+            try {
+                const latest = await fetchLatestRelease();
+                if (versionIsNewer(latest.version, GAME_VERSION)) {
+                    updateInfo = latest;
+                    showUpdateBanner(latest.version);
+                    if (hint) hint.textContent = 'v' + latest.version + ' available — you have v' + GAME_VERSION + '.';
+                } else {
+                    updateInfo = null;
+                    if (hint) hint.textContent = 'v' + GAME_VERSION + ' — up to date.';
+                }
+            } catch (e) {
+                // A failed check is almost always "no internet", which is not worth interrupting
+                // anyone over. It stays silent unless they asked for the check themselves.
+                if (manual && hint) hint.textContent = 'Could not check (' + (e.message || e) + ').';
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function applyUpdate() {
+            if (!updateInfo) return;
+            const btn = document.getElementById('mmUpdateBtn');
+            const sub = document.getElementById('mmUpdateSub');
+            const say = t => { if (sub) sub.textContent = t; };
+            if (btn) btn.disabled = true;
+            try {
+                const platform = updatePlatform();
+                if (platform === 'windows') {
+                    if (!updateInfo.exeUrl) throw new Error('this release has no Windows installer');
+                    say('Downloading… the installer opens by itself.');
+                    const result = await window.pywebview.api.install_update(updateInfo.exeUrl);
+                    if (result !== 'ok') throw new Error(String(result).replace(/^failed: /, ''));
+                    say('Starting the installer…');
+                } else if (platform === 'android') {
+                    if (!updateInfo.apkUrl) throw new Error('this release has no Android build');
+                    say('Downloading… Android will ask you to confirm.');
+                    await window.Capacitor.Plugins.AppUpdate.downloadAndInstall({ url: updateInfo.apkUrl });
+                    say('Confirm the install when Android asks.');
+                } else {
+                    window.open(UPDATE_PAGE, '_blank');
+                    say('Opened the download page in your browser.');
+                }
+            } catch (e) {
+                const msg = (e && e.message) ? e.message : String(e);
+                say(msg.indexOf('NEEDS_PERMISSION') !== -1
+                    ? 'Allow installs from this app, then tap UPDATE again.'
+                    : 'Update failed: ' + msg);
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        {
+            const selectUpdateCheck = document.getElementById('updateCheckSetting');
+            try {
+                const pref = localStorage.getItem('updateCheck');
+                if (pref === 'yes' || pref === 'no') selectUpdateCheck.value = pref;
+            } catch (e) {}
+            bindToggle(document.getElementById('updateCheckToggle'),
+                       document.getElementById('updateCheckToggleLabel'),
+                       document.getElementById('updateCheckToggleTrack'),
+                       selectUpdateCheck, 'yes', 'no');
+            selectUpdateCheck.addEventListener('change', () => {
+                try { localStorage.setItem('updateCheck', selectUpdateCheck.value); } catch (e) {}
+            });
+
+            const hint = document.getElementById('updateStatusHint');
+            if (hint) hint.textContent = 'v' + GAME_VERSION + (updatePlatform() === 'browser' ? ' — browser' : '');
+            document.getElementById('checkUpdateBtn').addEventListener('click', () => checkForUpdates(true));
+            document.getElementById('mmUpdateBtn').addEventListener('click', applyUpdate);
+            document.getElementById('mmUpdateDismiss').addEventListener('click', () => {
+                document.getElementById('mmUpdateBanner').classList.remove('on');
+                try { if (updateInfo) localStorage.setItem('updateDismissed', updateInfo.version); } catch (e) {}
+            });
+
+            // Delayed so a boot that is already doing font loading, canvas sizing and save parsing
+            // is not also waiting on the network.
+            if (selectUpdateCheck.value === 'yes') setTimeout(() => checkForUpdates(false), 3000);
+        }
+
         // FPS counter toggle. Persisted (unlike the run-config toggles above) since it's a display preference, not a per-run gameplay setting.
         selectFpsCounter.value = localStorage.getItem('fpsCounterOn') === 'yes' ? 'yes' : 'no';
         bindToggle(fpsCounterToggle, fpsCounterToggleLabel, fpsCounterToggleTrack, selectFpsCounter, 'yes', 'no');

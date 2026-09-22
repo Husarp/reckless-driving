@@ -6,6 +6,32 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.6.0 — 2026-09-22 14:25: Batch 482 — The game updates itself
+
+**There was no way to learn an update existed.** No button, nothing in the game touched GitHub, and updating meant remembering to go and look. Now the game asks, tells you, and installs it.
+
+**One check, three platforms.** The game fetches the latest release from GitHub and compares its tag with its own `GAME_VERSION`. Only what happens when you say yes differs:
+
+| Where | What UPDATE does |
+|---|---|
+| Windows app | Python downloads the setup exe and runs it, then the app exits so the installer can replace it |
+| Android | A small Capacitor plugin downloads the APK and hands it straight to Android's installer |
+| Browser | Opens the release page — there is nothing to install |
+
+**Android will always ask you to confirm, and that is not a bug.** A sideloaded app is never allowed to replace itself silently; the system installer's confirmation is a platform guarantee. What this removes is everything before it — no browser, no downloads folder, no hunting for the file. Two taps, never leaving the game.
+
+**Windows updates in place.** The installer already recognised an existing install and switched its own button to Update, so nothing new was needed there — and because the install is per-user, no admin prompt appears.
+
+**A banner, not an interruption.** When a newer version exists, a bar appears above the main menu footer with UPDATE and a dismiss X. Dismissing is remembered *per version*, so "not now" survives a restart but a genuinely newer release still gets to speak up. The automatic check is a Settings toggle (CHECK FOR UPDATES, on by default) and runs 3 seconds after boot, so it never competes with font loading and save parsing. A failed check stays silent unless you pressed CHECK NOW yourself — it is almost always just no internet, which is not worth a warning.
+
+**Version comparison is numeric, deliberately.** As plain strings `'3.9.0'` sorts above `'3.10.0'`, so a string compare would hide exactly the update most worth having. Seven cases are covered, including that one.
+
+**Two small guards worth naming.** The Windows bridge refuses to download from anything but this project's own GitHub URL, because it saves and *executes* what comes back. Both platforms reject an implausibly small download rather than letting it fail later as a baffling "not a valid Win32 application" or an Android parser error.
+
+**The APK finally knows its own version.** Capacitor generates `app/build.gradle` with a frozen `versionCode 1` / `versionName "1.0"`, and nothing had ever changed it — so every APK built so far announced itself to Android as 1.0 while the game inside said 3.5.x. It now reads `app\version.py`, the same literal `build.ps1` checks against `GAME_VERSION` and refuses to build on a mismatch, and derives the integer Android wants (3.6.0 → 30600). Caught by dumping the built APK's manifest rather than assuming the build was right.
+
+**Verified against the live API**, not a mock: a real check from the browser build correctly read the published v3.5.1 and reported "up to date", and the banner, dismissal, per-version memory and settings toggle were each exercised. The built APK was dumped to confirm the `REQUEST_INSTALL_PACKAGES` permission and the compiled plugin are really in it. The Windows and Android **install** paths are still not device-tested — they need a real install and a real phone.
+
 ## 3.5.1 — 2026-09-22 13:52: Batch 481 — One command builds both, and says what it built
 
 **`build.ps1 -Android` now builds the APK as well as the installer.** Before this, the two builds were separate: the Windows one ran from the script, the Android one needed four commands typed by hand in `mobile\`. One switch does both, at one version, with one summary line at the end:

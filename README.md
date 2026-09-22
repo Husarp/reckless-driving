@@ -31,21 +31,35 @@ From the main menu: **START RUN** to play, **SETUP** for settings, **SCORES** fo
 
 | Action | Desktop | Mobile |
 |---|---|---|
-| Steer left/right | Arrow keys or A/D (snaps to the nearest lane) | Drag on the road, tilt phone, or on-screen lane buttons (all optional settings) |
-| Move forward/back | Up/Down arrow keys | — |
-| Jump (hold to fly) | Hold Spacebar | Hold the JUMP energy bar |
+| Steer left/right | Arrow keys or A/D (snaps to the nearest lane) | On-screen arrows or stick (Settings → **Touch Controls**) |
+| Move forward/back | Up/Down arrow keys | The same arrows, or push the stick up/down — the stick does both axes at once |
+| Use ability | Hold Spacebar | Hold the **USE** button |
 | Pause | P, Escape, or the pause icon (top-left) | Tap the pause icon |
+
+Dragging on the road and tilting the phone were both removed in v3.4.x: dragging put your hand over the
+road you were reading and offered no way to accelerate or brake, and tilting was never accurate enough to
+steer with.
 
 ### Settings (Setup screen)
 
-| Setting | Options | Effect on multiplier |
+| Setting | Options | What it does |
 |---|---|---|
-| Road Lanes | 3–10 | Multiplicative: 3 lanes x1.30, 4 x1.15, 5 x1.10, down to 10 x1.00 |
-| Tilt Steering | Off / On (mobile) | — |
-| Steering Buttons | Off / On | On-screen per-lane click/drag zones below the road |
-| Hold for Multiple Lanes | On / Off | Off = one lane per key press, no matter how long it's held |
-| Sound | Volume slider | — |
-| Car Color | 10-swatch picker | — |
+| Control Type | Lane snap / Steering buttons | How the car changes lane |
+| Multi-Lane Key Press | On / Off | Off = one lane per press; On = hold to glide across several |
+| Mouse/Touch Steering | On / Off | Only used when Control Type is Steering Buttons |
+| Volumes | Master, plus music / siren / explosion / SFX | — |
+| Skip Crash Animation | On / Off | Straight to the summary |
+| Touch Controls | Off / Arrows / Stick | On-screen steering. Arrows are precise; the stick allows diagonals |
+| Floating Stick | On / Off | The stick appears where your thumb lands instead of a fixed spot |
+| Fullscreen | On / Off | Hides the phone's navigation bar while you play |
+| Score Popups | On / Off | Floating +points when you pass or jump over a car |
+| FPS Counter | On / Off | Bottom-right of the game screen |
+| Abbreviate Money | On / Off | Shows 50K / 10.8M instead of the full number |
+| Speed-Scaled Music | On / Off | Tempo rises as you speed up |
+| Check For Updates | On / Off | See [Updating](#updating) |
+
+Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu
+(they drive the score multiplier: 3 lanes x1.30 down to 10 x1.00), and paint is in the Garage.
 
 Speed always accelerates and semi trucks are always on — no longer configurable. The ability you get is
 decided by your CAR, not a setting: **Jump** (43 cars), **Shield Bump** ram (8 heavy cars), or the
@@ -58,6 +72,28 @@ Hold to fly and become immune to traffic (and ambulances) while airborne; releas
 least 3 of the bar's 9 cells (~34%) to take off, then drains for as long as it's held (about 3 seconds from
 full). Energy does **not** regenerate passively — it is earned back by passing cars (+1 cell, trucks +2,
 a grounded ambulance +5) and by close calls (+4).
+
+## Updating
+
+The game checks GitHub for a newer release on startup and shows a banner on the main menu when it
+finds one. The check is a Settings toggle (**CHECK FOR UPDATES**, on by default) and there is a
+**CHECK NOW** button beside it. A failed check is silent unless you asked for it - it is usually
+just no internet.
+
+| Where | What UPDATE does |
+|---|---|
+| Windows app | Downloads the setup exe and runs it; the app closes so the installer can replace it. Per-user, so no admin prompt. |
+| Android | Downloads the APK and hands it to Android's installer. **Android always asks you to confirm** - a sideloaded app may never replace itself silently. |
+| Browser | Opens the release page, since there is nothing to install. |
+
+Dismissing the banner is remembered per version: "not now" survives a restart, but a newer release
+still shows up.
+
+The Android side needs `REQUEST_INSTALL_PACKAGES` and the system's "install unknown apps" permission
+for the game; if it is not granted, the first UPDATE tap sends you to that settings screen.
+
+**Updates only install over a build signed with the same key.** The APK is debug-signed, so every
+build must come from the same machine - see the Android build section.
 
 ## Building the Windows app
 
@@ -176,4 +212,6 @@ built — see `CHANGELOG.md`. Road pickups were tried and deliberately removed.)
   base64 `@font-face` (latin + latin-ext subsets, ~68 KB) rather than fetched from Google Fonts, so the
   game keeps its type offline. Regenerate with `python tools\embed_fonts.py`
 - Local leaderboard (top 10) persists via `localStorage`, filterable by lane count
-- Target: Chrome, Firefox, Safari (iOS), Chrome (Android). Further mobile-specific work (touch/tilt polish) is on hold — a from-scratch native Android app is planned separately; this HTML version is treated as a prototype
+- Target: Chrome, Firefox, Safari (iOS), Chrome (Android). Mobile is no longer treated as a prototype:
+  v3.4.0 added real on-screen controls and safe-area handling, and v3.5.0 ships this same HTML as an
+  Android APK through Capacitor rather than the separate native app once planned
