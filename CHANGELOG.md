@@ -6,6 +6,146 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.7.17 — 2026-09-23 07:05: Batch 506 — a wrecked menu car stops driving
+
+Direct bug report: the cars you blow up behind the main menu carried on driving.
+
+The wreck was being drawn at the *live* car's position, which comes from a clock (`t * 0.09`) and never stops. So the burnt-out shell kept rolling down the road at exactly the speed it had when it was alive — the one thing a wreck cannot do.
+
+It now keeps the spot it died on and the road carries it away, advancing by the same `1.4` step the menu's road scroll uses. That is frame-locked to the asphalt underneath, so the wreck sits still on the tarmac while the two surviving cars pull away from it — which is what reads as debris rather than as a car.
+
+Measured after the fix, 20 frames from the hit: wreck at y 32.3 (road-locked), where the live car would have been at 34.3. The two separate, as they should.
+
+The wreck is cleared only once it is off the bottom of the screen **and** the replacement car has wrapped above the top, so a fresh car never pops into view mid-road. About four seconds on screen.
+
+## 3.7.16 — 2026-09-23 06:20: Batch 505 — HABIT stops repeating the panel underneath it
+
+Answering the question directly: **none were needed.** The DAY STREAK panel below shows exactly two figures — the current streak as its headline number, and the best as "Best ever N days" — and those were precisely the two rows Batch 504 had just added. Dropping them leaves HABIT with four stats, none of which appear anywhere else on the screen:
+
+| HABIT | also shown below? |
+|---|---|
+| RUNS TODAY | no |
+| DAYS PLAYED (ALL TIME) | no |
+| AVG RUNS / DAY | no |
+| BUSIEST DAY | no |
+
+No new stat was invented and the streak panel is untouched, as asked. Rows per tab are now SCORING 3, SURVIVAL 4, TOTALS 4, HABIT 4.
+
+A note is left on the HABIT group so the pair does not get re-added later without the panel going first — adding them was a reasonable-looking change that put two copies of the same number a few pixels apart.
+
+## 3.7.15 — 2026-09-23 06:00: Batch 504 — Secrets stay secret, the level badge fires where it says, cleaner axis, fuller HABIT
+
+### MIRROR, MIRROR fired on the two screens its own text excludes
+
+Direct report: "why do you get a notification for clicking the player's level in stats? (didn't get it when I clicked it in the main menu)". Backwards, and the cause was a selector.
+
+The achievement reads *"click your own level badge on the main menu"*, but the listener was attached to `.level-badge-ring-wrap` — the class the **Garage and Stats** badges use. The main menu badge is `.mm-level-ring` and was never matched, so the one screen the text names was the one screen excluded. Stats fired FULL CIRCLE at the same time (that one is delegated across all three badges and is meant to be), so a click there set off two achievements while the main menu set off only the silent one.
+
+Now bound to the main menu ring. Verified: clicking in Stats unlocks FULL CIRCLE only; clicking the main menu unlocks MIRROR, MIRROR.
+
+### An undiscovered secret shows the ? badge
+
+A veiled card said `???` and "Unknown objective" while still drawing its **real** icon — a crown, a school bus, a skull — which gave away what it was for. Veiled cards use the mystery badge now (the same glyph MIRROR, MIRROR wears).
+
+### The axis stops writing the same day twice
+
+Direct report, with a screenshot: "all scores were on only a couple of days, so don't write the same day multiple times - just make bigger gaps between days."
+
+`statsTicksFor()` picks evenly spaced **points**, not evenly spaced dates, so when many runs land on one day several of those points share a date and the axis read `SEP 20, 21, 21, 22, 22`. Repeats are blanked, which is what produces the wider spacing between the days that are named.
+
+Deduping on the label alone was not enough, and the first attempt proved it: the first tick of a month renders `SEP 17` and the next `17` — different strings, same day, so the repeat slipped through. Each tick now carries a `key` for the unit it actually names, and the dedupe works on that.
+
+| history | before | after |
+|---|---|---|
+| clustered over 6 days | SEP 17, 17, 21, 23, 23 | SEP 17, —, 21, 23, — |
+| all on one day | one label repeated 5x | labelled once |
+| spread over weeks | AUG 14, 24, SEP 3, 13, 23 | unchanged — no over-blanking |
+
+### HABIT was two rows in a four-row layout
+
+Filled out to six, all from data already being kept — nothing new is tracked:
+
+- **CURRENT STREAK** and **BEST STREAK** (already on `allTimeStats`, previously only shown in the separate streak panel)
+- **AVG RUNS / DAY** — runs in history over the distinct days in it
+- **BUSIEST DAY** — the most runs in any single day
+
+**DAYS PLAYED is all-time and always was** — it counts the distinct days across the whole run history, not the last fortnight. It never said so, which is exactly why it was worth asking about; the label reads **DAYS PLAYED (ALL TIME)** now.
+
+## 3.7.14 — 2026-09-23 05:10: Batch 503 — Badges fill their frame, stats becomes one card with tabs
+
+### The badge IS the frame now
+
+Direct request: the award icons should be as big as the frame, and the frame can go. The box has lost its border and background, and the badge sits at **31.2px** filling it exactly — the badge already carries its own outline ring and bevel, so a second border around it was always redundant.
+
+**This also caught a real fault.** Batch 502 moved the badges to a 13-unit viewBox but left `ACH_ICON_UNITS` at 16, so the whole-pixel size chooser was solving for a grid that no longer existed: the badges had been rendering at **2.462 physical pixels each** — fractional, therefore soft — which is the exact fault Batch 498 was written to remove. The ability badges, which carry their own 13, were at a clean 2.0 throughout, which is why only one of the two sets looked slightly off. Now 3.0 physical pixels per badge pixel.
+
+### The AWARDS settings button matches the main menu
+
+It drew a cog while the main menu's SETTINGS tab drew a three-slider control — two pictures for one idea, which is what makes a UI feel assembled rather than designed. Same path data now, sized on whole pixels like every other glyph.
+
+### Stats: one card, tabs on top
+
+Direct report: the old layout was "text on the left and the stats on the right... emptiness in the middle and it's all clumped up together". Both halves of that were true — each row pinned its label hard left and its value hard right, leaving a wide empty gutter down the middle while the rows themselves were packed tight. Busy at the edges, empty between.
+
+Four stacked panels become **one card with a tab row above it**: SCORING / SURVIVAL / TOTALS / HABIT, the active one highlighted in mint and joined to the card below it. Inside, values sit **over** their labels as a two-column grid, so the content fills the width instead of straddling it.
+
+The click is delegated from the container rather than bound per tab: the panel rebuilds its own `innerHTML` on every open and every switch, so per-tab listeners would be re-attached and leak each time.
+
+Verified: four tabs, one panel, SCORING active on open, and switching to TOTALS moves the highlight and swaps the contents.
+
+## 3.7.13 — 2026-09-23 04:30: Batch 502 — Achievement badges keep their own colours
+
+Ported from `Achievement Badges.dc.html`, replacing the Batch 488 icon set. Same 13x13 construction as the ability badges: an outline ring, a bevel (light top and left, dark bottom and right), a flat fill, and a 7x7 glyph knocked out of the middle.
+
+**The colour no longer follows the tier — and neither does the frame.** Every call site used to pass the achievement's tier colour into `achIconSvg()`, which repainted all 59 icons in one of five shades, and the icon box's border was set from it too. Both are gone. The badges carry fixed colours from the doc's seven families — **blue** movement, **red** danger, **purple** rare, **amber** time, **green** money, **mint** garage, **silver** meta — and keep them whatever tier a card is showing. The tier is already spelled out twice on the card (the pip row and the label), so spending the art on it as well was what made the screen five shades of one colour.
+
+Measured after: **22 distinct colours** on screen where the whole set previously carried one at a time, and exactly **one** frame colour.
+
+`achIconSvg(name, color)` still accepts the colour and ignores it, rather than editing three call sites to drop an argument that would then be silently wrong if one were missed.
+
+**Three of the doc's mappings changed**, where the description pointed somewhere better:
+
+| Achievement | Doc | Used | Why |
+|---|---|---|---|
+| CLEAR THE WAY | jump | **medic** | It is specifically jumping an AMBULANCE; `jump` made it identical to NOTHING TO SEE HERE |
+| EYE CATCHING | cross | **gem** | Crashing into a LEGENDARY car — `gem` is the legendary family |
+| CEASE AND DESIST | shoot | **mute** | Silencing the siren for good reads as mute rather than as the Tank's shot |
+
+**One tradeoff worth recording:** the Batch 488 set had 59 unique icons; this one has **29 glyphs across 59 achievements**, so some repeat — `dice` four times, `gem`, `car`, `cross` and `cash` three each. Colour does a lot of the separating work now instead. That is the doc's design, and the colour variety was the point of the request, but it is a real step back on per-achievement uniqueness.
+
+Sizing is untouched: still DPR-aware, 25.6px at 1.25 for exactly 2 physical pixels per badge pixel.
+
+## 3.7.12 — 2026-09-23 03:50: Batch 501 — Wrecks keep their size, side bumps stop being instant, CASH badge
+
+### A shrunk car stayed shrunk when it crashes
+
+Direct report: "the snail when crushed switches to its regular size." Correct, and it was mine. `drawScaledVehicle` has two paths, and Batch 499 only taught the un-rotated one about `spriteScale`. A wreck always has a random angle, so it always took the **rotated** path — which multiplied by a bare `CAR_SCALE` and snapped the car back to full size the moment you died. Wrecks now carry their car's scale, and their draw offset scales with it for the same reason Player.draw's does.
+
+On the suggestion to redraw the sprite smaller instead of scaling it: not needed, and it would be worse. The scale is exact — 0.5 puts **2 device pixels on every sprite pixel**, nearest-neighbour, no resampling at all (see Batch 499). The sprite was never being degraded; one code path was simply ignoring the instruction. Redrawing would mean re-authoring the art by hand for no quality gain.
+
+### Side bumps no longer feel instant
+
+Direct report: a rear-end throw looks right, a side hit is "super, almost instant", and the wanted speed is the rear-end one.
+
+Both were already the **same** 8.1 px/frame — what differs is the distance to the edge. The road is 144px wide at 5 lanes against a 260px canvas, and the player sits near the bottom, so:
+
+| throw | before | now |
+|---|---|---|
+| rear-end, up the road | 35.2 frames on screen | 35.2 |
+| sideways | **18.0 frames** | **45.5** |
+
+Identical speed, half the screen time — which reads as twice as fast. The speed is an ellipse now rather than a circle: **3.2 sideways, 8.1 up-road**. Direction is untouched; only the force along each axis. Worth recording that 3.2 x 8.1 is very nearly the original Batch 446 launch's 3.0 x 7.5 — that pairing was tuned, and normalising it to a single speed in Batch 496 is what threw it away.
+
+Sideways is now slightly *slower* than a rear-end rather than faster, which is the safer side to err on; `LAUNCH_SPEED_X` is the knob.
+
+### CASH badge
+
+`Ability Badges.dc.html` gained a fifth badge — a green dollar sign for the specials that have no ability. They wear it instead of nothing now, because the coin bonus **is** their mechanic: GIANT DONUT +75%, GRAND PIANO +65%, BATHTUB +55%, GIANT SNAIL +40%. An empty corner read as "this car does nothing" when it is exactly the opposite trade.
+
+### Flank airflow starts at 200 km/h
+
+Was 175. Now matches the snail trail's threshold from Batch 497, so both high-speed effects arrive together instead of one quietly preceding the other. Measured: nothing at 150, 190 or 199; 24 particles at 210 and 250.
+
 ## 3.7.11 — 2026-09-23 03:05: Batch 499 — Ability badges, and two special vehicles resized
 
 ### Ability badges in the Garage

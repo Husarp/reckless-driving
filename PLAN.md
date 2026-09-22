@@ -40,6 +40,21 @@ completed item's story is in CHANGELOG.md.
   LAUNCH / none), which reads as a spec-sheet line rather than as the thing that most changes how a
   car plays. Wants it to actually communicate. The design docs were deleted in Batch 500; git history has them if needed.
 
+- [ ] **Mission / badge idea: scatter the cones without hitting the car.** User's idea, 2026-09-23.
+  Road obstacles come in two kinds and behave differently: cones can be driven straight through and
+  scatter, a broken-down car cannot. The idea is to reward threading an obstacle — plough the cones
+  while missing the vehicle. Fits as either a daily (`sum` across the day, like `pass_cars`) or a
+  secret badge. Check first that scattering is actually detectable as an event and how often cones
+  appear, since that is exactly what killed `witness_crash` as a daily (Batch 487): measure the rate
+  BEFORE adding it to the pool.
+
+- [ ] **Build papercut: the self-test fails silently if the game is already open.** Found 2026-09-23
+  (Batch 506). `build.ps1` runs the freshly built exe hidden and waits for `GAME_VERSION`, but the
+  app serves itself on a fixed `127.0.0.1:42017`. If an installed copy is already running it owns
+  that port, the test instance never loads, and the build dies with "the game never finished
+  loading" — which reads as "your edit broke the game" rather than "close the game first".
+  Either detect the port being held and say so, or have the self-test pick a free port.
+
 ## Standing conventions
 
 - [ ] **After any notable batch, update the game's own ABOUT/tutorial.** Two halves: refresh the
