@@ -183,8 +183,6 @@ can be rolled back.
 | `mobile/` | Capacitor wrapper that packages the game as an Android APK |
 | `tools/` | `embed_fonts.py` (inline the fonts), `make_icon.py` (icon from the game's own sprite) |
 | `assets/` | `recklessdriving.ico` — the app icon |
-| `backup/` | Manual safety copies of `carCrash.html` |
-| `Car Crash Game UI Design/` | Source UI/art mockup this design was implemented from (reference only, not part of the game) |
 | `PLAN.md` | Development roadmap and feature backlog |
 | `docs/` | Design proposals and code-verified reference notes |
 | `CHANGELOG.md` | Version history with dates and descriptions |

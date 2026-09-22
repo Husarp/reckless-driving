@@ -10,9 +10,8 @@ completed item's story is in CHANGELOG.md.
 
 - [x] **DONE (2026-09-22, Batch 488, v3.7.0) — Better achievement icons.** 57 achievements share a 6-shape icon set (`ACH_ICONS`: car,
   star, road, clock, bus, lock), so most cards repeat one of six pictures. Check the archived
-  design docs FIRST — `old/Achievements Tab.dc.html`, `old/achievementscontentbrief.html`,
-  `old/Booster Icons 3x1.dc.html` — they may hold an unported icon set. Same `[x,y,w,h]`
-  pixel-rect shorthand, 16x16 viewBox (the Batch 413 gear fix is the precedent).
+  design docs FIRST (they were deleted in Batch 500 — recover from git history if needed).
+  Same `[x,y,w,h]` pixel-rect shorthand, 16x16 viewBox.
 
 - [x] **DONE (2026-09-22, Batch 486, v3.6.4) — Booster preview popup**: a plain unlabeled window with no consistent size across
   boosters, reads as "appears out of nowhere". Wants a fixed size and the booster's name in it.
@@ -39,8 +38,7 @@ completed item's story is in CHANGELOG.md.
 - [ ] **Better ability display/indicator in the Garage.** User's idea, 2026-09-23. The card currently
   states the ability as a text row (`abilityLabelFor()` — JUMP / SHIELD BUMP / TANK SHOT / BUMPER
   LAUNCH / none), which reads as a spec-sheet line rather than as the thing that most changes how a
-  car plays. Wants it to actually communicate. Worth checking the archived design docs first, as the
-  booster picker did.
+  car plays. Wants it to actually communicate. The design docs were deleted in Batch 500; git history has them if needed.
 
 ## Standing conventions
 
