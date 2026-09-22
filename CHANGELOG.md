@@ -6,6 +6,22 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.3.0 — 2026-09-22 17:00: Batch 477 — Stats screen regrouped: hero row + themed ledgers
+
+"15 stats feels like a lot" — resolved by **grouping, not hiding**. Tabs would bury stats behind a fuzzy taxonomy, an expander would bury eleven of them behind a click on every visit, and removal punishes the players who like statistics. Grouping fixes the actual problem, which was fifteen equal tiles shouting at once.
+
+The screen now reads as five objects:
+
+- **Hero row** — BEST SCORE and PERFORMANCE SCORE, big, in their own colours: the two numbers that answer "how good am I?". A casual player reads these and leaves; the panels below serve everyone else. Same page, both audiences, no setting needed.
+- **SCORING** — total, average, average of the last 50.
+- **SURVIVAL** — longest survival, average run, close calls, best close calls in a run.
+- **TOTALS** — runs played, vehicles dodged, total coins, total play time.
+- **HABIT** — runs today, days played.
+
+Rows use the label-left / value-right ledger language the Scores tab already speaks, and every per-stat colour survived the move. Nothing was removed and nothing is hidden: 2 hero tiles + 13 ledger rows = all 15 stats, zero clicks. If it ever still feels heavy, collapsing a *group* is a five-line change — which is the graceful-degradation argument that beat the expander.
+
+Also this session: PLAN.md pruned from 494 lines to 39 on direct instruction — five live items plus a standing convention to keep the in-game ABOUT/tutorial current after notable batches. The old plan lives in git history.
+
 ## 3.2.2 — 2026-09-22 15:50: Batch 476 — Boosters removed from special vehicles
 
 Direct request, and the reasoning is airtight: boosters only ever render during a jump, and no special vehicle jumps — they have no ability, a ram, or the launch. So the Garage's BOOST TYPE picker was offering equipment that could never appear on the road.

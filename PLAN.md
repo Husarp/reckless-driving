@@ -6,12 +6,7 @@ completed item's story is in CHANGELOG.md.
 
 ## Open
 
-- [ ] **"15 stats feels like a lot" — the Stats screen redesign.** The 14 tiles: BEST SCORE,
-  PERFORMANCE SCORE, RUNS PLAYED, TOTAL SCORE, AVG SCORE, CLOSE CALLS, BEST CLOSE CALLS (RUN),
-  VEHICLES DODGED, TOTAL COINS, TOTAL PLAY TIME, LONGEST SURVIVAL, AVG RUN, RUNS TODAY, DAYS PLAYED.
-  Direction under discussion (2026-09-22): grouped panels rather than tabs/expanders/removal —
-  a 2-tile hero row (BEST SCORE + PERFORMANCE SCORE), then one panel per theme: SCORING,
-  SURVIVAL, TOTALS, HABIT. Awaiting the user's pick between the floated options.
+- [x] **DONE (2026-09-22, Batch 477, v3.3.0)** — hero row (BEST SCORE + PERFORMANCE SCORE) plus SCORING / SURVIVAL / TOTALS / HABIT ledger panels; all 15 stats kept, nothing hidden.
 
 - [ ] **Better achievement icons.** 57 achievements share a 6-shape icon set (`ACH_ICONS`: car,
   star, road, clock, bus, lock), so most cards repeat one of six pictures. Check the archived
