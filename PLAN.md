@@ -28,6 +28,20 @@ completed item's story is in CHANGELOG.md.
   Measured then: 0 crashes in 5 simulated minutes at 4 lanes/RECKLESS. `NPC_INATTENTIVE_CHANCE`
   (0.10) is the tuning knob, or re-scope the mission.
 
+- [ ] **Badge idea (secret): bump the ambulance.** User's idea, 2026-09-23. Note before building it:
+  ambulances are currently EXEMPT from the BUMPER CAR's launch for the same reason they are exempt
+  from ramming — instant death is the ambulance's whole identity, and the launch branch skips them
+  explicitly. So this needs a deliberate decision first: either carve out an exception so the bumper
+  (and only the bumper) can launch one, or scope the badge to something else that counts as
+  "bumping" it. Pairs with the existing BAD SAMARITAN (deliberately ram an ambulance) and
+  CEASE AND DESIST (silence one with the Tank).
+
+- [ ] **Better ability display/indicator in the Garage.** User's idea, 2026-09-23. The card currently
+  states the ability as a text row (`abilityLabelFor()` — JUMP / SHIELD BUMP / TANK SHOT / BUMPER
+  LAUNCH / none), which reads as a spec-sheet line rather than as the thing that most changes how a
+  car plays. Wants it to actually communicate. Worth checking the archived design docs first, as the
+  booster picker did.
+
 ## Standing conventions
 
 - [ ] **After any notable batch, update the game's own ABOUT/tutorial.** Two halves: refresh the

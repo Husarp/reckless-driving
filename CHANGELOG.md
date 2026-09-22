@@ -6,6 +6,206 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.7.11 — 2026-09-23 03:05: Batch 499 — Ability badges, and two special vehicles resized
+
+### Ability badges in the Garage
+
+Ported from `Ability Badges.dc.html`: a 13x13 badge with a bevel (light along the top and left, dark along the bottom and right), rounded pixel corners, and a 7x7 glyph knocked out of the middle. Four of them — JUMP (blue arrow), RAM (red impact star), SHOOT (purple crosshair), BUMP (amber shield).
+
+They replace a small orange **text** chip that read RAM or SHOOT and appeared only on ram cars — so jump and the bumper's launch, most of the roster, had no indicator at all. Which badge a car wears runs through the same precedence as `carAbilityLabel()`, deliberately: those two disagreeing is exactly the drift that function exists to prevent.
+
+**Not scaled down**, as asked. `abilityBadgeCssPx()` picks a size that puts a whole number of physical pixels on every badge pixel, the same fix Batch 498 applied to the achievement icons — 20.8px at DPR 1.25, which is exactly 2 physical pixels each.
+
+A naive port emitted 165 rects per badge, and at ~58 Garage tiles that is nearly ten thousand DOM nodes; horizontal runs of one colour are merged, which is lossless for flat pixel art and brings it to 68-84.
+
+### GIANT SNAIL at 50%, SHIP at 75%
+
+`spriteScale` shrinks a car's art **and its hitbox together** — a smaller sprite in a full-size box is exactly the mismatch Batch 493 was spent removing from this same snail.
+
+Only 0.75 and 0.5 are legal, and that is not a style choice: the blit must stay on whole device pixels or the sprite blurs (Batch 461, 498). At the normal 3x world that means 4 device pixels per sprite pixel, so 0.75 gives 3 and 0.5 gives 2. Anything between is a fractional resample, which is why "a little bit smaller" was never available.
+
+| | before | after | ds | on-road size |
+|---|---|---|---|---|
+| GIANT SNAIL | 100% | **50%** | 2 | 21x43 -> **11x21px** |
+| SHIP | 100% | **75%** | 3 | 21x80 -> **16x60px** |
+
+### Multipliers follow real size, with one deliberate exception
+
+`vehicleMultiplierBonus()` now measures the car's actual on-road size, so `spriteScale` feeds straight in — a physically smaller car is genuinely easier to thread through traffic, and the multiplier is the reward for the opposite.
+
+That alone would have taken the snail from **x1.118 to x0.839**, a 25% cut, which is too harsh for the one big vehicle that has **no ability at all** to fall back on. A new `multBonus` field carries a flat **+0.20** for it, landing it at **x1.039** — a small drop rather than a gutting, as asked. The ship keeps its ability, so its multiplier takes the full change: **x1.815 -> x1.352**.
+
+## 3.7.10 — 2026-09-23 02:15: Batch 498 — Award icons land on whole pixels
+
+Direct report: the award icons look "like someone drew them while holding the paper on the knee... comically bad."
+
+**It was scaling, not drawing.** The icons were emitted at a flat 16 CSS px, which is only sharp when a CSS pixel is a whole number of *physical* pixels. At 125% Windows scaling — `devicePixelRatio` 1.25, an extremely common setting — 16 CSS px is **20 physical**, so each icon pixel covers **1.25** physical pixels and its edges land mid-pixel: a rect at x=7 starts at 8.75, one at x=13 at 16.25. Those have to be smeared across two pixels.
+
+What made it read as *bad drawing* rather than *bad scaling* is that it was uneven: a rect at x=0 width 4 lands exactly on 0 and 5, so some strokes stayed crisp while their neighbours blurred. Wobbly, not soft.
+
+The size is now chosen so a whole number of physical pixels covers each icon pixel, whatever the display is doing — try 1, 2, 3... physical pixels per icon pixel, keep the largest that still fits the 30px box, prefer the one nearest a comfortable 22px:
+
+| devicePixelRatio | icon size | physical px per icon pixel |
+|---|---|---|
+| 1.0 | 16px | 1 |
+| **1.25 (the reported machine)** | **25.6px** | **2** — was 1.25 |
+| 1.5 / 1.75 | 21.3 / 18.3px | 2 |
+| 2.0 | 24px | 3 |
+| 2.625 / 3.0 (Android densities) | 24.4 / 21.3px | 4 |
+
+Every case is a whole number and every case fits the box. Verified live at 1.25: 25.6 CSS px, 32 physical, exactly 2 per icon pixel. The icons also fill their box properly now instead of floating at 16px inside 30.
+
+Recomputed on each render, so dragging the window to a monitor with different scaling is picked up next time the screen opens.
+
+This is the third time non-integer scaling of pixel art has caused a "quality" complaint — Batch 413's gear, Batch 461's vehicle sprites, now these. The rule holds: a fractional scale can only blur or deform.
+
+## 3.7.9 — 2026-09-23 01:50: Batch 497 — The snail's trail is a high-speed effect again
+
+Changed mind, reversing Batch 484: the trail appears only **above 200 km/h**.
+
+`SNAIL_TRAIL_FULL_KMH` had to move with the floor. It was 160 — *below* the new 200 — and the ramp is `(kmh - MIN) / (FULL - MIN)`, so leaving it there would have divided by **-40** and inverted the entire brightness curve: brightest at the threshold, fading as you sped up. It is now 250, the GIANT SNAIL's real top speed, so the beam fades in at 200 and peaks at 250 across exactly the band the snail can reach.
+
+The Batch 484 run-start seeding is gone with it. A run begins at 50 km/h, so seeded points would have been reeled back in one per frame on the first frame — a trail that appears and then visibly retracts, which is worse than never drawing one.
+
+Measured: nothing at 120, 190 or **199**; present from **210** through 250; nothing at a run start.
+
+## 3.7.8 — 2026-09-23 01:20: Batch 496 — A bumped car finally goes where it was hit
+
+Direct report, with a diagram: "if you bump into the car from behind, the car is supposed to go flying forward. If you bump it from the side, it should go to the opposite direction. Right now the cars just start teleporting around the map for half a second, which looks very wrong."
+
+**Every version of this, mine included, ignored where the hit came from.** The launch was always a fixed sideways kick plus a fixed upward one — so a car struck squarely from behind was still thrown diagonally, and the direction never had anything to do with the bump. Batch 494 restoring the original's force made it *more* obvious, not less: it now flew hard in a direction that made no sense, which is what reads as teleporting.
+
+The launch is now simply the **impact vector** — centre-to-centre, normalised, at a fixed speed:
+
+| where the car is when hit | heading (0 = straight up the road) | spin |
+|---|---|---|
+| directly ahead — a rear-end | **0.0°** | **0** |
+| beside, to the right | +88.7° | +0.22 |
+| beside, to the left | −91.3° | −0.22 |
+| ahead and right | +46.0° | +0.16 |
+| ahead and left | −45.5° | −0.16 |
+
+Speed is a constant **8.1** in every case — deliberately the magnitude the original Batch 446 launch threw at (`sqrt(3² + 7.5²)`), so the force is unchanged and only its direction is corrected.
+
+Spin now comes only from the **sideways** part of the hit, so a square rear-end sends the car off straight and unspinning. The tumbling was a large part of what made the old behaviour look chaotic: a car could be thrown one way while rotating another, with neither matching the collision.
+
+`LAUNCH_SPEED` is the single knob if 8.1 still reads too fast.
+
+## 3.7.7 — 2026-09-23 00:45: Batch 495 — Info box stops getting cut off, and stops breaking on phones
+
+### The tooltip is clamped to the screen
+
+Direct report with a screenshot: the PERFORMANCE SCORE info box was clipped along its top edge.
+
+`showLbTip()` did no viewport work at all — it took left/top straight from the anchor, and the CSS added `transform: translate(-50%, -100%)`, so the `top` it set was really the box's **bottom** edge. Anchored near the top of the window, as that element is, the box simply sat above the viewport.
+
+It now uses the algorithm the Garage card has always had: show first so it can be **measured**, prefer above, flip below when there is no room, then clamp on both axes. The transform is gone, because a half-measured position plus a transform is what made this hard to see in the first place.
+
+Verified against a fixed 900x600 viewport, all five fully on screen:
+
+| anchor | result |
+|---|---|
+| near top (the reported case) | flips **below**, top 48 |
+| middle | above the anchor |
+| near left edge | clamped to x=8 |
+| near right edge | clamped to right 892 |
+| near bottom | above |
+
+### The same tooltip was permanently breaking itself on mobile
+
+Asked whether these work on touch: they do — a tap fires a synthetic `mouseenter` so the box opens, and Batch 478 added a capture-phase `touchstart` that closes anything open when you tap elsewhere. But that dismissal listed `lbTooltip` among boxes it hides with `style.display = 'none'`, and this one is shown by adding a `.show` **class**. So `style.display` was always `''`, the `!== 'none'` guard always passed, and it wrote an inline `display:none` that overrides the class — **after the first tap anywhere, the leaderboard and stats tooltips could never open again for the rest of the session.**
+
+It is dismissed through `hideLbTip()` now. Demonstrated both ways: with the old line, reopening returns `display: none` forever; with the fix it shows, dismisses, and reopens, leaving no inline style behind.
+
+### The other four info boxes were fine
+
+Checked all of them, since the report asked. The missions, sweeps and both DROP CHANCES tips share `.dg-drop-chances-tip`, which is `position: absolute` pinned inside its own panel (`left: 14px; right: 14px`) — structurally unable to leave the screen. The Garage car card and the booster preview already measure and clamp. `lb-tooltip` was the only one floating free.
+
+### Achievement wording
+
+Five descriptions rewritten as dictated: PERFECT DAY "Complete all daily challenges in one day.", FULL WARDROBE "Own every cosmetic in the game.", NOT MY FAULT "Witness a car crash.", FULL CIRCLE "Click your level badge for a surprise.", TOO CLOSE, TOO CARING "Get a close call with an ambulance." No stale wording left in the file.
+
+## 3.7.6 — 2026-09-23 00:10: Batch 494 — The bumper throws properly again
+
+### Launch force restored to the original
+
+Direct report: "bumping still doesn't work... the first time you implemented it, it worked perfectly — the car just went flying straight in the opposite direction from what it was bumped. Right now it is just doing something weird."
+
+Checked against the original in git rather than guessed at, and the regression is mine:
+
+| | sideways (vx) | up (vy) | angle off vertical |
+|---|---|---|---|
+| Batch 446 — the original | ±2.2 to 3.8 | −6 to −9 | **~22°** |
+| Batch 475 | ±1.1 to 1.8 | −6.5 to −8 | ~13° |
+| Batch 484 — mine | ±1.4 | −7.2 | **~11°** |
+
+Batch 475's complaint was that the launch direction was **random**; Batch 484 fixed that by removing the randomness — and then also halved the force, which nobody asked for. At 11° off vertical a launched car barely deflects, so nothing reads as having been knocked aside: it just drifts up the screen. That is the "weird".
+
+The original magnitudes are back — `vx ±3.0`, `vy −7.5`, spin 0.25 — while staying fully deterministic: one speed, one direction, away from the bumper, tumble following the throw. Batch 484's constant velocity stays, because "flying **straight**" is the ask and the pre-484 per-frame gravity is what bent every launch into an arc.
+
+Verified in a real launch from both sides: fires on a full bar (energy 100 → 0), car to the player's right thrown `vx +3`, to the left `vx −3`, `dx`/`dy` identical every frame, 21.8° — matching the original's 21.8°.
+
+### The "BUMPED" caption is gone
+
+Points only, matching the jump-over and ram popups that lost their captions in Batch 484. This one was simply missed then.
+
+### Sound: investigated, and the game is not at fault
+
+Reported as no music and no sound at all. Checked end to end on a **cleared profile**: defaults come up at sound 0.3 / music 0.5, `soundEnabled` true, the AudioContext reaches `running` at 48 kHz, and a real run creates 4 oscillators and 7 gain nodes, **all above zero**, with music running.
+
+Also ruled out from the build side: the testing mute-hook only prints a snippet and never edits the game, there is no hardcoded mute anywhere in the source, and the shipped APK was searched for one and contains **zero**. `soundVolume` is only ever written by the two volume sliders — no code path sets it to 0 on its own.
+
+So a silent install means the stored value is 0 on that machine. Worth knowing: the one-time migration that clears a legacy `soundVolume=0` is guarded by `soundDefaultMigrated`, so once it has run, a 0 stays 0 forever by design — correct for a deliberate choice, indistinguishable from an accidental one.
+
+## 3.7.5 — 2026-09-22 23:30: Batch 493 — The GIANT SNAIL's hitbox now fits the snail
+
+Direct report: "snail's hitbox is not tight — I often crash by touching an NPC with the front of the snail even though I'm not touching."
+
+**The box was four units wider than the animal.** Measured from the sprite's own alpha, the snail's widest row is **16 units**; `hitboxW` was **20**. Since the draw offset centres the sprite in its box, that put **2 units — 2.67px — of phantom collision down each flank, for the snail's entire length**. Narrowed to 16, taken from the sprite rather than guessed:
+
+| | hitbox | sprite | dead space each side |
+|---|---|---|---|
+| before | 20 | 16 | 2.67px |
+| after | **16** | 16 | **0** |
+
+Verified by replicating the game's own placement (`-carLocalX53(hitboxW)`) offscreen, where nothing scrolls. A first attempt measured this live by diffing two frames and was worthless — the world advances between captures, so it caught the scrolling road and the snail's own trail as "sprite".
+
+**The front is better but not perfect, and that part is geometry.** The snail is widest across the shell and tapers at both ends, so a rectangle cannot hug it everywhere:
+
+| along the body | sprite width | slack each side |
+|---|---|---|
+| nose (rows 0-5) | 8-10 | 4.0-5.3px |
+| shell (row 16) | 14 | 1.3px |
+| tail (rows 29-31) | 4 | 8px |
+
+Only 3 of its 32 rows are a perfect fit. This batch roughly halves the nose slack — it was ~6.7-8px, it is now 4-5.3px — but a rectangular hitbox on a tapered sprite always leaves the corners. Closing the rest would mean shortening `h` so the narrow head rows stop colliding, which trades the phantom hits for a head that visibly passes through cars; not done without asking.
+
+## 3.7.4 — 2026-09-22 23:05: Batch 492 — Version number back in the bottom-right corner
+
+Direct request, and it turned out to be a leftover from Batch 489 rather than a preference.
+
+The menu footer is `justify-content: space-between`, which only puts the version on the right while something else occupies the left — and Batch 489 hid the DEV label. With one child left, space-between parks it against the LEFT edge. Measured before the fix: **0px from the left, 371px from the right**.
+
+`margin-left: auto` on `#menuVersion` pins it right regardless of whether DEV is showing. Verified both ways: version 0px from the right in each, and DEV still at 0px from the left when it is visible.
+
+## 3.7.3 — 2026-09-22 22:50: Batch 491 — The tap stutter I introduced last batch
+
+Direct report: with fast lane switching on, a single quick tap "staggers, it's not smooth at all" — not while holding, only on a quick click.
+
+**My own fix caused it.** Batch 489 stopped the post-release glide to cure the two-lane overshoot, but left the SNAP behind the 80ms grace timer. During a hold `targetX` is pinned to the car's own position, so between the key coming up and the timer firing the lerp had nothing to move toward: the car stopped dead. Traced at top speed, px per frame across a 60ms tap:
+
+    3.73, 3.73, 0, 0, 0, 0, 5.86, 4.10, 2.87, ...
+
+Four frozen frames — 67ms — then a lurch faster than the glide it interrupted. Exactly a stagger.
+
+The target is now set the instant the key comes up, so the lerp continues straight out of the glide. Same trace after:
+
+    3.73, 3.73, 3.73, 3.73, 3.62, 2.53, 1.77, 1.24, ...
+
+The overshoot fix is untouched, because that came from continuing to *glide*, which still stops on release. The grace timer survives with one job left: marking the window in which a re-press counts as continuing the same gesture.
+
+Measured across 40/60/100/150/250/400/600/900ms holds, both settings: **zero mid-motion stalls**, taps up to 250ms still move exactly one lane, and longer holds still sweep 2, 3 and 4. (Trailing zero-movement frames are the car having arrived and stopped — the first pass at this measurement counted those as stalls and had to be corrected.)
+
 ## 3.7.2 — 2026-09-22 22:15: Batch 490 — An update you can actually act on, and a tutorial that knows about it
 
 ### "It says there's an update but gives me no button"

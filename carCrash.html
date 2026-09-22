@@ -646,17 +646,15 @@
             position: relative;
         }
         /* Garage ability indicator, per the earlier design discussion: a small corner badge only on the ram-capable cars (marking the exception, not every card — Jump is universal so doesn't need marking). */
+        /* Batch 499: holds the pixel badge now, not an orange text chip. No background, border or
+           padding of its own - the badge art carries its own outline and bevel, and wrapping it in a
+           second border was what made the old one read as a sticker rather than part of the tile. */
         .car-tile-ability-badge {
             position: absolute;
             top: -6px; right: -6px;
-            background: #ff9f1a;
-            color: #1a1200;
-            font-family: 'Silkscreen', monospace;
-            font-size: 7px;
-            letter-spacing: .5px;
-            padding: 2px 4px;
-            border: 2px solid #fff;
-            box-shadow: 1px 1px 0 #000;
+            display: block;
+            line-height: 0;
+            filter: drop-shadow(1px 1px 0 rgba(0,0,0,.6));
             pointer-events: none;
             z-index: 2;
         }
@@ -811,7 +809,8 @@
             box-shadow: 3px 3px 0 rgba(0,0,0,.6);
             pointer-events: none;
             z-index: 200;
-            transform: translate(-50%, -100%);
+            /* Batch 495: no transform. showLbTip() measures and clamps against the viewport, which it
+               can only do if left/top mean the tooltip's actual top-left corner. */
         }
         .lb-tooltip.show { display: block; }
 
@@ -1854,6 +1853,12 @@
         .mm-badge-blue { background: #4d9fff; }
         .mm-badge-green { background: var(--c-mint); color: #10221c; }
         .mm-footer { display: flex; justify-content: space-between; font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; color: var(--c-text-dimmer); padding-top: 10px; }
+        /* Batch 492: the version is pinned to the right rather than relying on `space-between`.
+           That rule only puts it there while something else is on the left, and Batch 489 hid the DEV
+           label - leaving one child, which space-between parks against the LEFT edge. Measured before
+           this: 0px from the left, 371px from the right. `margin-left: auto` holds it right whether or
+           not DEV is showing. */
+        .mm-footer #menuVersion { margin-left: auto; }
     </style>
 </head>
 <body class="booting">
@@ -1932,7 +1937,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.11</span></div>
                 </div>
             </div>
         </div>
@@ -4561,7 +4566,11 @@
         vehBuf.width = 70;    // 2x20 pad + 30 native; widest hitbox is 22
         vehBuf.height = 150;  // 2x40 pad + 70 native; tallest car is the SHIP at 60
         const vehBufCtx = vehBuf.getContext('2d');
-        function drawScaledVehicle(gctx, x, y, width, height, drawFn, angle) {
+        // Batch 499: `spriteScale` shrinks a car's art and its hitbox together. It must keep `ds` a
+        // WHOLE number or the sprite blurs (Batch 461/498) - at the normal 3x world that means 4 device
+        // pixels per sprite pixel, so only 0.75 (ds 3) and 0.5 (ds 2) are legal. Anything else is a
+        // fractional resample and looks worse, which is why "a little bit smaller" is not on the menu.
+        function drawScaledVehicle(gctx, x, y, width, height, drawFn, angle, spriteScale) {
             const b = vehBufCtx;
             b.setTransform(1, 0, 0, 1, 0, 0);
             b.clearRect(0, 0, vehBuf.width, vehBuf.height);
@@ -4582,7 +4591,7 @@
                 // no deformation. For a 1x context (the crushed-wreck buffer) ds is 4/3 and the resample
                 // returns, which is acceptable there: wrecks are blurred and darkened by design.
                 const m = gctx.getTransform();
-                const ds = m.a * CAR_SCALE;
+                const ds = m.a * CAR_SCALE * (spriteScale || 1);
                 gctx.save();
                 gctx.setTransform(1, 0, 0, 1, 0, 0);
                 gctx.imageSmoothingEnabled = ds % 1 !== 0;
@@ -6483,7 +6492,12 @@
             // other two combined. A 60px box-exclusive breaks that by 3%, knowingly - it follows the
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
-            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
+            // Batch 493, direct report: "snail's hitbox is not tight - I often crash by touching an NPC
+            // with the front of the snail even though I'm not touching". Measured: the box was 20 units
+            // while the sprite's widest row is 16, so ~2 units of phantom collision sat down each flank
+            // for the snail's whole length. 16 is the sprite's real maximum width, taken from its own
+            // alpha rather than guessed.
+            { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 16, spriteScale: 0.5, multBonus: 0.20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
             // Batch 484, direct report: the SHIP "gets a super lot of close calls because it just drives
             // near the cars with its big hitbox". Measured: at 22 wide in a 27px lane it needed only 6px
             // of drift to reach the close-call band where a normal car needs 10px, and its 60px length
@@ -6491,7 +6505,7 @@
             // driving. Narrowed to 16 by direct choice. The length is deliberately left alone: cutting
             // that would let cars pass through the bow and stern. The hull is still wider than 16, so
             // traffic can now overlap its edges slightly without crashing - the accepted trade.
-            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 16, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
+            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 16, spriteScale: 0.75, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
             { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
@@ -6575,11 +6589,96 @@
         // One place that answers "what can this car do", so the hover card, the Garage tile and anything
         // added later cannot drift apart. Mirrors the same precedence launchGame() uses to set
         // config.ability, deliberately: if these two ever disagree, the card lies about the car.
+        // Batch 499: how much of full size a car's sprite and hitbox are drawn at. Only 1, 0.75 and
+        // 0.5 keep the blit on whole device pixels; see drawScaledVehicle.
+        function carSpriteScale(car) { return (car && car.spriteScale) || 1; }
         function carAbilityLabel(car) {
             if (car.launchAbility) return 'BUMPER LAUNCH';
             if (car.ramAbility) return car.key === 'tank' ? 'TANK SHOOT' : 'SHIELD BUMP';
             if (car.noAbility) return 'NONE';
             return 'JUMP';
+        }
+
+        // ---------- Batch 499: ability badges, ported from 'Ability Badges.dc.html' ----------
+        // The Garage used to mark abilities with a small orange text chip reading RAM or SHOOT, and
+        // only on ram cars - jump and the bumper's launch got nothing at all, which is most of the
+        // roster. These are the doc's own badges: a 13x13 tile with a bevel (light along the top and
+        // left, dark along the bottom and right), the four corner pixels dropped for a rounded look,
+        // and a 7x7 glyph knocked out of the middle in the background colour.
+        //
+        // Deliberately NOT scaled down: like the achievement icons, these are pixel art, and a
+        // fractional scale can only blur or deform them (Batch 498). abilityBadgeCssPx() picks a size
+        // that puts a whole number of PHYSICAL pixels on every badge pixel, whatever the display does.
+        const ABILITY_BADGE_INK = '#12161f';
+        const ABILITY_BADGE_GLYPHS = {
+            jump:  ['...#...', '..###..', '.#####.', '#######', '..###..', '..###..', '..###..'],
+            ram:   ['...#...', '...#...', '..###..', '#######', '..###..', '...#...', '...#...'],
+            shoot: ['..###..', '.#...#.', '#..#..#', '#.###.#', '#..#..#', '.#...#.', '..###..'],
+            bump:  ['#######', '#######', '#######', '#######', '.#####.', '..###..', '...#...']
+        };
+        const ABILITY_BADGE_COLORS = {
+            jump:  { main: '#4d9fff', light: '#9ccaff', dark: '#2c6fc4' },
+            ram:   { main: '#e63946', light: '#ff8a93', dark: '#a8212c' },
+            shoot: { main: '#c060ff', light: '#e0a8ff', dark: '#8a33c4' },
+            bump:  { main: '#f5b32a', light: '#ffd97a', dark: '#b87c0a' }
+        };
+        // Which badge a car wears. Same precedence as carAbilityLabel() above, on purpose - one of
+        // these lying about a car is exactly the drift that function exists to prevent.
+        function carAbilityBadgeKind(car) {
+            if (car.launchAbility) return 'bump';
+            if (car.ramAbility) return car.key === 'tank' ? 'shoot' : 'ram';
+            if (car.noAbility) return null;
+            return 'jump';
+        }
+        // The doc's own build(), then merged into runs: a naive port emits 165 rects per badge, and at
+        // ~58 Garage tiles that is nearly ten thousand DOM nodes. Horizontal runs of one colour collapse
+        // to a single rect, which is lossless for flat pixel art.
+        const abilityBadgeRectCache = {};
+        function abilityBadgeRects(kind) {
+            if (abilityBadgeRectCache[kind]) return abilityBadgeRectCache[kind];
+            const glyph = ABILITY_BADGE_GLYPHS[kind], col = ABILITY_BADGE_COLORS[kind];
+            const out = [];
+            for (let y = 0; y < 13; y++) {
+                let runStart = -1, runColor = null;
+                const flush = (endX) => {
+                    if (runStart >= 0) out.push([runStart, y, endX - runStart, 1, runColor]);
+                    runStart = -1; runColor = null;
+                };
+                for (let x = 0; x < 13; x++) {
+                    let c = null;
+                    const corner = (x === 0 || x === 12) && (y === 0 || y === 12);
+                    if (!corner) {
+                        if (x === 0 || y === 0 || x === 12 || y === 12) c = ABILITY_BADGE_INK;
+                        else if (x >= 3 && x <= 9 && y >= 3 && y <= 9 && glyph[y - 3][x - 3] === '#') c = ABILITY_BADGE_INK;
+                        else if (y === 1 || x === 1) c = col.light;
+                        else if (y === 11 || x === 11) c = col.dark;
+                        else c = col.main;
+                    }
+                    if (c !== runColor) { flush(x); if (c) { runStart = x; runColor = c; } }
+                }
+                flush(13);
+            }
+            abilityBadgeRectCache[kind] = out;
+            return out;
+        }
+        const ABILITY_BADGE_UNITS = 13, ABILITY_BADGE_MAX_CSS = 28, ABILITY_BADGE_TARGET_CSS = 20;
+        function abilityBadgeCssPx() {
+            const dpr = window.devicePixelRatio || 1;
+            let best = ABILITY_BADGE_UNITS / dpr;
+            for (let k = 1; k <= 8; k++) {
+                const css = ABILITY_BADGE_UNITS * k / dpr;
+                if (css > ABILITY_BADGE_MAX_CSS) break;
+                if (Math.abs(css - ABILITY_BADGE_TARGET_CSS) < Math.abs(best - ABILITY_BADGE_TARGET_CSS)) best = css;
+            }
+            return best;
+        }
+        function abilityBadgeSvg(kind) {
+            if (!kind || !ABILITY_BADGE_GLYPHS[kind]) return '';
+            const rects = abilityBadgeRects(kind)
+                .map(r => `<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" fill="${r[4]}"></rect>`)
+                .join('');
+            const px = abilityBadgeCssPx();
+            return `<svg width="${px}" height="${px}" viewBox="0 0 13 13" shape-rendering="crispEdges">${rects}</svg>`;
         }
         // Batch 460, direct list: vehicles that have no rear lamps in their own art must not sprout a
         // brake glow when you slow down. Open-wheel racers run a single rain light at most and none of
@@ -8262,7 +8361,7 @@
                 // blocked on the effects system existing, but nothing about it needs to wait: when effects
                 // land, they get their own `every()` clause here and the achievement widens by one line.
                 // isFlameUnlocked() covers both gates a booster can have - the level one and the bought one.
-                { id: 'full_wardrobe', icon: 'full_wardrobe', name: 'FULL WARDROBE', desc: 'Own every paint colour and every booster in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
+                { id: 'full_wardrobe', icon: 'full_wardrobe', name: 'FULL WARDROBE', desc: 'Own every cosmetic in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
                 { id: 'car_fanatic', icon: 'car_fanatic', name: 'CAR FANATIC', desc: 'Take a run in this many different cars.', v: Object.keys(allTimeStats.carStats).filter(k => allTimeStats.carStats[k].runs >= 1).length, unit: 'CARS DRIVEN', tiers: [['bronze', 15], ['silver', 35], ['gold', 52]] },
                 { id: 'i_am_speed', icon: 'i_am_speed', name: 'I AM SPEED', desc: 'Reach a top speed, like Sonic himself.', v: allTimeStats.bestTopSpeedKmh, unit: 'KM/H', tiers: [['bronze', 150], ['silver', 200], ['gold', 250]] },
                 { id: 'high_roller', icon: 'high_roller', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 3], ['silver', 4.5], ['gold', 6], ['diamond', 7.5]] },
@@ -8271,7 +8370,7 @@
                 // statement about the other achievements, so computing it cannot fall out of sync.
                 { id: 'nothing_left_hidden', icon: 'nothing_left_hidden', name: 'NOTHING LEFT HIDDEN', desc: 'Unlock every secret achievement.', once: true, tier: 'amethyst', done: ACH_SECRETS().every(a => a.done) },
                 // Batch 438 — all three daily systems cleared on the same calendar day.
-                { id: 'perfect_day', icon: 'perfect_day', name: 'PERFECT DAY', desc: 'Claim the Daily Gift, complete the Daily Word and clear all six Daily Missions, in one day.', once: true, tier: 'gold', done: isPerfectDayDone() },
+                { id: 'perfect_day', icon: 'perfect_day', name: 'PERFECT DAY', desc: 'Complete all daily challenges in one day.', once: true, tier: 'gold', done: isPerfectDayDone() },
                 { id: 'nothing_to_see_here', icon: 'nothing_to_see_here', name: 'NOTHING TO SEE HERE', desc: 'Jump clean over a broken-down car.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.nothing_to_see_here },
                 { id: 'clear_way', icon: 'clear_way', name: 'CLEAR THE WAY', desc: 'Jump clean over an ambulance.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.clear_way },
                 { id: 'jackpot', icon: 'jackpot', name: 'JACKPOT', desc: 'Win a car from an Extra Box or the Daily Word.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.jackpot },
@@ -8282,7 +8381,7 @@
                 { id: 'what_a_monster', icon: 'what_a_monster', name: 'WHAT A MONSTER', desc: 'Spot the Monster Truck for the first time.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.what_a_monster },
                 { id: 'adventuring_time', icon: 'adventuring_time', name: 'ADVENTURING TIME', desc: `Pass through all ${BIOME_DEFS.length} biomes in a single run.`, once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.adventuring_time },
                 { id: 'reckless_driver', icon: 'reckless_driver', name: 'TRULY A RECKLESS DRIVER', desc: 'Get 10 close calls in a single run.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.reckless_driver },
-                { id: 'not_my_fault', icon: 'not_my_fault', name: 'NOT MY FAULT', desc: 'Witness two other cars crash into each other.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.not_my_fault },
+                { id: 'not_my_fault', icon: 'not_my_fault', name: 'NOT MY FAULT', desc: 'Witness a car crash.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.not_my_fault },
                 { id: 'early_bird', icon: 'early_bird', name: 'EARLY BIRD', desc: 'Start a run between 6 and 7 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.early_bird },
                 { id: 'night_owl', icon: 'night_owl', name: 'NIGHT OWL', desc: 'Start a run between midnight and 3 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.night_owl },
                 { id: 'two_of_a_kind', icon: 'two_of_a_kind', name: 'TWO OF A KIND', desc: 'Have 2 ambulances on screen at the same time.', once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.two_of_a_kind },
@@ -8312,7 +8411,7 @@
 
         function ACH_SECRETS() {
             return [
-            { id: 'full_circle', icon: 'full_circle', name: 'FULL CIRCLE', desc: 'Click your level badge and watch the ring go all the way round.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
+            { id: 'full_circle', icon: 'full_circle', name: 'FULL CIRCLE', desc: 'Click your level badge for a surprise.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
             { id: 'the_destroyer', icon: 'the_destroyer', name: 'THE DESTROYER', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.the_destroyer },
             { id: 'pull_up_pull_up', icon: 'pull_up_pull_up', name: 'PULL UP! PULL UP!', desc: 'Land a mistimed jump and crash right into the car below you.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.pull_up_pull_up },
             { id: 'no_school_today', icon: 'no_school_today', name: 'NO SCHOOL TODAY', desc: 'Crash into the school bus.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.no_school_today },
@@ -8321,7 +8420,7 @@
             { id: 'didnt_even_try', icon: 'didnt_even_try', name: "DIDN'T EVEN TRY", desc: 'End a run with exactly 0 score.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.didnt_even_try },
             { id: 'over_before_it_started', icon: 'over_before_it_started', name: 'OVER BEFORE IT STARTED', desc: 'Crash within 5 seconds of starting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.over_before_it_started },
             { id: 'cease_and_desist', icon: 'cease_and_desist', name: 'CEASE AND DESIST', desc: 'Using the mighty power of the Tank, silence the ambulance for good.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cease_and_desist },
-            { id: 'too_close_too_caring', icon: 'too_close_too_caring', name: 'TOO CLOSE, TOO CARING', desc: 'Get a close call specifically with an ambulance.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.too_close_too_caring },
+            { id: 'too_close_too_caring', icon: 'too_close_too_caring', name: 'TOO CLOSE, TOO CARING', desc: 'Get a close call with an ambulance.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.too_close_too_caring },
             { id: 'back_to_back', icon: 'back_to_back', name: 'BACK TO BACK', desc: 'Get two close calls back-to-back.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.back_to_back },
             { id: 'dripped_out', icon: 'dripped_out', name: 'DRIPPED OUT', desc: 'Drive a legendary car with a non-default paint and booster together.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.dripped_out },
             { id: 'just_in_time', icon: 'just_in_time', name: 'JUST IN TIME', desc: 'Complete the Daily Word in the last minute before reset.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.just_in_time },
@@ -8410,11 +8509,38 @@
         function coinDisplay(n) {
             return (selectAbbrMoney && selectAbbrMoney.value === 'no') ? n.toLocaleString('en-US') : coinAbbr(n);
         }
+        // Batch 498, direct report: the award icons look "like someone drew them while holding the
+        // paper on the knee". They were drawn at a flat 16 CSS px, which is only sharp when a CSS
+        // pixel is a whole number of PHYSICAL pixels. At 125% Windows scaling - devicePixelRatio 1.25,
+        // an extremely common setting - 16 CSS px is 20 physical, so each icon pixel is 1.25 physical
+        // pixels and its edges land mid-pixel: x=7 became 8.75, x=13 became 16.25. The browser has to
+        // smear those across two pixels. Some rects happened to land clean (x=0, width 4 -> 0 and 5),
+        // which is why it read as unevenly wobbly rather than uniformly soft - the worst kind of blur,
+        // because it looks like bad drawing rather than bad scaling.
+        //
+        // The size is now chosen so a whole number of physical pixels covers each icon pixel, whatever
+        // the display is doing: try k = 1, 2, 3... physical pixels per icon pixel, keep the largest
+        // that still fits the 30px box, and prefer the one closest to a comfortable 22px. At DPR 1 that
+        // is 16px exactly as before; at 1.25 it is 25.6px (2 physical pixels per icon pixel); at 2 it is
+        // 24px (3 each). Recomputed on every render, so moving the window to a different monitor is
+        // picked up the next time the screen is opened.
+        const ACH_ICON_UNITS = 16, ACH_ICON_MAX_CSS = 26, ACH_ICON_TARGET_CSS = 22;
+        function achIconCssPx() {
+            const dpr = window.devicePixelRatio || 1;
+            let best = ACH_ICON_UNITS / dpr;                  // k = 1
+            for (let k = 1; k <= 8; k++) {
+                const css = ACH_ICON_UNITS * k / dpr;
+                if (css > ACH_ICON_MAX_CSS) break;
+                if (Math.abs(css - ACH_ICON_TARGET_CSS) < Math.abs(best - ACH_ICON_TARGET_CSS)) best = css;
+            }
+            return best;
+        }
         function achIconSvg(name, color) {
             const rects = (ACH_ICONS[name] || ACH_ICONS.car)
                 .map(r => `<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" fill="${r[4] ? 'var(--c-night)' : color}"></rect>`)
                 .join('');
-            return `<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">${rects}</svg>`;
+            const px = achIconCssPx();
+            return `<svg width="${px}" height="${px}" viewBox="0 0 16 16" shape-rendering="crispEdges">${rects}</svg>`;
         }
         // Small pixel-art gear/cog, same construction as achIconSvg above (flat rects, a cut-out
         // hole in the background color) — the number-display settings trigger, direct request:
@@ -9117,8 +9243,11 @@
             constructor() {
                 // hitbox now derives automatically from each car's own real dimensions instead of a fixed size most cars silently shared.
                 const selCar = getSelectedCar();
-                this.width = Math.round((selCar.hitboxW || 14) * CAR_SCALE);
-                this.height = Math.round(selCar.h * CAR_SCALE);
+                // Batch 499: the hitbox shrinks with the art. A 50% sprite inside a 100% box is exactly
+                // the mismatch Batch 493 was spent removing on this same snail.
+                const ss = carSpriteScale(selCar);
+                this.width = Math.round((selCar.hitboxW || 14) * CAR_SCALE * ss);
+                this.height = Math.round(selCar.h * CAR_SCALE * ss);
                 // real bug: PLAYER_MAX_Y is a module-level CONSTANT derived from the fixed PLAYER_HEIGHT (31), computed once at load time before any car is ever selected.
                 this.maxY = CANVAS_HEIGHT - this.height - 1;
                 // Start centered in an actual lane, not the raw geometric middle of the road — for an even lane count that midpoint straddles the boundary between two lanes, spawning the car half in each.
@@ -9355,7 +9484,7 @@
                     // vehicle already rendered this frame, so a car you had just overtaken appeared to be
                     // underneath a light beam lying on the road. It is road paint, so it belongs with the
                     // road - see the drawSnailTrail() call right after drawAmbientAir() in the main loop.
-                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car), drawY, this.width, this.height, (g) => {
+                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car) * carSpriteScale(car), drawY, this.width, this.height, (g) => {
                         // gated on sbGuardPhase too (not just abilityState) so the guard's retract animation keeps playing for its own ~350ms after ramming has already ended, instead of being cut off the instant the bar empties.
                         if (this.abilityState === 'ramming' || this.sbGuardPhase !== 'idle') drawShieldBumpFX(g, car, this);
                         if (!isJumping) { car.draw(g, resolvePlayerColor()); return; }
@@ -9373,7 +9502,7 @@
                         drawFlameFxScaled(g, cx, car.h, bw / 14, effectiveFlameType(car), flameFxFrame, flameAlts()[flameFxAlt[flameFxFrame]], flameFxMirror);
                         car.draw(g, resolvePlayerColor());
                         g.restore();
-                    }, this.tiltAngle);
+                    }, this.tiltAngle, carSpriteScale(getSelectedCar()));
                 }
 
                 // brake lights, per direct user feedback ("back lights when braking/going backwards"). `vVelocity > 0` means moving DOWN the screen — this game's Down key doubles as both brake and reverse, so "moving backward" is the practical signal for "braking" here, not a separate brake input.
@@ -9381,7 +9510,7 @@
                     const car = selectedCarKey === 'stock' ? null : getSelectedCar();
                     const nativeH = car ? car.h : 24;
                     // direct bug report ("shadow having back lights instead of the car when braking [while jumping]"): this used to always draw at `this.y`, the GROUND position — fine while grounded, but the car itself is lifted by `flightHeight` during a jump via an INNER `ctx.translate(0, -flightHeight)` done AFTER drawScaledVehicle's own CAR_SCALE transform is already applied (see the isJumping branch above) — so braking mid-air put the lights back down at the shadow instead of following the car up.
-                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car || {}), drawY, this.width, this.height, (g) => {
+                    drawScaledVehicle(ctx, drawX + carDrawOffsetX53(car || {}) * carSpriteScale(car || {}), drawY, this.width, this.height, (g) => {
                         if (this.abilityState === 'jumping') g.translate(0, -this.flightHeight);
                         // Batch 415, direct report: this used to paint a flat full-width bar across
                         // the whole tail PLUS two bright squares hard against the outer corners -
@@ -9410,7 +9539,7 @@
                         const coreW = Math.max(2, Math.round(bw * 0.34));
                         g.fillStyle = '#ff4757';
                         g.fillRect(Math.round(cx - coreW / 2), nativeH - 3, coreW, 2);
-                    }, this.tiltAngle);
+                    }, this.tiltAngle, carSpriteScale(getSelectedCar()));
                 }
             }
 
@@ -10032,12 +10161,23 @@
         //      lever outweighs the other two combined. That was the comparison asked for.
         // Measured result: range x0.83 (Go-Kart) to x1.79 (Road Train), Stock exactly x1.00, where
         // before it was x1.24 to x2.36 with everything above 1.
+        // Batch 499: measured against the car's REAL on-road size, so `spriteScale` feeds straight in.
+        // A car that is physically smaller is genuinely easier to thread through traffic, and the
+        // multiplier is the reward for the opposite - it should drop when the car shrinks.
+        //
+        // `multBonus` is the deliberate exception: a flat adjustment for a car whose multiplier the
+        // size formula alone would misjudge. The GIANT SNAIL carries +0.20 because halving it also
+        // halved the only thing it was being paid for, and unlike every other big vehicle it has no
+        // ability at all to fall back on.
         function vehicleMultiplierBonus(car) {
-            const lengthFactor = (car.h - CAR_MULT_BASE_H) / CAR_MULT_BASE_H;
+            const ss = carSpriteScale(car);
+            const h = car.h * ss;
+            const w = (car.hitboxW || CAR_MULT_BASE_W) * ss;
+            const lengthFactor = (h - CAR_MULT_BASE_H) / CAR_MULT_BASE_H;
             const lengthBonus = Math.sign(lengthFactor) * Math.pow(Math.abs(lengthFactor), 1.4) * 0.45;
-            const widthFactor = ((car.hitboxW || CAR_MULT_BASE_W) - CAR_MULT_BASE_W) / CAR_MULT_BASE_W;
+            const widthFactor = (w - CAR_MULT_BASE_W) / CAR_MULT_BASE_W;
             const widthBonus = widthFactor * 0.15;
-            return lengthBonus + widthBonus;
+            return lengthBonus + widthBonus + (car.multBonus || 0);
         }
         // the per-car "BASE MULT" shown on the Garage hover card: the two multiplier terms that depend only on the CAR (not on settings the player chooses per run — lane count, night mode, etc., which calculateMultiplier() also folds in).
         function carBaseMultiplier(car) {
@@ -11410,8 +11550,16 @@
         // trail at all - and any trail seeded at spawn would have been eaten a point per frame by the
         // reel-in below. At 0 the trail simply exists whenever the snail is moving, and `t` goes back
         // to doing only what it is good at: making the beam brighter the faster you go.
-        const SNAIL_TRAIL_MIN_KMH = 0;
-        const SNAIL_TRAIL_FULL_KMH = 160;
+        // Batch 497, changed mind: the trail is a HIGH-SPEED effect again - nothing below 200 km/h.
+        // Batch 484 had dropped the floor to 0 so the snail could start a run already trailing; that
+        // request is withdrawn, so the floor and the run-start seeding both go.
+        //
+        // FULL moves with it. It was 160, which is BELOW the new floor - the ramp is
+        // (kmh - MIN) / (FULL - MIN), so leaving it there would divide by -40 and invert the whole
+        // brightness curve. 250 is the GIANT SNAIL's real top speed, so the beam now brightens across
+        // exactly the band the snail can reach: faint at 200, full at 250.
+        const SNAIL_TRAIL_MIN_KMH = 200;
+        const SNAIL_TRAIL_FULL_KMH = 250;
         const SNAIL_TRAIL_MAX = 80;
         let snailTrail = [];
         function drawSnailTrail(player, drawX, drawY) {
@@ -11807,19 +11955,10 @@
             if (hHeldReleaseTimer.left) { clearTimeout(hHeldReleaseTimer.left); hHeldReleaseTimer.left = null; }
             if (hHeldReleaseTimer.right) { clearTimeout(hHeldReleaseTimer.right); hHeldReleaseTimer.right = null; }
             player = new Player();
-            // Batch 484, direct request: the snail starts WITH its trail rather than growing one over
-            // the first seconds. Seeded exactly the way the live trail is built - one point per frame,
-            // each `currentSpeed` further down the road - so a fresh run is indistinguishable from one
-            // already under way. SNAIL_TRAIL_MAX caps it, same as in flight.
-            if (getSelectedCar().turboTrail) {
-                const trailX = player.x + player.width / 2;
-                const step = Math.max(1, currentSpeed);
-                for (let y = player.y + player.height * 0.72;
-                     y < VIEW_H + 60 && snailTrail.length < SNAIL_TRAIL_MAX;
-                     y += step) {
-                    snailTrail.push({ x: trailX, y: y });
-                }
-            }
+            // Batch 497: the Batch 484 run-start trail seeding is gone with the floor it relied on.
+            // A run begins at 50 km/h and the trail now needs 200, so seeded points would be reeled
+            // back in one per frame the moment the first frame ran - a trail that appears and then
+            // visibly retracts, which is worse than never drawing one.
             gameActive = true;
             hudLeft.style.display = 'flex';
             drawAbilityBar(abilityCtx, 0, 0, 'charge');
@@ -12454,12 +12593,26 @@
         // small hover-only calendar glyph for each leaderboard row's date (see .lb-date). currentColor so it inherits the dim/hover color already defined in CSS.
         const LB_DATE_ICON_SVG = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="11" height="10" rx="0.5"></rect><line x1="1.5" y1="5.5" x2="12.5" y2="5.5"></line><line x1="4" y1="1" x2="4" y2="3.3"></line><line x1="10" y1="1" x2="10" y2="3.3"></line></svg>';
 
+        // Batch 495, direct report: the info box "is being cut off". It was placed with no regard for
+        // the viewport at all - left/top straight from the anchor, and `translate(-50%, -100%)` in CSS
+        // meaning the `top` given was the tooltip's BOTTOM edge. Anchored near the top of the screen,
+        // as PERFORMANCE SCORE is, the box simply sat above the window and got clipped.
+        //
+        // Same algorithm the Garage card has always used: show it first so it can be MEASURED, prefer
+        // above, flip below when there is no room, then clamp on both axes. The CSS transform is gone
+        // with it, because half-measured positioning plus a transform is what made this hard to see.
         function showLbTip(e, text) {
             const r = e.currentTarget.getBoundingClientRect();
             lbTooltipEl.textContent = text;
-            lbTooltipEl.style.left = (r.left + r.width / 2) + 'px';
-            lbTooltipEl.style.top = (r.top - 8) + 'px';
-            lbTooltipEl.classList.add('show');
+            lbTooltipEl.classList.add('show');          // must be visible to have a size
+            const w = lbTooltipEl.offsetWidth, h = lbTooltipEl.offsetHeight;
+            let top = r.top - h - 8;
+            if (top < 8) top = r.bottom + 8;            // no room above - go below instead
+            top = Math.max(8, Math.min(top, window.innerHeight - h - 8));
+            let left = r.left + r.width / 2 - w / 2;
+            left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+            lbTooltipEl.style.left = Math.round(left) + 'px';
+            lbTooltipEl.style.top = Math.round(top) + 'px';
         }
         function hideLbTip() { lbTooltipEl.classList.remove('show'); }
         function addLbTip(el, text) {
@@ -12805,9 +12958,15 @@
         if (IS_TOUCH) {
             document.addEventListener('touchstart', (e) => {
                 const t = e.target;
-                ['dgDropChancesTip', 'dgWordDropChancesTip', 'msnSweepsTip', 'msnTip', 'lbTooltip'].map(id => document.getElementById(id)).filter(Boolean).forEach(tip => {
+                // Batch 495: `lbTooltip` is NOT in this list any more, and that was a real mobile bug.
+                // It is shown by adding a `.show` class, not by inline display - so `style.display`
+                // was always '' here, the `!== 'none'` test always passed, and this wrote an inline
+                // display:none onto it. Inline beats the class, so after the first tap anywhere the
+                // leaderboard and stats tooltips could never open again for the rest of the session.
+                ['dgDropChancesTip', 'dgWordDropChancesTip', 'msnSweepsTip', 'msnTip'].map(id => document.getElementById(id)).filter(Boolean).forEach(tip => {
                     if (tip.style.display !== 'none' && !tip.contains(t)) tip.style.display = 'none';
                 });
+                if (lbTooltipEl && lbTooltipEl.classList.contains('show') && !lbTooltipEl.contains(t)) hideLbTip();
                 const card = document.getElementById('garageHoverCard');
                 if (card && card.style.display !== 'none' && !card.contains(t) && !(t.closest && t.closest('.car-tile'))) {
                     hideGarageHoverCard();
@@ -12892,13 +13051,21 @@
                 // against a 40.5px two-lane threshold, so it crossed by 0.6px. The same tap without the
                 // post-release glide is 22.4px, comfortably one lane.
                 //
-                // Movement stops the instant the key comes up. The grace stays, but only for the SNAP
-                // decision, which is all it was ever needed for: re-pressing within the window resumes
-                // one continuous hold instead of snapping back first.
+                // Batch 491, direct report: a single quick tap "staggers, it's not smooth at all".
+                // That was this fix's own fault. Batch 489 stopped the glide on release but left the
+                // SNAP behind the 80ms timer, and during the hold targetX is pinned to the car's own
+                // position - so the lerp had nothing to move toward and the car stopped dead. Traced
+                // at top speed: 3.73, 3.73, 0, 0, 0, 0, 5.86 px/frame. Four frozen frames, 67ms, then
+                // a lurch faster than the glide it interrupted.
+                //
+                // The target is set the instant the key comes up, so the lerp continues straight out of
+                // the glide with no gap. The overshoot Batch 489 removed stays removed, because that
+                // came from continuing to GLIDE, which still stops here. The timer now only marks the
+                // window in which a re-press counts as continuing the same gesture (see steerPress).
                 hHeldDir[side] = false;
+                snapToNearestLane(dir, pressStartLane);
                 if (hHeldReleaseTimer[side]) clearTimeout(hHeldReleaseTimer[side]);
                 hHeldReleaseTimer[side] = setTimeout(() => {
-                    snapToNearestLane(dir, pressStartLane);
                     hHeldReleaseTimer[side] = null;
                 }, HOLD_RELEASE_GRACE_MS);
             } else {
@@ -13933,10 +14100,52 @@
                             // it was given. Nothing is random now: one fixed speed, one fixed direction
                             // (up-screen, pushed away from the bumper), and the tumble follows the way it
                             // was thrown instead of arguing with it.
-                            const awayFromPlayer = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1);
-                            v.launchVx = awayFromPlayer * 1.4;
-                            v.launchVy = -7.2;
-                            v.launchSpin = awayFromPlayer * 0.14;
+                            // Batch 494, direct report: "bumping still doesn't work... the first time you
+                            // implemented it, it worked perfectly - the car just went flying straight in
+                            // the opposite direction from what it was bumped."
+                            //
+                            // Checked against the original (Batch 446, 8916aaf) instead of guessing, and
+                            // the regression is mine. It threw at vx 2.2-3.8 against vy 6-9: a launch
+                            // about 22 degrees off vertical, clearly knocked ASIDE. Batch 475 cut that to
+                            // 1.1-1.8 and Batch 484 - my determinism pass - left it at a flat 1.4, which
+                            // is 11 degrees. Nearly straight up the screen, so nothing reads as having
+                            // been bumped anywhere; it just drifts off. The complaint Batch 475 answered
+                            // was that the direction was RANDOM, and that is fixed by removing the
+                            // randomness, which it should never have paid for with the force.
+                            //
+                            // Original magnitudes restored, still deterministic: one speed, one direction,
+                            // away from the bumper, and the tumble follows the throw. The constant
+                            // velocity from Batch 484 stays - "flying STRAIGHT" is what was asked for, and
+                            // the old per-frame gravity is what bent every launch into an arc.
+                            // Batch 496, with a diagram: "if you bump into the car from behind, the car
+                            // is supposed to go flying forward. If you bump it from the side, it should
+                            // go to the opposite direction."
+                            //
+                            // Every version until now - mine included - ignored WHERE the hit came from.
+                            // It always applied a fixed sideways kick plus a fixed upward one, so a car
+                            // struck squarely from behind still got thrown diagonally, and nothing ever
+                            // matched the direction of the bump. Restoring the original's force (Batch
+                            // 494) made that more obvious rather than less: it now flew hard in a
+                            // direction that had nothing to do with the impact.
+                            //
+                            // The launch is simply the impact vector: centre-to-centre, normalised, at a
+                            // fixed speed. Hit from directly behind and the car goes straight up the
+                            // road; catch it on the left and it leaves to the right; clip it on a
+                            // diagonal and it leaves on that diagonal. Speed 8.1 is the magnitude the
+                            // original threw at (sqrt(3^2 + 7.5^2)), so the force is unchanged - only
+                            // its direction is now correct.
+                            const pcx = player.x + player.width / 2, pcy = player.y + player.height / 2;
+                            const vcx = v.x + v.width / 2, vcy = v.y + v.height / 2;
+                            let ix = vcx - pcx, iy = vcy - pcy;
+                            const ilen = Math.hypot(ix, iy) || 1;
+                            ix /= ilen; iy /= ilen;
+                            const LAUNCH_SPEED = 8.1;
+                            v.launchVx = ix * LAUNCH_SPEED;
+                            v.launchVy = iy * LAUNCH_SPEED;
+                            // Spin only from the SIDEWAYS part of the hit. A square rear-end sends the
+                            // car off straight and unspinning, which is what reads as "launched" rather
+                            // than as the tumbling it was doing.
+                            v.launchSpin = ix * 0.22;
                             v.launchAngle = 0;
                             v.speedOffset = 0;
                             player.energy = 0;              // the bar IS the cooldown from here
@@ -13952,7 +14161,10 @@
                             coinsThisRun += Math.round(lp / 2 * COIN_EARN_SCALE); // same rate a jump-over pays
                             if (config.scorePopupsEnabled) {
                                 scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2,
-                                    '+' + Math.round(lp * multiplier * 2), 'BUMPED', '#f5b32a'));
+                                    // Batch 494, direct request: the points, not the word. Same call the
+                                    // jump-over and ram popups already had their captions removed by in
+                                    // Batch 484 - this one was simply missed then.
+                                    '+' + Math.round(lp * multiplier * 2), '', '#f5b32a'));
                             }
                             playSound('ram');
                             continue;
@@ -14311,7 +14523,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.7.2';
+        const GAME_VERSION = '3.7.11';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -15570,7 +15782,11 @@
                 : car.rarity
                     ? `<span class="car-tile-rarity" style="color:${RARITY_INFO[car.rarity].color}">${RARITY_INFO[car.rarity].label}</span>` : '';
             const newTag = isNew ? '<span class="car-tile-new-tag">NEW!</span>' : '';
-            const abilityBadge = car.ramAbility ? `<span class="car-tile-ability-badge">${car.key === 'tank' ? 'SHOOT' : 'RAM'}</span>` : '';
+            // Batch 499: the pixel badge, and now for every ability rather than only the ram cars.
+            const abilityBadge = (() => {
+                const kind = carAbilityBadgeKind(car);
+                return kind ? `<span class="car-tile-ability-badge" title="${carAbilityLabel(car)}">${abilityBadgeSvg(kind)}</span>` : '';
+            })();
             tile.innerHTML = `${newTag}${abilityBadge}${rarityBadge}<div class="car-tile-sprite"><canvas></canvas></div><span class="car-tile-name">${car.label}</span>${bottomLabel}`;
             tile.dataset.carKey = car.key; // Batch 291 — lets the Prism live-cycle hook find/redraw this tile's canvas without a full grid rebuild
             drawCarTileSprite(tile.querySelector('canvas'), car);
