@@ -1466,7 +1466,18 @@
         .stz-peak-val { position: absolute; right: 4px; transform: translateY(calc(-100% - 2px)); font-family: 'Silkscreen', monospace; font-size: 8px; color: #f5b32a; pointer-events: none; }
 
         /* Tile grid */
-        .stz-tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        /* Batch 477 - "15 stats feels like a lot". The fix is grouping, not hiding: a 2-tile hero row
+           (the two numbers that answer "how good am I"), then one small ledger panel per theme. The
+           screen reads as five objects instead of fifteen equal tiles, with nothing removed and nothing
+           behind a click. Rows use the same label-left / value-right language as the Scores ledger. */
+        .stz-tiles { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .stz-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stz-group { background: var(--c-card); border: 2px solid var(--c-card-border); padding: 8px 10px 7px; }
+        .stz-group-title { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 2px; color: var(--c-text-dimmer); margin-bottom: 6px; }
+        .stz-grow { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 0; }
+        .stz-grow + .stz-grow { border-top: 1px solid rgba(255,255,255,.04); }
+        .stz-grow-k { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: .5px; color: var(--c-text-dim); }
+        .stz-grow-v { font-family: 'VT323', monospace; font-size: 16px; line-height: .9; }
         .stz-tile { background: var(--c-card); border: 2px solid var(--c-card-border); padding: 9px 9px 8px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; min-width: 0; }
         .stz-tile-val { font-family: 'VT323', monospace; line-height: .85; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .stz-tile-key { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: .5px; color: var(--c-text-dimmer); }
@@ -1821,7 +1832,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.2.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.3.0</span></div>
                 </div>
             </div>
         </div>
@@ -11957,26 +11968,43 @@
             const daysPlayed = new Set(runHistory.map(r => dayKey(new Date(r.ts)))).size;
 
             // matches the result screen's compact format ("6s"/"1m 12s") instead of M:SS.
-            const tiles = [
-                { k: 'BEST SCORE', v: n(best), c: 'var(--c-mint)', bd: 'var(--c-mint)', size: '20px' },
-                { k: 'PERFORMANCE SCORE', v: n(perf), c: 'var(--c-amber)', bd: 'var(--c-amber)', size: '20px' },
-                { k: 'RUNS PLAYED', v: n(d.runsPlayed), c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '20px' },
-                { k: 'TOTAL SCORE', v: n(d.totalScore), c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'AVG SCORE', v: n(avg), c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'AVG (LAST 50)', v: n(avg50), c: 'var(--c-mint)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'CLOSE CALLS', v: n(d.totalCloseCalls), c: 'var(--c-red)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'BEST CLOSE CALLS (RUN)', v: d.bestCloseCallsRun, c: 'var(--c-red)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'VEHICLES DODGED', v: n(d.totalDodged), c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'TOTAL COINS', v: n(d.totalCoins), c: 'var(--c-amber)', bd: 'var(--c-card-border)', size: '16px' }, // Batch 335 — direct correction: Stats shows the plain number, no abbreviation
-                { k: 'TOTAL PLAY TIME', v: formatTimeCompact(d.totalGameTimeMs), c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'LONGEST SURVIVAL', v: formatTimeCompact(d.longestSurvivalMs), c: 'var(--c-mint)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'AVG RUN', v: formatTimeCompact(avgRunMs), c: 'var(--c-text-dim)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'RUNS TODAY', v: runsToday, c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' },
-                { k: 'DAYS PLAYED', v: daysPlayed, c: 'var(--c-text)', bd: 'var(--c-card-border)', size: '16px' }
+            // Batch 477 - hero row + themed ledger panels, replacing fifteen equal tiles.
+            const hero = [
+                { k: 'BEST SCORE', v: n(best), c: 'var(--c-mint)', bd: 'var(--c-mint)' },
+                { k: 'PERFORMANCE SCORE', v: n(perf), c: 'var(--c-amber)', bd: 'var(--c-amber)' }
             ];
-            document.getElementById('stzTiles').innerHTML = tiles.map(t =>
-                `<div class="stz-tile" style="border-color:${t.bd}"><span class="stz-tile-val" style="font-size:${t.size};color:${t.c}">${t.v}</span><span class="stz-tile-key">${t.k}</span></div>`
-            ).join('');
+            const groups = [
+                { title: 'SCORING', rows: [
+                    ['TOTAL SCORE', n(d.totalScore), 'var(--c-text)'],
+                    ['AVG SCORE', n(avg), 'var(--c-text)'],
+                    ['AVG (LAST 50)', n(avg50), 'var(--c-mint)']
+                ]},
+                { title: 'SURVIVAL', rows: [
+                    ['LONGEST SURVIVAL', formatTimeCompact(d.longestSurvivalMs), 'var(--c-mint)'],
+                    ['AVG RUN', formatTimeCompact(avgRunMs), 'var(--c-text)'],
+                    ['CLOSE CALLS', n(d.totalCloseCalls), 'var(--c-red)'],
+                    ['BEST CLOSE CALLS (RUN)', d.bestCloseCallsRun, 'var(--c-red)']
+                ]},
+                { title: 'TOTALS', rows: [
+                    ['RUNS PLAYED', n(d.runsPlayed), 'var(--c-text)'],
+                    ['VEHICLES DODGED', n(d.totalDodged), 'var(--c-text)'],
+                    ['TOTAL COINS', n(d.totalCoins), 'var(--c-amber)'],
+                    ['TOTAL PLAY TIME', formatTimeCompact(d.totalGameTimeMs), 'var(--c-text)']
+                ]},
+                { title: 'HABIT', rows: [
+                    ['RUNS TODAY', runsToday, 'var(--c-text)'],
+                    ['DAYS PLAYED', daysPlayed, 'var(--c-text)']
+                ]}
+            ];
+            document.getElementById('stzTiles').innerHTML =
+                '<div class="stz-hero">' + hero.map(t =>
+                    `<div class="stz-tile" style="border-color:${t.bd}"><span class="stz-tile-val" style="font-size:20px;color:${t.c}">${t.v}</span><span class="stz-tile-key">${t.k}</span></div>`
+                ).join('') + '</div>' +
+                groups.map(g =>
+                    `<div class="stz-group"><div class="stz-group-title">${g.title}</div>` +
+                    g.rows.map(r => `<div class="stz-grow"><span class="stz-grow-k">${r[0]}</span><span class="stz-grow-v" style="color:${r[2]}">${r[1]}</span></div>`).join('') +
+                    '</div>'
+                ).join('');
         }
 
         function renderStatsStreak() {
@@ -13658,7 +13686,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.2.2';
+        const GAME_VERSION = '3.3.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
