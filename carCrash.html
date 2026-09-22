@@ -598,8 +598,20 @@
             box-sizing: border-box;
             pointer-events: none;
             display: flex;
+            /* column + a caption row, so the sprite keeps its own centred box and the name sits
+               under it without ever shifting the car sideways. */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 10px;
+        }
+        .boost-hover-name {
+            font-family: 'Silkscreen', monospace;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--c-text-dim);
+            text-align: center;
+            white-space: nowrap;
         }
         .showroom-info { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; }
         .showroom-sublabel {
@@ -1920,7 +1932,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.6.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.0</span></div>
                 </div>
             </div>
         </div>
@@ -2241,8 +2253,13 @@
                 </div>
             </div>
             <!-- no native title-attribute tooltip on booster swatches — this popup is the only hover feedback, sprite only (a bottom status line was tried in Batch 350 and reverted per direct follow-up: locked-status text belongs in the click dialog, not this hover popup). -->
+            <!-- Batch 486: fixed-size now (see measureFlameUnionBox) and captioned with the booster's
+                 name. The name is what PLAN.md recorded as wanted; it is NOT a return of Batch 350's
+                 bottom status line, which showed locked/unlocked state and was rejected because that
+                 belongs in the click dialog. -->
             <div class="boost-hover-preview" id="boostHoverPreview" style="display:none">
                 <canvas id="garagePreviewCanvas" width="18" height="31"></canvas>
+                <div class="boost-hover-name" id="boostHoverName"></div>
             </div>
 
             <!-- only this section scrolls now; BACK stays fixed below it, always visible, per direct feedback ("back button should be always visible... you should scroll the cars but back button shouldn't be scrollable"). -->
@@ -2763,9 +2780,11 @@
                     <div class="tut-card">
                         <div class="tut-card-head"><span class="tut-card-label">BY THE NUMBERS</span><span class="tut-card-rule"></span></div>
                         <div class="tut-card-body">
-                            <div class="tut-art"><div style="text-align:center;"><div class="tut-big">405</div><div class="tut-big-sub">BATCHES OF WORK</div></div></div>
+                            <!-- headline reads itself from GARAGE_CARS, so it cannot go stale the way the
+                                 hardcoded batch count here did. Batches belong to HOW IT WAS BUILT, not here. -->
+                            <div class="tut-art"><div style="text-align:center;"><div class="tut-big" id="tutCarCount"></div><div class="tut-big-sub">VEHICLES TO COLLECT</div></div></div>
                             <div class="tut-copy">
-                                <p><span class="k" id="tutCarCount"></span> vehicles, <span class="k" id="tutBiomeCount"></span> kinds of scenery, and over twelve thousand lines in a single file.</p>
+                                <p>Alongside <span class="k" id="tutBiomeCount"></span> kinds of scenery, and over twelve thousand lines in a single file.</p>
                                 <p>Every change since day one is written down &mdash; what changed, why, and how it was checked. That log is now several times longer than the game itself.</p>
                             </div>
                         </div>
@@ -2778,6 +2797,8 @@
                                 <p>Every price tag in the garage is based on what the real vehicle costs. That's why a Formula 1 car runs to millions and a go-kart is pocket change.</p>
                                 <p>It also means rarity and price don't always agree. A bin lorry outcosting a supercar isn't a bug &mdash; that's simply what they cost.</p>
                             </div>
+                        </div>
+                    </div>
                     <div class="tut-card">
                         <div class="tut-card-head"><span class="tut-card-label">HOW IT WAS BUILT</span><span class="tut-card-rule"></span></div>
                         <div class="tut-card-body">
@@ -2786,14 +2807,15 @@
                                 <p>The log is longer than most of the code.</p>
                             </div>
                         </div>
+                        <!-- "BATCHES OF WORK" and "VERSIONS SHIPPED" used to sit here together at 473 and
+                             474. Two numbers that close together say nothing the first does not - one
+                             batch ships one version, so the pair only ever restated itself. Dropped to
+                             the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.1.1 &mdash; AUG 21 TO SEP 22, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">473</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
-                            <div class="tut-val"><span class="tut-val-num">474</span><span class="tut-val-cap">VERSIONS SHIPPED</span></div>
-                            <div class="tut-val"><span class="tut-val-num">2,150+</span><span class="tut-val-cap">RECORDED CHANGES</span></div>
+                            <div class="tut-vals-title">AS OF v3.6.0 &mdash; AUG 21 TO SEP 22, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">482</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-val"><span class="tut-val-num">6,200+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">26 / 33</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
-                        </div>
-                    </div>
                         </div>
                     </div>
                 </div>
@@ -3738,7 +3760,6 @@
             creditMission('pass_cars', dodgedCount, 'sum');
             creditMission('ram_cars', ramsUsed, 'sum');
             creditMission('use_bars', barsUsedThisRun, 'sum');
-            creditMission('witness_crash', crashesWitnessedThisRun, 'sum');
             creditMission('pass_biomes', biomesVisitedThisRun.size, 'max');
 
             // ONE-TIME achievement checks, phase 2 (the "ready now" bucket — each reads a per-run var or allTimeStats field that already existed for other reasons, same reuse pattern the Batch 320 missions above already used).
@@ -6411,7 +6432,14 @@
             // direct instruction that longer vehicles earn more, and it cannot be bought at any price.
             { key: 'piano',   label: 'GRAND PIANO', h: 28, hitboxW: 22, draw: drawGaragePiano53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.65 },
             { key: 'snail',   label: 'GIANT SNAIL', h: 32, hitboxW: 20, draw: drawGarageSnail53,   rarity: 'special', boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.40, turboTrail: true, paintsTrail: true },
-            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 22, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
+            // Batch 484, direct report: the SHIP "gets a super lot of close calls because it just drives
+            // near the cars with its big hitbox". Measured: at 22 wide in a 27px lane it needed only 6px
+            // of drift to reach the close-call band where a normal car needs 10px, and its 60px length
+            // kept it level with passing traffic 1.56x longer - about 2.6x the close calls for the same
+            // driving. Narrowed to 16 by direct choice. The length is deliberately left alone: cutting
+            // that would let cars pass through the bow and stern. The hull is still wider than 16, so
+            // traffic can now overlap its edges slightly without crashing - the accepted trade.
+            { key: 'ship',    label: 'SHIP',        h: 60, hitboxW: 16, draw: drawGarageShip53,    rarity: 'special', boxOnly: true, noPaint: true, ramAbility: true, hideRamGuard: true, ramFrontOverlap: 0.05 },
             { key: 'bumper',  label: 'BUMPER CAR',  h: 22, hitboxW: 18, draw: drawGarageBumper53,  rarity: 'special',      boxOnly: true, noPaint: true, launchAbility: true },
             { key: 'bathtub', label: 'BATHTUB',     h: 30, hitboxW: 18, draw: drawGarageBathtub53, rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.55 },
             { key: 'donut',   label: 'GIANT DONUT', h: 20, hitboxW: 20, draw: drawGarageDonut53,   rarity: 'special',      boxOnly: true, noPaint: true, noAbility: true, coinBonus: 0.75 },
@@ -6685,6 +6713,34 @@
             flameBoxCache[key] = box;
             return box;
         }
+        // Batch 486. The popup used to be cropped to whatever the HOVERED booster happened to
+        // occupy, and scaled to fit that crop - so every swatch produced a differently-sized window
+        // that jumped around as the pointer moved along the row. Direct report: "this window changes
+        // sizes depending on the booster... it doesn't look that good."
+        //
+        // The box is now measured once across EVERY booster the car can wear, so it is big enough
+        // for the largest and identical for all of them. A short flame simply leaves more empty room
+        // rather than shrinking the window. Because the crop origin is shared too, the CAR lands on
+        // exactly the same pixel in every preview - only the flame changes, which is the one thing
+        // the preview exists to show.
+        let flameUnionCache = {};
+        function measureFlameUnionBox(car, bw, w, h, sidePad) {
+            const key = car.key + '|' + bw + '|' + car.h;
+            if (flameUnionCache[key]) return flameUnionCache[key];
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (const ft of FLAME_TYPES) {
+                if (!carFlameAvailable(car, ft.key)) continue;
+                const b = measureFlameBox(ft.key, car, bw, w, h, sidePad);
+                minX = Math.min(minX, b.minX);
+                minY = Math.min(minY, b.minY);
+                maxX = Math.max(maxX, b.minX + b.cw);
+                maxY = Math.max(maxY, b.minY + b.ch);
+            }
+            if (minX === Infinity) return null;   // car wears none — caller falls back per-kind
+            const box = { minX, minY, cw: maxX - minX, ch: maxY - minY };
+            flameUnionCache[key] = box;
+            return box;
+        }
         function drawFlamePreview(kind) {
             const car = getSelectedCar();
             const bw = car.hitboxW || 14;
@@ -6710,9 +6766,11 @@
             else { car.draw(mctx, resolvePlayerColor()); }
             mctx.restore();
 
-            // Use the pre-measured, animation-stable box (union across the whole flame cycle) so
-            // the crop never resizes mid-animation.
-            const { minX, minY, cw, ch } = measureFlameBox(kind, car, bw, w, h, sidePad);
+            // Pre-measured and animation-stable (union across the whole flame cycle) so the crop
+            // never resizes mid-animation, and now union across every booster too so it does not
+            // resize BETWEEN boosters either.
+            const { minX, minY, cw, ch } =
+                measureFlameUnionBox(car, bw, w, h, sidePad) || measureFlameBox(kind, car, bw, w, h, sidePad);
 
             // Pass 2 — crop that exact tight region into the real display buffer, rotated to match
             // the Garage tile grid's own sideways (nose-to-the-right) orientation (same
@@ -6757,6 +6815,9 @@
             updateFlameFx();
             drawFlamePreview(kind);
             const popup = document.getElementById('boostHoverPreview');
+            const nameEl = document.getElementById('boostHoverName');
+            const ft = FLAME_TYPES.find(f => f.key === kind);
+            if (nameEl) nameEl.textContent = ft ? ft.label : '';
             popup.style.display = 'flex';
             if (anchorEl) positionBoostHoverPreview(anchorEl);
             flamePreviewInterval = setInterval(() => { updateFlameFx(); drawFlamePreview(kind); }, FLAME_FX_MS_PER_FRAME);
@@ -7199,12 +7260,20 @@
                 name: g => `USE ${g} ENERGY BARS`,
                 resolve: () => ({ goal: missionRoundTo(100 + (missionLevel() - 1) * 2, 5) })
             },
-            witness_crash: {
-                category: 'coin', unit: 'CRASHES',
-                hint: () => 'Two other cars, not you.',
-                name: g => g === 1 ? 'WITNESS A CAR CRASH' : `WITNESS ${g} CAR CRASHES`,
-                resolve: () => ({ goal: 1 }) // Batch 321 — direct call: flat, no level scaling
-            },
+            // Batch 487: `witness_crash` is GONE from the daily pool. Measured over 21 simulated
+            // minutes of real frames: one NPC-vs-NPC crash total, and only on 3 lanes/SUICIDAL -
+            // nothing at all on 4+ lanes, which is most play. It could therefore be impossible on a
+            // given day purely because of how someone chose to play, and it took the mission ladder
+            // and PERFECT DAY down with it.
+            //
+            // NPC_INATTENTIVE_CHANCE, the knob this was always assumed to need, is not the cause:
+            // forcing EVERY driver inattentive still produced zero crashes in 3 minutes. The real
+            // limit is that a same-lane gap closes at a median 0.225px/frame while a vehicle only
+            // lives ~167 frames, so cars despawn roughly 2.7x before they could ever catch up. The
+            // attentive-braking rule never fired once in any run.
+            //
+            // The `not_my_fault` ACHIEVEMENT keeps it: a rare one-off badge is exactly the right
+            // home for something that happens every ten-odd minutes of deliberate play.
             pass_biomes: {
                 category: 'xp', unit: 'BIOMES',
                 hint: () => 'Distinct biomes in one single run.',
@@ -8018,13 +8087,73 @@
         const ACH_GREY = '#39435a', ACH_GREYBG = '#232b3b';
 
         // Pixel-rect icon defs, same [x,y,w,h,(inverted?)] shorthand as the source doc — the optional 5th element flips that rect to the icon box's background color instead of the accent (used for the "hole" in the lock icon's shackle).
+        // Batch 488 - the real icon set, ported from 'Achievement Icons.dc.html': one distinct
+        // 16x16 icon per achievement instead of six shapes shared between 59 of them (`star`
+        // alone covered 17). Keyed by ACHIEVEMENT ID, so a card simply asks for its own.
+        // Format is unchanged - [x, y, w, h], plus a 5th 1 meaning "cut out", drawn in the
+        // card background - but the grids are 16 units, not the old 20, so achIconSvg's
+        // viewBox moves with them and stays 1:1 against its 16px box (the Batch 413 lesson:
+        // non-integer scaling of pixel art is what makes it blurry).
         const ACH_ICONS = {
-            car:   [[2, 9, 6, 2], [12, 9, 6, 2], [9, 4, 2, 3], [9, 13, 2, 3], [5, 5, 2, 2], [13, 13, 2, 2]],
-            star:  [[9, 2, 2, 4], [9, 14, 2, 4], [2, 9, 4, 2], [14, 9, 4, 2], [7, 7, 6, 6], [9, 9, 2, 2, 1]],
-            road:  [[9, 2, 2, 4], [9, 8, 2, 4], [9, 14, 2, 4], [3, 4, 2, 12], [15, 4, 2, 12]],
-            clock: [[7, 2, 6, 2], [7, 16, 6, 2], [2, 7, 2, 6], [16, 7, 2, 6], [9, 6, 2, 5], [11, 10, 3, 2]],
-            bus:   [[2, 6, 16, 8], [4, 8, 3, 3, 1], [9, 8, 3, 3, 1], [4, 15, 3, 2], [13, 15, 3, 2]],
-            lock:  [[6, 9, 8, 8], [7, 5, 6, 2], [5, 7, 2, 2], [13, 7, 2, 2], [9, 11, 2, 4, 1]]
+            score:                  [[7, 1, 2, 2], [1, 2, 2, 2], [13, 2, 2, 2], [6, 3, 4, 4], [0, 4, 4, 2], [12, 4, 4, 2], [0, 6, 5, 1], [11, 6, 5, 1], [0, 7, 16, 1], [0, 8, 2, 2], [2, 8, 2, 2, 1], [4, 8, 3, 2], [7, 8, 2, 2, 1], [9, 8, 3, 2], [12, 8, 2, 2, 1], [14, 8, 2, 2], [0, 10, 16, 2], [1, 12, 14, 2]],
+            pass:                   [[2, 0, 4, 1], [1, 1, 6, 1], [1, 2, 1, 2], [2, 2, 4, 2, 1], [6, 2, 1, 2], [1, 4, 6, 2], [1, 6, 1, 2], [2, 6, 4, 2, 1], [6, 6, 1, 2], [10, 6, 4, 1], [9, 7, 6, 1], [1, 8, 6, 1], [9, 8, 1, 2], [10, 8, 4, 2, 1], [14, 8, 1, 2], [2, 9, 4, 1], [9, 10, 6, 2], [9, 12, 1, 2], [10, 12, 4, 2, 1], [14, 12, 1, 2], [9, 14, 6, 1], [10, 15, 4, 1]],
+            alive:                  [[2, 1, 4, 1], [10, 1, 4, 1], [1, 2, 6, 1], [9, 2, 6, 1], [0, 3, 16, 4], [1, 7, 14, 1], [2, 8, 12, 1], [3, 9, 10, 1], [4, 10, 8, 1], [5, 11, 6, 1], [6, 12, 4, 1], [7, 13, 2, 1]],
+            collector:              [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 12, 1], [1, 3, 14, 2], [0, 5, 12, 1], [12, 5, 2, 1, 1], [14, 5, 2, 1], [0, 6, 11, 1], [11, 6, 2, 1, 1], [13, 6, 3, 1], [0, 7, 4, 1], [4, 7, 2, 1, 1], [6, 7, 4, 1], [10, 7, 2, 2, 1], [12, 7, 4, 2], [0, 8, 5, 1], [5, 8, 2, 1, 1], [7, 8, 3, 1], [0, 9, 6, 1], [6, 9, 4, 1, 1], [10, 9, 6, 1], [0, 10, 7, 1], [7, 10, 2, 1, 1], [9, 10, 7, 1], [1, 11, 14, 2], [2, 13, 12, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            closecalls:             [[1, 1, 5, 1], [10, 1, 5, 1], [0, 2, 7, 1], [9, 2, 7, 1], [0, 3, 1, 2], [1, 3, 5, 2, 1], [6, 3, 1, 2], [9, 3, 1, 2], [10, 3, 5, 2, 1], [15, 3, 1, 2], [0, 5, 7, 5], [9, 5, 7, 5], [0, 10, 1, 2], [1, 10, 5, 2, 1], [6, 10, 1, 2], [9, 10, 1, 2], [10, 10, 5, 2, 1], [15, 10, 1, 2], [0, 12, 7, 2], [9, 12, 7, 2], [1, 14, 5, 1], [10, 14, 5, 1]],
+            streak:                 [[3, 0, 2, 2], [11, 0, 2, 2], [0, 2, 16, 3], [0, 5, 1, 10], [15, 5, 1, 10], [2, 6, 2, 2], [7, 6, 2, 2], [12, 6, 2, 2], [2, 9, 2, 2], [7, 9, 2, 2], [12, 9, 2, 2], [2, 12, 2, 2], [7, 12, 2, 2], [12, 12, 2, 2], [0, 15, 16, 1]],
+            level:                  [[12, 2, 3, 13], [8, 5, 3, 10], [4, 8, 3, 7], [0, 11, 3, 4]],
+            missions:               [[5, 0, 2, 1], [0, 1, 1, 1], [4, 1, 2, 1], [9, 1, 7, 2], [0, 2, 2, 1], [3, 2, 2, 1], [1, 3, 4, 1], [2, 4, 2, 1], [5, 5, 2, 1], [0, 6, 1, 1], [4, 6, 2, 1], [9, 6, 7, 2], [0, 7, 2, 1], [3, 7, 2, 1], [1, 8, 4, 1], [2, 9, 2, 1], [5, 10, 2, 1], [0, 11, 1, 1], [4, 11, 2, 1], [9, 11, 7, 2], [0, 12, 2, 1], [3, 12, 2, 1], [1, 13, 4, 1], [2, 14, 2, 1]],
+            lane_hopper:            [[10, 0, 2, 1], [10, 1, 3, 1], [10, 2, 4, 1], [0, 3, 16, 2], [10, 5, 4, 1], [10, 6, 3, 1], [10, 7, 2, 1], [4, 8, 2, 1], [3, 9, 3, 1], [2, 10, 4, 1], [0, 11, 16, 2], [2, 13, 4, 1], [3, 14, 3, 1], [4, 15, 2, 1]],
+            road_trip:              [[0, 1, 16, 2], [0, 6, 4, 2], [6, 6, 4, 2], [12, 6, 4, 2], [0, 11, 16, 2]],
+            wordsmith:              [[0, 0, 16, 2], [0, 2, 2, 12], [2, 2, 12, 1, 1], [14, 2, 2, 12], [2, 3, 5, 1, 1], [7, 3, 2, 1], [9, 3, 5, 1, 1], [2, 4, 4, 2, 1], [6, 4, 4, 2], [10, 4, 4, 2, 1], [2, 6, 3, 2, 1], [5, 6, 2, 2], [7, 6, 2, 2, 1], [9, 6, 2, 2], [11, 6, 3, 2, 1], [2, 8, 2, 5, 1], [4, 8, 8, 2], [12, 8, 2, 5, 1], [4, 10, 2, 3], [6, 10, 4, 3, 1], [10, 10, 2, 3], [2, 13, 12, 1, 1], [0, 14, 16, 2]],
+            ramrage:                [[0, 1, 2, 2], [5, 1, 2, 2], [10, 1, 2, 2], [13, 1, 2, 2], [1, 3, 5, 1], [9, 3, 7, 1], [2, 4, 3, 1], [10, 4, 2, 1], [13, 4, 2, 1], [1, 5, 5, 1], [9, 5, 7, 1], [0, 6, 2, 2], [5, 6, 2, 2], [10, 6, 2, 2], [13, 6, 2, 2], [2, 9, 3, 5], [10, 9, 4, 1], [9, 10, 2, 2], [13, 10, 2, 2], [10, 12, 4, 1], [9, 13, 2, 2], [12, 13, 2, 1], [13, 14, 2, 1], [2, 15, 3, 1], [10, 15, 5, 1]],
+            highflyer:              [[5, 0, 6, 1], [3, 1, 4, 1], [9, 1, 4, 1], [2, 2, 3, 1], [11, 2, 3, 1], [1, 3, 3, 1], [12, 3, 3, 1], [0, 4, 3, 1], [13, 4, 3, 1], [5, 7, 6, 1], [4, 8, 8, 1], [4, 9, 1, 1], [5, 9, 6, 1, 1], [11, 9, 1, 1], [4, 10, 8, 3], [4, 13, 1, 1], [5, 13, 6, 1, 1], [11, 13, 1, 1], [4, 14, 8, 1], [5, 15, 6, 1]],
+            chainreaction:          [[1, 1, 2, 2], [6, 5, 2, 1], [5, 6, 4, 2], [6, 8, 2, 1], [11, 10, 2, 1], [10, 11, 4, 1], [9, 12, 6, 2], [10, 14, 4, 1], [11, 15, 2, 1]],
+            businessman:            [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 12, 1], [1, 3, 6, 1], [7, 3, 2, 1, 1], [9, 3, 6, 1], [1, 4, 4, 1], [5, 4, 6, 2, 1], [11, 4, 4, 1], [0, 5, 5, 1], [11, 5, 5, 1], [0, 6, 7, 4], [7, 6, 2, 4, 1], [9, 6, 7, 4], [0, 10, 5, 1], [5, 10, 6, 2, 1], [11, 10, 5, 1], [1, 11, 4, 1], [11, 11, 4, 1], [1, 12, 6, 1], [7, 12, 2, 1, 1], [9, 12, 6, 1], [2, 13, 12, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            full_palette:           [[6, 0, 4, 5], [5, 5, 6, 2], [4, 7, 8, 3], [0, 11, 3, 4], [4, 11, 3, 4], [8, 11, 3, 4], [12, 11, 3, 4]],
+            full_wardrobe:          [[0, 0, 16, 2], [0, 2, 2, 3], [2, 2, 12, 1, 1], [14, 2, 2, 3], [2, 3, 4, 1, 1], [6, 3, 4, 1], [10, 3, 4, 1, 1], [2, 4, 12, 1, 1], [0, 5, 16, 1], [0, 6, 2, 3], [2, 6, 12, 1, 1], [14, 6, 2, 3], [2, 7, 4, 1, 1], [6, 7, 4, 1], [10, 7, 4, 1, 1], [2, 8, 12, 1, 1], [0, 9, 16, 1], [0, 10, 2, 3], [2, 10, 12, 1, 1], [14, 10, 2, 3], [2, 11, 4, 1, 1], [6, 11, 4, 1], [10, 11, 4, 1, 1], [2, 12, 12, 1, 1], [0, 13, 16, 1], [0, 14, 2, 2], [14, 14, 2, 2]],
+            car_fanatic:            [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 12, 1], [1, 3, 4, 1], [11, 3, 4, 1], [1, 4, 3, 1], [12, 4, 3, 1], [0, 5, 3, 2], [13, 5, 3, 2], [6, 6, 4, 1], [0, 7, 16, 2], [0, 9, 3, 2], [6, 9, 4, 1], [13, 9, 3, 2], [7, 10, 2, 3], [1, 11, 3, 1], [12, 11, 3, 1], [1, 12, 4, 1], [11, 12, 4, 1], [2, 13, 12, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            i_am_speed:             [[5, 2, 6, 1], [3, 3, 10, 1], [2, 4, 3, 1], [5, 4, 1, 1, 1], [6, 4, 4, 1], [10, 4, 1, 1, 1], [11, 4, 3, 1], [1, 5, 2, 1], [3, 5, 1, 1, 1], [4, 5, 8, 1], [12, 5, 1, 1, 1], [13, 5, 2, 1], [0, 6, 2, 1], [2, 6, 1, 1, 1], [3, 6, 10, 1], [13, 6, 1, 1, 1], [14, 6, 2, 1], [0, 7, 11, 1], [11, 7, 2, 1, 1], [13, 7, 3, 1], [0, 8, 10, 1], [10, 8, 2, 1, 1], [12, 8, 4, 1], [0, 9, 9, 1], [9, 9, 2, 1, 1], [11, 9, 5, 1], [0, 10, 8, 1], [8, 10, 2, 1, 1], [10, 10, 6, 1], [0, 11, 16, 1]],
+            high_roller:            [[0, 0, 8, 2], [0, 2, 1, 2], [1, 2, 2, 2, 1], [3, 2, 2, 2], [5, 2, 2, 2, 1], [7, 2, 1, 2], [0, 4, 8, 1], [0, 5, 1, 2], [1, 5, 2, 2, 1], [3, 5, 2, 2], [5, 5, 2, 2, 1], [7, 5, 1, 2], [0, 7, 8, 1], [8, 8, 8, 2], [8, 10, 1, 2], [9, 10, 2, 2, 1], [11, 10, 2, 2], [13, 10, 2, 2, 1], [15, 10, 1, 2], [8, 12, 8, 1], [8, 13, 1, 2], [9, 13, 2, 2, 1], [11, 13, 2, 2], [13, 13, 2, 2, 1], [15, 13, 1, 2], [8, 15, 8, 1]],
+            nothing_left_hidden:    [[6, 0, 4, 1], [4, 1, 8, 1], [3, 2, 2, 1], [11, 2, 2, 1], [2, 3, 2, 4], [12, 3, 2, 2], [0, 7, 16, 2], [0, 9, 6, 3], [6, 9, 4, 3, 1], [10, 9, 6, 3], [0, 12, 7, 2], [7, 12, 2, 2, 1], [9, 12, 7, 2], [0, 14, 16, 2]],
+            perfect_day:            [[7, 0, 2, 3], [2, 2, 2, 1], [12, 2, 2, 1], [3, 3, 2, 1], [11, 3, 2, 1], [6, 4, 4, 1], [5, 5, 6, 1], [4, 6, 8, 4], [0, 7, 3, 2], [13, 7, 3, 2], [5, 10, 6, 1], [6, 11, 4, 1], [3, 12, 2, 1], [11, 12, 2, 1], [2, 13, 2, 1], [7, 13, 2, 3], [12, 13, 2, 1]],
+            nothing_to_see_here:    [[5, 0, 6, 1], [3, 1, 2, 1], [11, 1, 2, 1], [1, 2, 2, 1], [13, 2, 2, 1], [7, 4, 2, 2], [6, 6, 4, 2], [5, 8, 6, 1], [4, 9, 3, 2], [7, 9, 2, 4, 1], [9, 9, 3, 2], [3, 11, 4, 2], [9, 11, 4, 2], [2, 13, 12, 1], [2, 14, 5, 1], [7, 14, 2, 1, 1], [9, 14, 5, 1], [1, 15, 14, 1]],
+            clear_way:              [[6, 0, 4, 1], [4, 1, 2, 1], [10, 1, 2, 1], [2, 2, 2, 1], [12, 2, 2, 1], [1, 3, 1, 1], [14, 3, 1, 1], [0, 4, 1, 1], [15, 4, 1, 1], [6, 6, 4, 3], [2, 9, 12, 4], [6, 13, 4, 3]],
+            jackpot:                [[12, 0, 2, 2], [0, 2, 16, 2], [0, 4, 2, 5], [2, 4, 12, 1, 1], [14, 4, 2, 5], [2, 5, 1, 3, 1], [3, 5, 2, 3], [5, 5, 2, 3, 1], [7, 5, 2, 3], [9, 5, 2, 3, 1], [11, 5, 2, 3], [13, 5, 1, 3, 1], [2, 8, 12, 1, 1], [0, 9, 16, 2], [0, 11, 2, 1], [2, 11, 12, 1, 1], [14, 11, 2, 1], [0, 12, 16, 2], [1, 14, 14, 1], [2, 15, 12, 1]],
+            bad_samaritan:          [[0, 0, 2, 1], [14, 0, 2, 1], [5, 1, 6, 1], [5, 2, 2, 1], [7, 2, 1, 1, 1], [8, 2, 3, 1], [5, 3, 3, 2], [8, 3, 1, 2, 1], [9, 3, 2, 2], [1, 5, 6, 2], [7, 5, 1, 2, 1], [8, 5, 7, 2], [1, 7, 7, 2], [8, 7, 1, 2, 1], [9, 7, 6, 2], [1, 9, 6, 2], [7, 9, 1, 2, 1], [8, 9, 7, 2], [5, 11, 3, 2], [8, 11, 1, 2, 1], [9, 11, 2, 2], [5, 13, 2, 1], [7, 13, 1, 1, 1], [8, 13, 3, 1], [5, 14, 6, 1], [0, 15, 2, 1], [14, 15, 2, 1]],
+            spotter:                [[5, 3, 6, 1], [3, 4, 2, 1], [5, 4, 6, 1, 1], [11, 4, 2, 1], [2, 5, 2, 1], [4, 5, 2, 1, 1], [6, 5, 4, 1], [10, 5, 2, 1, 1], [12, 5, 2, 1], [1, 6, 2, 1], [3, 6, 2, 1, 1], [5, 6, 1, 1], [6, 6, 1, 1, 1], [7, 6, 4, 1], [11, 6, 2, 1, 1], [13, 6, 2, 1], [0, 7, 2, 2], [2, 7, 3, 2, 1], [5, 7, 6, 3], [11, 7, 3, 2, 1], [14, 7, 2, 2], [1, 9, 2, 1], [3, 9, 2, 1, 1], [11, 9, 2, 1, 1], [13, 9, 2, 1], [2, 10, 2, 1], [4, 10, 2, 1, 1], [6, 10, 4, 1], [10, 10, 2, 1, 1], [12, 10, 2, 1], [3, 11, 2, 1], [5, 11, 6, 1, 1], [11, 11, 2, 1], [5, 12, 6, 1]],
+            lucky_streak:           [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 3, 1], [5, 2, 2, 1, 1], [7, 2, 2, 1], [9, 2, 2, 1, 1], [11, 2, 3, 1], [1, 3, 14, 1], [1, 4, 4, 1], [11, 4, 4, 1], [0, 5, 4, 1], [12, 5, 4, 1], [0, 6, 1, 2], [1, 6, 2, 2, 1], [3, 6, 1, 2], [12, 6, 1, 2], [13, 6, 2, 2, 1], [15, 6, 1, 2], [0, 8, 4, 2], [12, 8, 4, 2], [0, 10, 1, 2], [1, 10, 2, 2, 1], [3, 10, 1, 2], [12, 10, 1, 2], [13, 10, 2, 2, 1], [15, 10, 1, 2], [0, 12, 4, 2], [12, 12, 4, 2], [0, 14, 5, 2], [11, 14, 5, 2]],
+            round_the_clock:        [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 4, 1], [10, 2, 4, 1], [1, 3, 3, 1], [7, 3, 2, 4], [12, 3, 3, 1], [1, 4, 2, 1], [13, 4, 2, 1], [0, 5, 3, 1], [13, 5, 3, 1], [0, 6, 2, 4], [14, 6, 2, 4], [7, 7, 6, 2], [0, 10, 3, 1], [13, 10, 3, 1], [1, 11, 2, 1], [13, 11, 2, 1], [1, 12, 3, 1], [12, 12, 3, 1], [2, 13, 4, 1], [10, 13, 4, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            what_a_monster:         [[3, 1, 6, 1], [3, 2, 1, 1], [4, 2, 4, 1, 1], [8, 2, 1, 1], [2, 3, 12, 1], [1, 4, 14, 1], [0, 5, 16, 2], [1, 7, 14, 1], [1, 8, 4, 2], [11, 8, 4, 2], [0, 10, 6, 1], [10, 10, 6, 1], [0, 11, 2, 2], [2, 11, 2, 2, 1], [4, 11, 2, 2], [10, 11, 2, 2], [12, 11, 2, 2, 1], [14, 11, 2, 2], [0, 13, 6, 1], [10, 13, 6, 1], [1, 14, 4, 1], [11, 14, 4, 1]],
+            adventuring_time:       [[11, 1, 2, 1], [10, 2, 4, 1], [11, 3, 2, 1], [5, 5, 2, 1], [4, 6, 4, 2], [3, 8, 6, 1], [11, 8, 2, 1], [2, 9, 8, 1], [11, 9, 4, 1], [2, 10, 7, 1], [10, 10, 6, 1], [2, 11, 14, 1], [1, 12, 15, 1], [0, 13, 16, 2]],
+            reckless_driver:        [[3, 0, 10, 1], [1, 1, 14, 1], [0, 2, 16, 2], [0, 4, 2, 3], [2, 4, 4, 3, 1], [6, 4, 4, 3], [10, 4, 4, 3, 1], [14, 4, 2, 3], [0, 7, 16, 1], [0, 8, 7, 2], [7, 8, 2, 2, 1], [9, 8, 7, 2], [0, 10, 16, 1], [1, 11, 14, 1], [2, 12, 12, 1], [2, 13, 2, 2], [5, 13, 2, 2], [9, 13, 2, 2], [12, 13, 2, 2]],
+            not_my_fault:           [[1, 0, 5, 1], [0, 1, 7, 1], [0, 2, 1, 1], [1, 2, 5, 1, 1], [6, 2, 1, 1], [0, 3, 7, 3], [0, 6, 1, 1], [1, 6, 5, 1, 1], [6, 6, 1, 1], [0, 7, 7, 1], [1, 8, 5, 1], [4, 9, 1, 1], [11, 9, 1, 1], [7, 10, 8, 1], [6, 11, 10, 1], [6, 12, 1, 1], [7, 12, 2, 1, 1], [9, 12, 4, 1], [13, 12, 2, 1, 1], [15, 12, 1, 1], [6, 13, 10, 2], [7, 15, 8, 1]],
+            early_bird:             [[7, 1, 2, 2], [2, 2, 1, 1], [13, 2, 1, 1], [2, 3, 2, 1], [12, 3, 2, 1], [6, 4, 4, 1], [4, 5, 8, 1], [3, 6, 10, 2], [0, 7, 2, 1], [14, 7, 2, 1], [2, 8, 12, 1], [1, 9, 14, 2], [0, 12, 16, 2]],
+            night_owl:              [[5, 0, 6, 1], [3, 1, 6, 1], [2, 2, 5, 1], [1, 3, 5, 1], [12, 3, 1, 1], [1, 4, 4, 1], [11, 4, 3, 1], [0, 5, 5, 6], [12, 5, 1, 1], [13, 10, 2, 2], [1, 11, 4, 1], [1, 12, 5, 1], [2, 13, 5, 1], [3, 14, 6, 1], [5, 15, 6, 1]],
+            two_of_a_kind:          [[1, 2, 5, 1], [10, 2, 5, 1], [0, 3, 7, 1], [9, 3, 7, 1], [0, 4, 1, 1], [1, 4, 5, 1, 1], [6, 4, 1, 1], [9, 4, 1, 1], [10, 4, 5, 1, 1], [15, 4, 1, 1], [0, 5, 7, 2], [9, 5, 7, 2], [0, 7, 3, 1], [3, 7, 1, 1, 1], [4, 7, 3, 1], [9, 7, 3, 1], [12, 7, 1, 1, 1], [13, 7, 3, 1], [0, 8, 1, 1], [1, 8, 5, 1, 1], [6, 8, 1, 1], [9, 8, 1, 1], [10, 8, 5, 1, 1], [15, 8, 1, 1], [0, 9, 3, 1], [3, 9, 1, 1, 1], [4, 9, 3, 1], [9, 9, 3, 1], [12, 9, 1, 1, 1], [13, 9, 3, 1], [0, 10, 7, 2], [9, 10, 7, 2], [0, 12, 1, 1], [1, 12, 5, 1, 1], [6, 12, 1, 1], [9, 12, 1, 1], [10, 12, 5, 1, 1], [15, 12, 1, 1], [1, 13, 5, 1], [10, 13, 5, 1]],
+            millionaire:            [[6, 0, 4, 1], [5, 1, 6, 1], [6, 2, 4, 1], [5, 3, 6, 1], [4, 4, 8, 1], [3, 5, 10, 1], [2, 6, 12, 1], [1, 7, 14, 1], [0, 8, 16, 1], [0, 9, 6, 1], [6, 9, 4, 1, 1], [10, 9, 6, 1], [0, 10, 5, 2], [5, 10, 6, 2, 1], [11, 10, 5, 2], [0, 12, 6, 1], [6, 12, 4, 1, 1], [10, 12, 6, 1], [0, 13, 16, 1], [1, 14, 14, 1], [2, 15, 12, 1]],
+            full_circle:            [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 4, 1], [10, 2, 4, 1], [1, 3, 3, 1], [12, 3, 3, 1], [1, 4, 2, 1], [6, 4, 4, 1], [13, 4, 2, 1], [0, 5, 3, 1], [5, 5, 6, 1], [13, 5, 3, 1], [0, 6, 2, 4], [4, 6, 8, 4], [14, 6, 2, 4], [0, 10, 3, 1], [5, 10, 6, 1], [13, 10, 3, 1], [1, 11, 2, 1], [6, 11, 4, 1], [13, 11, 2, 1], [1, 12, 3, 1], [12, 12, 3, 1], [2, 13, 4, 1], [10, 13, 4, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            the_destroyer:          [[0, 0, 2, 1], [1, 1, 2, 1], [2, 2, 2, 1], [3, 3, 2, 1], [4, 4, 2, 1], [5, 5, 2, 1], [6, 6, 2, 1], [7, 7, 2, 1], [6, 8, 6, 1], [5, 9, 8, 1], [4, 10, 10, 4], [5, 14, 8, 1], [6, 15, 6, 1]],
+            pull_up_pull_up:        [[6, 0, 4, 5], [2, 5, 12, 1], [3, 6, 10, 1], [4, 7, 8, 1], [5, 8, 6, 1], [6, 9, 4, 1], [7, 10, 2, 1], [0, 11, 1, 1], [15, 11, 1, 1], [1, 12, 1, 1], [14, 12, 1, 1], [0, 13, 16, 2]],
+            no_school_today:        [[1, 1, 14, 1], [0, 2, 16, 1], [0, 3, 1, 3], [1, 3, 2, 3, 1], [3, 3, 1, 3], [4, 3, 2, 3, 1], [6, 3, 1, 3], [7, 3, 2, 3, 1], [9, 3, 1, 3], [10, 3, 2, 3, 1], [12, 3, 1, 3], [13, 3, 2, 3, 1], [15, 3, 1, 3], [0, 6, 16, 6], [2, 12, 3, 1], [11, 12, 3, 1], [2, 13, 1, 1], [3, 13, 1, 1, 1], [4, 13, 1, 1], [11, 13, 1, 1], [12, 13, 1, 1, 1], [13, 13, 1, 1], [2, 14, 3, 1], [11, 14, 3, 1]],
+            eye_catching:           [[3, 2, 10, 1], [2, 3, 12, 1], [1, 4, 14, 1], [0, 5, 16, 1], [1, 6, 14, 1], [2, 7, 12, 1], [3, 8, 10, 1], [4, 9, 8, 1], [5, 10, 6, 1], [6, 11, 4, 1], [7, 12, 2, 1]],
+            cant_park_there:        [[7, 0, 2, 2], [6, 2, 4, 2], [5, 4, 6, 2], [4, 6, 8, 1], [4, 7, 1, 2], [5, 7, 6, 2, 1], [11, 7, 1, 2], [4, 9, 8, 1], [3, 10, 10, 2], [2, 12, 12, 2], [0, 14, 16, 2]],
+            didnt_even_try:         [[2, 0, 12, 1], [1, 1, 14, 1], [0, 2, 16, 1], [0, 3, 3, 10], [13, 3, 3, 10], [10, 4, 2, 1], [9, 5, 2, 1], [8, 6, 2, 1], [7, 7, 2, 1], [6, 8, 2, 1], [5, 9, 2, 1], [4, 10, 2, 1], [0, 13, 16, 1], [1, 14, 14, 1], [2, 15, 12, 1]],
+            over_before_it_started: [[0, 0, 16, 2], [0, 2, 2, 1], [2, 2, 12, 1, 1], [14, 2, 2, 1], [1, 3, 2, 1], [3, 3, 10, 1, 1], [13, 3, 2, 1], [2, 4, 2, 1], [4, 4, 8, 1, 1], [12, 4, 2, 1], [3, 5, 2, 1], [5, 5, 6, 1, 1], [11, 5, 2, 1], [4, 6, 2, 1], [6, 6, 4, 1, 1], [10, 6, 2, 1], [5, 7, 6, 2], [4, 9, 8, 1], [3, 10, 10, 1], [2, 11, 12, 1], [1, 12, 14, 1], [0, 13, 16, 3]],
+            cease_and_desist:       [[4, 2, 7, 1], [4, 3, 11, 2], [3, 5, 9, 1], [0, 6, 16, 4], [1, 10, 14, 2], [1, 12, 1, 2], [2, 12, 2, 2, 1], [4, 12, 1, 2], [5, 12, 2, 2, 1], [7, 12, 2, 2], [9, 12, 2, 2, 1], [11, 12, 1, 2], [12, 12, 2, 2, 1], [14, 12, 1, 2], [1, 14, 14, 1]],
+            too_close_too_caring:   [[1, 0, 5, 1], [0, 1, 7, 1], [0, 2, 1, 1], [1, 2, 5, 1, 1], [6, 2, 1, 1], [0, 3, 7, 6], [10, 4, 5, 1], [9, 5, 7, 1], [9, 6, 1, 1], [10, 6, 5, 1, 1], [15, 6, 1, 1], [9, 7, 7, 2], [0, 9, 1, 1], [1, 9, 5, 1, 1], [6, 9, 1, 1], [9, 9, 3, 1], [12, 9, 1, 1, 1], [13, 9, 3, 1], [0, 10, 7, 1], [9, 10, 1, 1], [10, 10, 5, 1, 1], [15, 10, 1, 1], [1, 11, 5, 1], [9, 11, 3, 1], [12, 11, 1, 1, 1], [13, 11, 3, 1], [9, 12, 7, 2], [9, 14, 1, 1], [10, 14, 5, 1, 1], [15, 14, 1, 1], [10, 15, 5, 1]],
+            back_to_back:           [[0, 3, 3, 1], [8, 3, 3, 1], [1, 4, 3, 1], [9, 4, 3, 1], [2, 5, 3, 1], [10, 5, 3, 1], [3, 6, 3, 1], [11, 6, 3, 1], [4, 7, 3, 2], [12, 7, 3, 2], [3, 9, 3, 1], [11, 9, 3, 1], [2, 10, 3, 1], [10, 10, 3, 1], [1, 11, 3, 1], [9, 11, 3, 1], [0, 12, 3, 1], [8, 12, 3, 1]],
+            dripped_out:            [[7, 0, 2, 2], [6, 2, 4, 2], [5, 4, 6, 1], [4, 5, 8, 1], [3, 6, 10, 1], [2, 7, 12, 1], [1, 8, 3, 2], [4, 8, 2, 3, 1], [6, 8, 9, 2], [0, 10, 4, 1], [6, 10, 10, 1], [0, 11, 16, 1], [1, 12, 14, 1], [2, 13, 12, 1], [3, 14, 10, 1], [5, 15, 6, 1]],
+            just_in_time:           [[7, 0, 2, 1], [6, 1, 4, 1], [5, 2, 6, 2], [4, 4, 8, 2], [3, 6, 10, 2], [2, 8, 12, 2], [1, 10, 14, 1], [0, 11, 16, 2], [6, 14, 4, 2]],
+            mirror_mirror:          [[5, 0, 6, 1], [3, 1, 10, 1], [2, 2, 4, 1], [6, 2, 4, 1, 1], [10, 2, 4, 1], [1, 3, 3, 1], [4, 3, 8, 1, 1], [12, 3, 3, 1], [0, 4, 2, 4], [2, 4, 12, 1, 1], [14, 4, 2, 4], [2, 5, 2, 2, 1], [4, 5, 2, 2], [6, 5, 8, 2, 1], [2, 7, 12, 1, 1], [1, 8, 3, 1], [4, 8, 8, 1, 1], [12, 8, 3, 1], [2, 9, 4, 1], [6, 9, 4, 1, 1], [10, 9, 4, 1], [3, 10, 10, 1], [5, 11, 6, 1], [6, 12, 4, 2], [5, 14, 6, 2]],
+            word_sacrifice:         [[0, 0, 10, 2], [0, 2, 9, 2], [0, 4, 10, 2], [11, 4, 5, 2], [0, 6, 2, 7], [2, 6, 2, 2, 1], [4, 6, 5, 2], [12, 6, 4, 2], [2, 8, 6, 2, 1], [8, 8, 2, 2], [11, 8, 5, 2], [2, 10, 2, 3, 1], [4, 10, 5, 2], [12, 10, 1, 2], [13, 10, 2, 4, 1], [15, 10, 1, 4], [4, 12, 6, 1], [11, 12, 2, 2], [0, 13, 10, 1], [12, 14, 4, 2]],
+            serpentine:             [[5, 0, 3, 1], [4, 1, 3, 1], [3, 2, 3, 1], [2, 3, 3, 1], [3, 4, 3, 1], [4, 5, 3, 1], [5, 6, 3, 1], [6, 7, 3, 1], [7, 8, 3, 1], [8, 9, 3, 1], [9, 10, 3, 1], [8, 11, 3, 1], [7, 12, 3, 1], [6, 13, 3, 1], [5, 14, 3, 1], [4, 15, 3, 1]],
+            addicted:               [[2, 0, 1, 1], [5, 0, 1, 1], [1, 1, 1, 1], [4, 1, 1, 1], [2, 2, 1, 1], [5, 2, 1, 1], [0, 4, 12, 2], [0, 6, 2, 6], [2, 6, 8, 6, 1], [10, 6, 2, 1], [10, 7, 5, 1], [10, 8, 2, 2], [13, 8, 2, 2], [10, 10, 5, 1], [10, 11, 2, 1], [0, 12, 12, 2]],
+            deja_vu:                [[1, 0, 5, 1], [0, 1, 7, 1], [0, 2, 1, 1], [1, 2, 5, 1, 1], [6, 2, 1, 1], [0, 3, 7, 5], [10, 5, 5, 1], [9, 6, 7, 1], [9, 7, 1, 1], [10, 7, 5, 1, 1], [15, 7, 1, 1], [0, 8, 1, 1], [1, 8, 5, 1, 1], [6, 8, 1, 1], [9, 8, 7, 5], [0, 9, 7, 1], [1, 10, 5, 1], [9, 13, 1, 1], [10, 13, 5, 1, 1], [15, 13, 1, 1], [9, 14, 7, 1], [10, 15, 5, 1]],
+            lucky_start:            [[0, 0, 2, 1], [0, 1, 5, 3], [8, 1, 3, 3], [0, 4, 2, 3], [5, 4, 3, 3], [11, 4, 3, 3], [0, 7, 5, 3], [8, 7, 3, 3], [0, 10, 2, 6]],
+            sound_of_silence:       [[7, 3, 2, 1], [6, 4, 3, 1], [5, 5, 4, 1], [10, 5, 2, 1], [14, 5, 2, 1], [0, 6, 9, 4], [11, 6, 4, 1], [12, 7, 2, 2], [11, 9, 4, 1], [5, 10, 4, 1], [10, 10, 2, 1], [14, 10, 2, 1], [6, 11, 3, 1], [7, 12, 2, 1]],
+            double_shift:           [[1, 0, 4, 1], [0, 1, 6, 1], [0, 2, 1, 1], [1, 2, 4, 1, 1], [5, 2, 1, 1], [0, 3, 6, 1], [0, 4, 2, 1], [2, 4, 2, 1, 1], [4, 4, 2, 1], [0, 5, 1, 1], [1, 5, 4, 1, 1], [5, 5, 1, 1], [0, 6, 2, 1], [2, 6, 2, 1, 1], [4, 6, 2, 1], [0, 7, 6, 1], [10, 7, 4, 1], [1, 8, 4, 1], [9, 8, 6, 1], [9, 9, 1, 1], [10, 9, 4, 1, 1], [14, 9, 1, 1], [9, 10, 6, 1], [9, 11, 2, 1], [11, 11, 2, 1, 1], [13, 11, 2, 1], [9, 12, 1, 1], [10, 12, 4, 1, 1], [14, 12, 1, 1], [9, 13, 2, 1], [11, 13, 2, 1, 1], [13, 13, 2, 1], [9, 14, 6, 1], [10, 15, 4, 1]],
+            exact_change:           [[7, 0, 2, 2], [0, 2, 16, 2], [1, 4, 2, 3], [7, 4, 2, 9], [13, 4, 2, 3], [0, 7, 5, 1], [11, 7, 5, 1], [1, 8, 3, 1], [12, 8, 3, 1], [6, 13, 4, 1], [4, 14, 8, 1], [2, 15, 12, 1]],
         };
 
         // COLLECTOR's ladder. Diamond is "own every car you can buy", Amethyst "own every car there
@@ -8045,68 +8174,68 @@
         function achData() {
             return [
                 // tierReset (direct request, Batch 392): true for achievements built from repeated in-run actions piling up (score/coins/overtakes/etc.) — each tier's progress bar starts fresh from 0 at the tier boundary instead of showing the raw lifetime total, since "gained this run" wouldn't otherwise line up with a single tier's own span. Left false/omitted for a best-ever PEAK value (survival time, streak, level, chain-kill record, top speed, multiplier — there's no "reset" to speak of, it's just a record) or a plain collection tally (owned cars/colors, cars driven) where the user explicitly said resetting "doesn't make sense."
-                { id: 'score', icon: 'star', name: 'SCORE CHASER', desc: "Bank enough total score.", v: allTimeStats.totalScore, unit: 'SCORE', tiers: [['bronze', 1000], ['silver', 10000], ['gold', 50000], ['diamond', 250000], ['amethyst', 1000000]], tierReset: true },
-                { id: 'pass', icon: 'road', name: 'OVERTAKER', desc: 'Overtake enough cars cleanly, without a scratch.', v: allTimeStats.totalDodged, unit: 'OVERTAKES', tiers: [['bronze', 100], ['silver', 1000], ['gold', 5000], ['diamond', 25000], ['amethyst', 100000]], tierReset: true },
-                { id: 'alive', icon: 'clock', name: 'STAYING ALIVE', desc: 'Survive this many minutes in a single run.', v: Math.floor(allTimeStats.longestSurvivalMs / 60000), unit: 'MINUTES', tiers: [['bronze', 2], ['silver', 5], ['gold', 10], ['diamond', 15]] },
-                { id: 'collector', icon: 'car', name: 'COLLECTOR', desc: 'Own this many cars in your Garage.', v: allTimeStats.ownedCars.length, unit: 'CARS', tiers: collectorTiers() },
-                { id: 'closecalls', icon: 'road', name: 'TOO CLOSE TO COMFORT', desc: 'Get enough close calls.', v: allTimeStats.totalCloseCalls, unit: 'CLOSE CALLS', tiers: [['bronze', 25], ['silver', 100], ['gold', 250], ['diamond', 500]], tierReset: true },
-                { id: 'streak', icon: 'clock', name: 'DAILY GRIND', desc: 'Consecutive days played.', v: allTimeStats.bestStreak, unit: 'DAYS', tiers: [['bronze', 3], ['silver', 7], ['gold', 14], ['diamond', 21], ['amethyst', 30]] },
-                { id: 'level', icon: 'star', name: 'CLIMBING THE RANKS', desc: 'Reach a certain player level.', v: allTimeStats.playerLevel, unit: 'LEVEL', tiers: [['bronze', 10], ['silver', 25], ['gold', 50], ['diamond', 75], ['amethyst', 100]] },
-                { id: 'missions', icon: 'car', name: 'TASK MASTER', desc: 'Complete Daily Missions.', v: allTimeStats.missionsDoneTotal, unit: 'MISSIONS', tiers: [['bronze', 10], ['silver', 20], ['gold', 50], ['diamond', 100]], tierReset: true },
+                { id: 'score', icon: 'score', name: 'SCORE CHASER', desc: "Bank enough total score.", v: allTimeStats.totalScore, unit: 'SCORE', tiers: [['bronze', 1000], ['silver', 10000], ['gold', 50000], ['diamond', 250000], ['amethyst', 1000000]], tierReset: true },
+                { id: 'pass', icon: 'pass', name: 'OVERTAKER', desc: 'Overtake enough cars cleanly, without a scratch.', v: allTimeStats.totalDodged, unit: 'OVERTAKES', tiers: [['bronze', 100], ['silver', 1000], ['gold', 5000], ['diamond', 25000], ['amethyst', 100000]], tierReset: true },
+                { id: 'alive', icon: 'alive', name: 'STAYING ALIVE', desc: 'Survive this many minutes in a single run.', v: Math.floor(allTimeStats.longestSurvivalMs / 60000), unit: 'MINUTES', tiers: [['bronze', 2], ['silver', 5], ['gold', 10], ['diamond', 15]] },
+                { id: 'collector', icon: 'collector', name: 'COLLECTOR', desc: 'Own this many cars in your Garage.', v: allTimeStats.ownedCars.length, unit: 'CARS', tiers: collectorTiers() },
+                { id: 'closecalls', icon: 'closecalls', name: 'TOO CLOSE TO COMFORT', desc: 'Get enough close calls.', v: allTimeStats.totalCloseCalls, unit: 'CLOSE CALLS', tiers: [['bronze', 25], ['silver', 100], ['gold', 250], ['diamond', 500]], tierReset: true },
+                { id: 'streak', icon: 'streak', name: 'DAILY GRIND', desc: 'Consecutive days played.', v: allTimeStats.bestStreak, unit: 'DAYS', tiers: [['bronze', 3], ['silver', 7], ['gold', 14], ['diamond', 21], ['amethyst', 30]] },
+                { id: 'level', icon: 'level', name: 'CLIMBING THE RANKS', desc: 'Reach a certain player level.', v: allTimeStats.playerLevel, unit: 'LEVEL', tiers: [['bronze', 10], ['silver', 25], ['gold', 50], ['diamond', 75], ['amethyst', 100]] },
+                { id: 'missions', icon: 'missions', name: 'TASK MASTER', desc: 'Complete Daily Missions.', v: allTimeStats.missionsDoneTotal, unit: 'MISSIONS', tiers: [['bronze', 10], ['silver', 20], ['gold', 50], ['diamond', 100]], tierReset: true },
                 // phase 4: the 3 tiered achievements that needed new lifetime counters (Businessman still waits on the economy-rescale go-ahead, not added here).
                 // Batch 438 — lifetime lane switches. Distinct from the SERPENTINE secret, which is
                 // 20 switches inside 5 seconds: same action, one measures habit and one a burst.
-                { id: 'lane_hopper', icon: 'road', name: 'LANE HOPPER', desc: 'Change lanes, over and over.', v: allTimeStats.totalLaneSwitches, unit: 'LANE SWITCHES', tiers: [['bronze', 100], ['silver', 500], ['gold', 2000], ['diamond', 10000]], tierReset: true },
+                { id: 'lane_hopper', icon: 'lane_hopper', name: 'LANE HOPPER', desc: 'Change lanes, over and over.', v: allTimeStats.totalLaneSwitches, unit: 'LANE SWITCHES', tiers: [['bronze', 100], ['silver', 500], ['gold', 2000], ['diamond', 10000]], tierReset: true },
                 // Batch 438 — distance, the counterpart to STAYING ALIVE's time. Tiers set from a real
                 // measurement rather than picked: 8 sampled runs averaged 0.49 km over 28s (~71 km/h),
                 // so bronze is roughly a first session and diamond a long-term total.
-                { id: 'road_trip', icon: 'road', name: 'ROAD TRIP', desc: 'Cover distance, all runs added up.', v: Math.floor(allTimeStats.totalDistanceKm), unit: 'KM', tiers: [['bronze', 25], ['silver', 100], ['gold', 500], ['diamond', 2000]], tierReset: true },
+                { id: 'road_trip', icon: 'road_trip', name: 'ROAD TRIP', desc: 'Cover distance, all runs added up.', v: Math.floor(allTimeStats.totalDistanceKm), unit: 'KM', tiers: [['bronze', 25], ['silver', 100], ['gold', 500], ['diamond', 2000]], tierReset: true },
                 // Batch 438 — which words, not how many: wordsCompleted is only a count.
-                { id: 'wordsmith', icon: 'star', name: 'WORDSMITH', desc: `Complete different Daily Words. There are ${DAILY_WORDS.length}.`, v: allTimeStats.wordsSolved.length, unit: 'WORDS', tiers: [['bronze', 5], ['silver', 15], ['gold', 28], ['diamond', DAILY_WORDS.length]] },
-                { id: 'ramrage', icon: 'car', name: 'ROAD RAGE', desc: 'Ram enough cars.', v: allTimeStats.totalRamKills, unit: 'RAM KILLS', tiers: [['bronze', 50], ['silver', 200], ['gold', 500], ['diamond', 2000]], tierReset: true },
-                { id: 'highflyer', icon: 'road', name: 'HIGH FLYER', desc: 'Clear cars by jumping over them.', v: allTimeStats.totalJumpClears, unit: 'CLEARED', tiers: [['bronze', 10], ['silver', 50], ['gold', 150], ['diamond', 500]], tierReset: true },
-                { id: 'chainreaction', icon: 'car', name: 'CHAIN REACTION', desc: 'Destroy several cars in a single ram.', v: allTimeStats.bestRamChainKills, unit: 'IN ONE RAM', tiers: [['bronze', 5], ['silver', 10], ['gold', 15], ['diamond', 20]] },
+                { id: 'wordsmith', icon: 'wordsmith', name: 'WORDSMITH', desc: `Complete different Daily Words. There are ${DAILY_WORDS.length}.`, v: allTimeStats.wordsSolved.length, unit: 'WORDS', tiers: [['bronze', 5], ['silver', 15], ['gold', 28], ['diamond', DAILY_WORDS.length]] },
+                { id: 'ramrage', icon: 'ramrage', name: 'ROAD RAGE', desc: 'Ram enough cars.', v: allTimeStats.totalRamKills, unit: 'RAM KILLS', tiers: [['bronze', 50], ['silver', 200], ['gold', 500], ['diamond', 2000]], tierReset: true },
+                { id: 'highflyer', icon: 'highflyer', name: 'HIGH FLYER', desc: 'Clear cars by jumping over them.', v: allTimeStats.totalJumpClears, unit: 'CLEARED', tiers: [['bronze', 10], ['silver', 50], ['gold', 150], ['diamond', 500]], tierReset: true },
+                { id: 'chainreaction', icon: 'chainreaction', name: 'CHAIN REACTION', desc: 'Destroy several cars in a single ram.', v: allTimeStats.bestRamChainKills, unit: 'IN ONE RAM', tiers: [['bronze', 5], ['silver', 10], ['gold', 15], ['diamond', 20]] },
                 // Businessman, the last piece of the achievement roster.
                 // direct request: overall increase + new amethyst tier (bringing it in line with the
                 // other 5-tier achievements) — old ceiling (diamond 1,000,000) was reachable well
                 // before the rest of the late-game roster; new ceiling is deliberately closer to what
                 // owning every car in the game (62,735,500 total) actually costs.
-                { id: 'businessman', icon: 'star', name: 'BUSINESSMAN', desc: 'Earn this many coins.', v: allTimeStats.totalCoinsEarnedLifetime, unit: 'COINS EARNED', tiers: [['bronze', 10000], ['silver', 100000], ['gold', 1000000], ['diamond', 10000000], ['amethyst', 100000000]], tierReset: true },
+                { id: 'businessman', icon: 'businessman', name: 'BUSINESSMAN', desc: 'Earn this many coins.', v: allTimeStats.totalCoinsEarnedLifetime, unit: 'COINS EARNED', tiers: [['bronze', 10000], ['silver', 100000], ['gold', 1000000], ['diamond', 10000000], ['amethyst', 100000000]], tierReset: true },
                 // direct request: 4 former ONE-TIME achievements converted to TIERED, fewer tiers than
                 // the main roster — each keeps its OLD one-time tier as the new ceiling (3 of these
                 // were 'gold', so 3 tiers; HIGH ROLLER was 'diamond', so 4), scaled down from there.
-                { id: 'full_palette', icon: 'star', name: 'FULL PALETTE', desc: 'Own paint colors.', v: allTimeStats.ownedColors.length, unit: 'COLORS', tiers: [['bronze', 3], ['silver', 7], ['gold', GARAGE_COLORS.length]] },
+                { id: 'full_palette', icon: 'full_palette', name: 'FULL PALETTE', desc: 'Own paint colors.', v: allTimeStats.ownedColors.length, unit: 'COLORS', tiers: [['bronze', 3], ['silver', 7], ['gold', GARAGE_COLORS.length]] },
                 // Batch 444 - the completionist layer over FULL PALETTE, which only ever counted paints.
                 // "Every cosmetic" means every paint AND every booster right now; the plan logged this as
                 // blocked on the effects system existing, but nothing about it needs to wait: when effects
                 // land, they get their own `every()` clause here and the achievement widens by one line.
                 // isFlameUnlocked() covers both gates a booster can have - the level one and the bought one.
-                { id: 'full_wardrobe', icon: 'star', name: 'FULL WARDROBE', desc: 'Own every paint colour and every booster in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
-                { id: 'car_fanatic', icon: 'car', name: 'CAR FANATIC', desc: 'Take a run in this many different cars.', v: Object.keys(allTimeStats.carStats).filter(k => allTimeStats.carStats[k].runs >= 1).length, unit: 'CARS DRIVEN', tiers: [['bronze', 15], ['silver', 35], ['gold', 52]] },
-                { id: 'i_am_speed', icon: 'road', name: 'I AM SPEED', desc: 'Reach a top speed, like Sonic himself.', v: allTimeStats.bestTopSpeedKmh, unit: 'KM/H', tiers: [['bronze', 150], ['silver', 200], ['gold', 250]] },
-                { id: 'high_roller', icon: 'star', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 3], ['silver', 4.5], ['gold', 6], ['diamond', 7.5]] },
+                { id: 'full_wardrobe', icon: 'full_wardrobe', name: 'FULL WARDROBE', desc: 'Own every paint colour and every booster in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
+                { id: 'car_fanatic', icon: 'car_fanatic', name: 'CAR FANATIC', desc: 'Take a run in this many different cars.', v: Object.keys(allTimeStats.carStats).filter(k => allTimeStats.carStats[k].runs >= 1).length, unit: 'CARS DRIVEN', tiers: [['bronze', 15], ['silver', 35], ['gold', 52]] },
+                { id: 'i_am_speed', icon: 'i_am_speed', name: 'I AM SPEED', desc: 'Reach a top speed, like Sonic himself.', v: allTimeStats.bestTopSpeedKmh, unit: 'KM/H', tiers: [['bronze', 150], ['silver', 200], ['gold', 250]] },
+                { id: 'high_roller', icon: 'high_roller', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 3], ['silver', 4.5], ['gold', 6], ['diamond', 7.5]] },
                 // Batch 324/325 — phase 2 + 2b: the full real ONE-TIME roster.
                 // Batch 438 — every secret found. Derived live rather than event-unlocked: it is a
                 // statement about the other achievements, so computing it cannot fall out of sync.
-                { id: 'nothing_left_hidden', icon: 'lock', name: 'NOTHING LEFT HIDDEN', desc: 'Unlock every secret achievement.', once: true, tier: 'amethyst', done: ACH_SECRETS().every(a => a.done) },
+                { id: 'nothing_left_hidden', icon: 'nothing_left_hidden', name: 'NOTHING LEFT HIDDEN', desc: 'Unlock every secret achievement.', once: true, tier: 'amethyst', done: ACH_SECRETS().every(a => a.done) },
                 // Batch 438 — all three daily systems cleared on the same calendar day.
-                { id: 'perfect_day', icon: 'clock', name: 'PERFECT DAY', desc: 'Claim the Daily Gift, complete the Daily Word and clear all six Daily Missions, in one day.', once: true, tier: 'gold', done: isPerfectDayDone() },
-                { id: 'nothing_to_see_here', icon: 'road', name: 'NOTHING TO SEE HERE', desc: 'Jump clean over a broken-down car.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.nothing_to_see_here },
-                { id: 'clear_way', icon: 'bus', name: 'CLEAR THE WAY', desc: 'Jump clean over an ambulance.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.clear_way },
-                { id: 'jackpot', icon: 'star', name: 'JACKPOT', desc: 'Win a car from an Extra Box or the Daily Word.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.jackpot },
-                { id: 'bad_samaritan', icon: 'bus', name: 'BAD SAMARITAN', desc: 'Deliberately ram an ambulance.', once: true, tier: 'diamond', done: !!allTimeStats.achievementsUnlocked.bad_samaritan },
-                { id: 'spotter', icon: 'car', name: 'SPOTTER', desc: 'Spot 3 legendary cars in a single run.', once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.spotter },
-                { id: 'lucky_streak', icon: 'star', name: 'LUCKY STREAK', desc: 'Get 3 Extra Box paint rewards in a row.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.lucky_streak },
-                { id: 'round_the_clock', icon: 'clock', name: 'ROUND THE CLOCK', desc: 'Start a run in all 24 hours of the day.', once: true, tier: 'diamond', done: !!allTimeStats.achievementsUnlocked.round_the_clock },
-                { id: 'what_a_monster', icon: 'car', name: 'WHAT A MONSTER', desc: 'Spot the Monster Truck for the first time.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.what_a_monster },
-                { id: 'adventuring_time', icon: 'road', name: 'ADVENTURING TIME', desc: `Pass through all ${BIOME_DEFS.length} biomes in a single run.`, once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.adventuring_time },
-                { id: 'reckless_driver', icon: 'road', name: 'TRULY A RECKLESS DRIVER', desc: 'Get 10 close calls in a single run.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.reckless_driver },
-                { id: 'not_my_fault', icon: 'car', name: 'NOT MY FAULT', desc: 'Witness two other cars crash into each other.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.not_my_fault },
-                { id: 'early_bird', icon: 'clock', name: 'EARLY BIRD', desc: 'Start a run between 6 and 7 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.early_bird },
-                { id: 'night_owl', icon: 'clock', name: 'NIGHT OWL', desc: 'Start a run between midnight and 3 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.night_owl },
-                { id: 'two_of_a_kind', icon: 'bus', name: 'TWO OF A KIND', desc: 'Have 2 ambulances on screen at the same time.', once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.two_of_a_kind },
+                { id: 'perfect_day', icon: 'perfect_day', name: 'PERFECT DAY', desc: 'Claim the Daily Gift, complete the Daily Word and clear all six Daily Missions, in one day.', once: true, tier: 'gold', done: isPerfectDayDone() },
+                { id: 'nothing_to_see_here', icon: 'nothing_to_see_here', name: 'NOTHING TO SEE HERE', desc: 'Jump clean over a broken-down car.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.nothing_to_see_here },
+                { id: 'clear_way', icon: 'clear_way', name: 'CLEAR THE WAY', desc: 'Jump clean over an ambulance.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.clear_way },
+                { id: 'jackpot', icon: 'jackpot', name: 'JACKPOT', desc: 'Win a car from an Extra Box or the Daily Word.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.jackpot },
+                { id: 'bad_samaritan', icon: 'bad_samaritan', name: 'BAD SAMARITAN', desc: 'Deliberately ram an ambulance.', once: true, tier: 'diamond', done: !!allTimeStats.achievementsUnlocked.bad_samaritan },
+                { id: 'spotter', icon: 'spotter', name: 'SPOTTER', desc: 'Spot 3 legendary cars in a single run.', once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.spotter },
+                { id: 'lucky_streak', icon: 'lucky_streak', name: 'LUCKY STREAK', desc: 'Get 3 Extra Box paint rewards in a row.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.lucky_streak },
+                { id: 'round_the_clock', icon: 'round_the_clock', name: 'ROUND THE CLOCK', desc: 'Start a run in all 24 hours of the day.', once: true, tier: 'diamond', done: !!allTimeStats.achievementsUnlocked.round_the_clock },
+                { id: 'what_a_monster', icon: 'what_a_monster', name: 'WHAT A MONSTER', desc: 'Spot the Monster Truck for the first time.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.what_a_monster },
+                { id: 'adventuring_time', icon: 'adventuring_time', name: 'ADVENTURING TIME', desc: `Pass through all ${BIOME_DEFS.length} biomes in a single run.`, once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.adventuring_time },
+                { id: 'reckless_driver', icon: 'reckless_driver', name: 'TRULY A RECKLESS DRIVER', desc: 'Get 10 close calls in a single run.', once: true, tier: 'silver', done: !!allTimeStats.achievementsUnlocked.reckless_driver },
+                { id: 'not_my_fault', icon: 'not_my_fault', name: 'NOT MY FAULT', desc: 'Witness two other cars crash into each other.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.not_my_fault },
+                { id: 'early_bird', icon: 'early_bird', name: 'EARLY BIRD', desc: 'Start a run between 6 and 7 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.early_bird },
+                { id: 'night_owl', icon: 'night_owl', name: 'NIGHT OWL', desc: 'Start a run between midnight and 3 a.m.', once: true, tier: 'bronze', done: !!allTimeStats.achievementsUnlocked.night_owl },
+                { id: 'two_of_a_kind', icon: 'two_of_a_kind', name: 'TWO OF A KIND', desc: 'Have 2 ambulances on screen at the same time.', once: true, tier: 'gold', done: !!allTimeStats.achievementsUnlocked.two_of_a_kind },
                 // "MILLIONAIRE": current BALANCE ≥ 10,000,000 at once, not lifetime- earned (that's the separate TIERED "Businessman").
-                { id: 'millionaire', icon: 'star', name: 'MULTI-MILLIONAIRE', desc: 'Have 10,000,000 coins at once.', once: true, tier: 'amethyst', done: !!allTimeStats.achievementsUnlocked.millionaire } // Batch 351 — direct rename, was "MILLIONAIRE" ('id' kept as-is, only the display name changed)
+                { id: 'millionaire', icon: 'millionaire', name: 'MULTI-MILLIONAIRE', desc: 'Have 10,000,000 coins at once.', once: true, tier: 'amethyst', done: !!allTimeStats.achievementsUnlocked.millionaire } // Batch 351 — direct rename, was "MILLIONAIRE" ('id' kept as-is, only the display name changed)
             ];
         }
         // phase 3: the real SECRET roster (see PLAN.md / "Achievement Roster" Artifact).
@@ -8131,29 +8260,29 @@
 
         function ACH_SECRETS() {
             return [
-            { id: 'full_circle', icon: 'clock', name: 'FULL CIRCLE', desc: 'Click your level badge and watch the ring go all the way round.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
-            { id: 'the_destroyer', icon: 'car', name: 'THE DESTROYER', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.the_destroyer },
-            { id: 'pull_up_pull_up', icon: 'car', name: 'PULL UP! PULL UP!', desc: 'Land a mistimed jump and crash right into the car below you.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.pull_up_pull_up },
-            { id: 'no_school_today', icon: 'bus', name: 'NO SCHOOL TODAY', desc: 'Crash into the school bus.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.no_school_today },
-            { id: 'eye_catching', icon: 'car', name: 'EYE CATCHING', desc: 'Crash into a legendary-rarity car on the road.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.eye_catching },
-            { id: 'cant_park_there', icon: 'road', name: "YOU CAN'T PARK THERE, SIR", desc: 'Crash into a road obstacle.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cant_park_there },
-            { id: 'didnt_even_try', icon: 'star', name: "DIDN'T EVEN TRY", desc: 'End a run with exactly 0 score.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.didnt_even_try },
-            { id: 'over_before_it_started', icon: 'clock', name: 'OVER BEFORE IT STARTED', desc: 'Crash within 5 seconds of starting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.over_before_it_started },
-            { id: 'cease_and_desist', icon: 'bus', name: 'CEASE AND DESIST', desc: 'Using the mighty power of the Tank, silence the ambulance for good.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cease_and_desist },
-            { id: 'too_close_too_caring', icon: 'bus', name: 'TOO CLOSE, TOO CARING', desc: 'Get a close call specifically with an ambulance.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.too_close_too_caring },
-            { id: 'back_to_back', icon: 'road', name: 'BACK TO BACK', desc: 'Get two close calls back-to-back.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.back_to_back },
-            { id: 'dripped_out', icon: 'star', name: 'DRIPPED OUT', desc: 'Drive a legendary car with a non-default paint and booster together.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.dripped_out },
-            { id: 'just_in_time', icon: 'clock', name: 'JUST IN TIME', desc: 'Complete the Daily Word in the last minute before reset.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.just_in_time },
-            { id: 'mirror_mirror', icon: 'star', name: 'MIRROR, MIRROR', desc: 'Click your own level badge on the main menu, just to watch it spin. No one asked you to.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.mirror_mirror },
-            { id: 'word_sacrifice', icon: 'star', name: 'WORD SACRIFICE', desc: 'Collect a Daily Word letter, then crash within half a second of it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.word_sacrifice },
-            { id: 'serpentine', icon: 'road', name: 'SERPENTINE', desc: 'Switch lanes 20 times within 5 seconds.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.serpentine },
-            { id: 'addicted', icon: 'clock', name: 'ADDICTED?', desc: 'Play for one whole hour in one sitting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.addicted },
+            { id: 'full_circle', icon: 'full_circle', name: 'FULL CIRCLE', desc: 'Click your level badge and watch the ring go all the way round.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_circle },
+            { id: 'the_destroyer', icon: 'the_destroyer', name: 'THE DESTROYER', desc: 'Reach into the menu and take out one of the cars driving past behind it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.the_destroyer },
+            { id: 'pull_up_pull_up', icon: 'pull_up_pull_up', name: 'PULL UP! PULL UP!', desc: 'Land a mistimed jump and crash right into the car below you.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.pull_up_pull_up },
+            { id: 'no_school_today', icon: 'no_school_today', name: 'NO SCHOOL TODAY', desc: 'Crash into the school bus.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.no_school_today },
+            { id: 'eye_catching', icon: 'eye_catching', name: 'EYE CATCHING', desc: 'Crash into a legendary-rarity car on the road.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.eye_catching },
+            { id: 'cant_park_there', icon: 'cant_park_there', name: "YOU CAN'T PARK THERE, SIR", desc: 'Crash into a road obstacle.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cant_park_there },
+            { id: 'didnt_even_try', icon: 'didnt_even_try', name: "DIDN'T EVEN TRY", desc: 'End a run with exactly 0 score.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.didnt_even_try },
+            { id: 'over_before_it_started', icon: 'over_before_it_started', name: 'OVER BEFORE IT STARTED', desc: 'Crash within 5 seconds of starting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.over_before_it_started },
+            { id: 'cease_and_desist', icon: 'cease_and_desist', name: 'CEASE AND DESIST', desc: 'Using the mighty power of the Tank, silence the ambulance for good.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cease_and_desist },
+            { id: 'too_close_too_caring', icon: 'too_close_too_caring', name: 'TOO CLOSE, TOO CARING', desc: 'Get a close call specifically with an ambulance.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.too_close_too_caring },
+            { id: 'back_to_back', icon: 'back_to_back', name: 'BACK TO BACK', desc: 'Get two close calls back-to-back.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.back_to_back },
+            { id: 'dripped_out', icon: 'dripped_out', name: 'DRIPPED OUT', desc: 'Drive a legendary car with a non-default paint and booster together.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.dripped_out },
+            { id: 'just_in_time', icon: 'just_in_time', name: 'JUST IN TIME', desc: 'Complete the Daily Word in the last minute before reset.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.just_in_time },
+            { id: 'mirror_mirror', icon: 'mirror_mirror', name: 'MIRROR, MIRROR', desc: 'Click your own level badge on the main menu, just to watch it spin. No one asked you to.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.mirror_mirror },
+            { id: 'word_sacrifice', icon: 'word_sacrifice', name: 'WORD SACRIFICE', desc: 'Collect a Daily Word letter, then crash within half a second of it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.word_sacrifice },
+            { id: 'serpentine', icon: 'serpentine', name: 'SERPENTINE', desc: 'Switch lanes 20 times within 5 seconds.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.serpentine },
+            { id: 'addicted', icon: 'addicted', name: 'ADDICTED?', desc: 'Play for one whole hour in one sitting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.addicted },
             // 3 new secrets, all things that happen TO a player rather than things deliberately farmed, same spirit as Serpentine/Back To Back/Two Of A Kind.
-            { id: 'deja_vu', icon: 'car', name: 'DÉJÀ VU', desc: 'Crash into the same specific car model 3 runs in a row.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.deja_vu },
-            { id: 'lucky_start', icon: 'star', name: 'LUCKY START', desc: 'Spot a legendary car among the first 10 vehicles of a run.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.lucky_start },
-            { id: 'sound_of_silence', icon: 'star', name: 'SOUND OF SILENCE', desc: 'Turn the master volume all the way down.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.sound_of_silence },
-            { id: 'double_shift', icon: 'bus', name: 'DOUBLE SHIFT', desc: 'Have two ambulances on the road at the same time.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.double_shift },
-            { id: 'exact_change', icon: 'star', name: 'EXACT CHANGE', desc: 'Level up landing on exactly 0 XP into the new level.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.exact_change }
+            { id: 'deja_vu', icon: 'deja_vu', name: 'DÉJÀ VU', desc: 'Crash into the same specific car model 3 runs in a row.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.deja_vu },
+            { id: 'lucky_start', icon: 'lucky_start', name: 'LUCKY START', desc: 'Spot a legendary car among the first 10 vehicles of a run.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.lucky_start },
+            { id: 'sound_of_silence', icon: 'sound_of_silence', name: 'SOUND OF SILENCE', desc: 'Turn the master volume all the way down.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.sound_of_silence },
+            { id: 'double_shift', icon: 'double_shift', name: 'DOUBLE SHIFT', desc: 'Have two ambulances on the road at the same time.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.double_shift },
+            { id: 'exact_change', icon: 'exact_change', name: 'EXACT CHANGE', desc: 'Level up landing on exactly 0 XP into the new level.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.exact_change }
             ];
         }
         const ACH_TABS = [{ k: 'all', label: 'ALL' }, { k: 'wip', label: 'IN PROGRESS' }, { k: 'done', label: 'COMPLETED' }];
@@ -8233,7 +8362,7 @@
             const rects = (ACH_ICONS[name] || ACH_ICONS.car)
                 .map(r => `<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" fill="${r[4] ? 'var(--c-night)' : color}"></rect>`)
                 .join('');
-            return `<svg width="16" height="16" viewBox="0 0 20 20" shape-rendering="crispEdges">${rects}</svg>`;
+            return `<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">${rects}</svg>`;
         }
         // Small pixel-art gear/cog, same construction as achIconSvg above (flat rects, a cut-out
         // hole in the background color) — the number-display settings trigger, direct request:
@@ -9528,7 +9657,10 @@
                 if (this.launched) {
                     this.x += this.launchVx;
                     this.y += this.launchVy;
-                    this.launchVy += 0.12;
+                    // Batch 484: the downward drag is gone. It was what turned a launch into an ARC -
+                    // the car rose, slowed, stopped and started falling back, which is the "flying
+                    // around" being complained about however calm the initial kick is. A constant
+                    // velocity keeps it a straight line out of frame: one direction, start to finish.
                     this.launchAngle += this.launchSpin;
                     this.launchScale = Math.max(0.15, (this.launchScale === undefined ? 1 : this.launchScale) - 0.012);
                     return;
@@ -11129,13 +11261,33 @@
                     if (flowParts.length >= 24) break;
                     if (Math.random() > 0.3 + strength * 0.45) continue;
                     const side = Math.random() < 0.5 ? -1 : 1;
+                    // Batch 485, direct report. Two fixes, both about the flow belonging to THIS car.
+                    //
+                    // WIDTH: the band used to sit a flat 1-3.5px off the flank whatever was driving.
+                    // On the JET BIKE - 8px wide - that is 44% of the bike hanging in open air beside
+                    // it, which reads as a rendering fault rather than as airflow; on the 22px PIANO
+                    // the same band is only 16% and hugs the body. Both are now a fraction of the car,
+                    // so a narrow bike gets a narrow wake and a wide body gets a wide one.
+                    const flank = Math.max(0.8, pl.width * 0.10);
+                    const spread = Math.max(0.6, pl.width * 0.08);
                     flowParts.push({
-                        // just OUTSIDE the flank, at the front corner where the airflow separates
-                        x: side < 0 ? pl.x - 2 - Math.random() * 1.5 : pl.x + pl.width + 1 + Math.random() * 1.5,
-                        y: pl.y + 1 + Math.random() * 4,
+                        // the extra -1 on the left is the particle's own pixel: fillRect draws from px
+                        // rightward, so without it the left side sits a pixel closer than the right.
+                        x: side < 0 ? pl.x - 1 - flank - Math.random() * spread
+                                    : pl.x + pl.width + flank + Math.random() * spread,
+                        // POSITION: spawned in the back third of the body, not at the nose. These stream
+                        // rearward, so starting them at the front drew a line up the whole flank and made
+                        // the car look like it was trailing smoke from the bonnet. Proportional to length,
+                        // which matters across a 14px GO-KART and a 60px SHIP.
+                        y: pl.y + pl.height * 0.62 + Math.random() * pl.height * 0.3,
                         // slower than the road: boundary air clings to the body instead of racing past
                         spd: currentSpeed * (0.45 + Math.random() * 0.25),
-                        drift: side * (0.05 + Math.random() * 0.09),
+                        // Scaled by width for the same reason the spawn band is. The spawn point alone
+                        // is not what the eye reads as "how wide is this wake" - the particle then drifts
+                        // outward for its whole ~30-frame life, and at a flat rate that carried a jet
+                        // bike's flow as far off its flank as a grand piano's. 14 is the common car
+                        // width, so an ordinary car is unchanged.
+                        drift: side * (0.05 + Math.random() * 0.09) * (pl.width / (14 * CAR_SCALE)),
                         len: 3 + Math.floor(Math.random() * 4),
                         life: 24 + Math.floor(Math.random() * 12),
                         a: 0.3 + strength * 0.4
@@ -11201,7 +11353,12 @@
         // It gets its own floor at 60 km/h - roughly 16 seconds in - and reaches full intensity at 160.
         // The air keeps its 120, which was a direct instruction; this is the snail's signature effect and
         // has to actually be seen to be one.
-        const SNAIL_TRAIL_MIN_KMH = 60;
+        // Batch 484, direct request: "the snail should start with its trail from the start." A run
+        // begins at 50 km/h, under the old 60 floor, so the snail spent its first seconds with no
+        // trail at all - and any trail seeded at spawn would have been eaten a point per frame by the
+        // reel-in below. At 0 the trail simply exists whenever the snail is moving, and `t` goes back
+        // to doing only what it is good at: making the beam brighter the faster you go.
+        const SNAIL_TRAIL_MIN_KMH = 0;
         const SNAIL_TRAIL_FULL_KMH = 160;
         const SNAIL_TRAIL_MAX = 80;
         let snailTrail = [];
@@ -11216,7 +11373,14 @@
             // short of it, every few frames, exactly the flicker described. Points now live until they
             // are far past the edge; the per-row clip already stops them painting anything off-screen.
             snailTrail = snailTrail.filter(pt => pt.y < VIEW_H + 60);
-            if (t > 0) {
+            if (CS.active) {
+                // Batch 484: frozen for the whole crash sequence - neither grown nor reeled in, so the
+                // trail you had at the moment of impact is the trail that stays on the road. Both halves
+                // matter. Reeling in would eat it a point per frame as the crash drops the speed to
+                // nothing, which is the disappearance this was asked to fix. But letting it keep
+                // EMITTING is just as wrong: at near-zero speed every new point lands on the same spot,
+                // so 80 of them stack up and the beam collapses into a bright stub under the wreck.
+            } else if (t > 0) {
                 // Batch 467, direct report: the trail looked like it came out of the snail's back end
                 // rather than from under it. Two causes. The declared height was 28 while the art is 32
                 // tall (Batch 459 shrank the numbers without touching the sprite), so `drawY + height`
@@ -11591,6 +11755,19 @@
             if (hHeldReleaseTimer.left) { clearTimeout(hHeldReleaseTimer.left); hHeldReleaseTimer.left = null; }
             if (hHeldReleaseTimer.right) { clearTimeout(hHeldReleaseTimer.right); hHeldReleaseTimer.right = null; }
             player = new Player();
+            // Batch 484, direct request: the snail starts WITH its trail rather than growing one over
+            // the first seconds. Seeded exactly the way the live trail is built - one point per frame,
+            // each `currentSpeed` further down the road - so a fresh run is indistinguishable from one
+            // already under way. SNAIL_TRAIL_MAX caps it, same as in flight.
+            if (getSelectedCar().turboTrail) {
+                const trailX = player.x + player.width / 2;
+                const step = Math.max(1, currentSpeed);
+                for (let y = player.y + player.height * 0.72;
+                     y < VIEW_H + 60 && snailTrail.length < SNAIL_TRAIL_MAX;
+                     y += step) {
+                    snailTrail.push({ x: trailX, y: y });
+                }
+            }
             gameActive = true;
             hudLeft.style.display = 'flex';
             drawAbilityBar(abilityCtx, 0, 0, 'charge');
@@ -12799,7 +12976,9 @@
             if (config.scorePopupsEnabled) {
                 const gained = '+' + Math.round(pts * multiplier * jumpMult);
                 if (v.jumpedOver) {
-                    scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y - 4, gained, 'x2 JUMP', '#f5b32a'));
+                    // Batch 484, direct request: no caption on a jump-over, just the number. A normal
+                    // pass has never had one, so the captions were the odd case, not the plain ones.
+                    scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y - 4, gained, '', '#f5b32a'));
                 } else {
                     scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2, gained, '', '#2ee6b0'));
                 }
@@ -12935,48 +13114,118 @@
                     Math.round((x + PLAYER_WIDTH / 2 - ROAD_BORDER_LEFT - lw / 2) / lw)));
                 const wreckLaneA = laneOf(CS.wrecks[0].x);
                 const wreckLaneB = laneOf(CS.wrecks[1].x);
-                const wreckLanes = new Set();
-                for (let l = Math.min(wreckLaneA, wreckLaneB); l <= Math.max(wreckLaneA, wreckLaneB); l++) wreckLanes.add(l);
+                // Batch 486: only the lanes a wreck is actually IN, not every lane between the two.
+                // The old range-fill blocked innocent lanes - on a 3-lane road with wrecks at either
+                // edge it marked all three occupied, which is what drove the fallback below into
+                // parking responders in the wreck's own lane. Real overlap is now caught by a
+                // rectangle test, so this only needs to be honest about which lanes are taken.
+                const wreckLanes = new Set([wreckLaneA, wreckLaneB]);
                 const centerLane = Math.round((wreckLaneA + wreckLaneB) / 2);
-                // Prefer lanes beside the wreck(s), expanding outward; reuse an already-found lane (stacking 2+ responders together) before ever trying a lane either wreck occupies.
-                const laneOffsets = [-1, 1, -2, 2, -3, 3];
-                const respLanes = [];
-                for (const o of laneOffsets) {
-                    const l = centerLane + o;
-                    if (l < 0 || l >= config.lanes || wreckLanes.has(l)) continue;
-                    if (!respLanes.includes(l)) respLanes.push(l);
-                    if (respLanes.length >= 3) break;
-                }
-                while (respLanes.length < 3) respLanes.push(respLanes[respLanes.length % Math.max(1, respLanes.length)] ?? centerLane);
-
                 const laneX = (l) => ROAD_BORDER_LEFT + l * lw + (lw - PLAYER_WIDTH) / 2;
 
-                // Each responder prefers a row below the wreck, same as before, but falls back to a row ABOVE it if below would run off the bottom of the canvas — decided per responder, not for the whole group at once.
-                const MIN_GAP = RESP_H + 1;
-                const laneLastBelow = {}, laneLastAbove = {};
-                const targets = respLanes.map((l, i) => {
-                    const base = RESP_CLEAR + STAGGER[i];
-                    let belowOffset = laneLastBelow[l] === undefined ? base : Math.max(base, laneLastBelow[l] + RESP_GAP);
-                    let belowY = wreckBottomY + belowOffset;
-                    if (belowY > maxTargetY && laneLastBelow[l] !== undefined) {
-                        const tightOffset = Math.max(base, laneLastBelow[l] + MIN_GAP);
-                        const tightY = wreckBottomY + tightOffset;
-                        if (tightY <= maxTargetY) { belowOffset = tightOffset; belowY = tightY; }
+                // Batch 486 rework, direct report: responders "can drive on top of you to get to
+                // their place, they can drive on top of each other because two vehicles might go
+                // into one lane". Both were real, and both came from placement that ASSUMED a slot
+                // was free instead of checking it.
+                //
+                // The old code picked three lanes from a fixed +/-1,2,3 offset list, and when a
+                // narrow road ran out of free lanes it padded the list by repeating earlier entries.
+                // If NO free lane was found it fell back to `centerLane` - which is the wreck's own
+                // lane - so on a 3-lane road all three responders could be sent straight over the
+                // player. The vertical spacing meant to keep two responders in one lane apart was
+                // derived from running per-lane offsets, and its last-resort branch clamped a target
+                // back into range without re-testing it against anything.
+                //
+                // Now every placement is a real rectangle tested against both wrecks and against
+                // each responder already placed. A responder with no clear slot is not spawned at
+                // all: a scene with two vehicles beats one with three sitting inside each other.
+                const RESP_W = PLAYER_WIDTH;
+                let candidateLanes = [];
+                for (let l = 0; l < config.lanes; l++) if (!wreckLanes.has(l)) candidateLanes.push(l);
+                // Nearest the wreck first, so they pull up beside it rather than out at the kerb.
+                candidateLanes.sort((a, b) => Math.abs(a - centerLane) - Math.abs(b - centerLane));
+                // Only when the wrecks genuinely occupy every lane (a 2-lane road with one in each)
+                // does driving past a wreck become unavoidable; the rectangle test still keeps them
+                // from ending up inside anything.
+                if (!candidateLanes.length) for (let l = 0; l < config.lanes; l++) candidateLanes.push(l);
+
+                const overlaps = (a, b) =>
+                    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+                const wreckRects = CS.wrecks.map(w => ({ x: w.x, y: w.y, w: w.width, h: w.height }));
+
+                const RESP_SPECS = [
+                    { kind: 'police',    speed: 2.6, delay: 0 },
+                    { kind: 'police',    speed: 2.6, delay: 25 },
+                    { kind: 'ambulance', speed: 2.2, delay: 55 }
+                ];
+                // A responder enters from below the screen and drives UP to its spot, so the column
+                // between the two is swept - and THAT, not the parking, was the reported bug. A
+                // responder parking above the wreck has to pass it on the way, and nothing ever
+                // checked that. Measured on the old code across 3040 crash layouts: 14% drove
+                // straight through a wreck and 3% through a spot another responder had already taken.
+                // Both are rejected below by testing the swept path, not just the destination.
+                //
+                // Placement order is also arrival order (delays 0/25/55 follow the index), so a
+                // responder only has to avoid the ones placed BEFORE it - those are the only ones
+                // already parked when it drives in.
+                const placed = [];
+                const usedLanes = new Set();
+                RESP_SPECS.forEach((spec, i) => {
+                    let spot = null, spotLane = -1;
+                    // Two passes: an EMPTY lane first, then any lane. Without the first pass every
+                    // responder scans the lanes in the same order, lane 0 always has room left, and
+                    // all three end up nose-to-tail in it even on a 10-lane road - which is the
+                    // "stacked in one lane" look this whole block exists to avoid. Stacking is the
+                    // fallback for a narrow road, not the default.
+                    for (const pass of [0, 1]) {
+                      for (const lane of candidateLanes) {
+                        if (pass === 0 && usedLanes.has(lane)) continue;
+                        const x = laneX(lane);
+                        // Below the wreck first (they come from behind), then above it when the
+                        // bottom of the canvas has no room left.
+                        const candidates = [];
+                        for (let y = wreckBottomY + RESP_CLEAR + STAGGER[i]; y <= maxTargetY; y += RESP_GAP) candidates.push(y);
+                        for (let y = wreckTopY - RESP_CLEAR - RESP_H - STAGGER[i]; y >= minTargetY; y -= RESP_GAP) candidates.push(y);
+                        const y = candidates.find(y => {
+                            const rect = { x: x, y: y, w: RESP_W, h: RESP_H };
+                            if (wreckRects.some(b => overlaps(rect, b))) return false;
+                            if (placed.some(p => overlaps(rect, p))) return false;
+                            // A wreck between it and its spot means driving through the wreck, which
+                            // is the whole complaint - never allowed.
+                            const inTheWay = o => o.x < x + RESP_W && o.x + o.w > x && o.y + o.h > y;
+                            if (wreckRects.some(inTheWay)) return false;
+                            // Another RESPONDER in the way is fine here, because arrival order is
+                            // sorted top-down below: whoever parks higher sets off first, so it
+                            // passes through that space while it is still empty. Forbidding it
+                            // outright cost a third of the responders on a 3-lane road.
+                            return true;
+                        });
+                        if (y !== undefined) { spot = { x: x, y: y }; spotLane = lane; break; }
+                      }
+                      if (spot) break;
                     }
-                    if (belowY <= maxTargetY) { laneLastBelow[l] = belowOffset; return belowY; }
-                    const aboveOffset = laneLastAbove[l] === undefined ? base : Math.max(base, laneLastAbove[l] + RESP_GAP);
-                    const aboveY = wreckTopY - aboveOffset - RESP_H;
-                    if (aboveY >= minTargetY) { laneLastAbove[l] = aboveOffset; return aboveY; }
-                    // Neither side has room at all (the wreck itself leaves under RESP_H+RESP_CLEAR of clearance on both edges of a 260px-tall canvas) — essentially unreachable in practice.
-                    laneLastBelow[l] = belowOffset;
-                    return Math.max(minTargetY, Math.min(maxTargetY, belowY));
+                    if (!spot) return;   // nowhere it can reach cleanly - better absent than clipping
+                    usedLanes.add(spotLane);
+                    placed.push({ x: spot.x, y: spot.y, w: RESP_W, h: RESP_H, ...spec });
                 });
 
-                CS.responders = [
-                    { kind: 'police',    x: laneX(respLanes[0]), y: entryY,               targetY: targets[0], speed: 2.6, delay: 0,  elapsed: 0 },
-                    { kind: 'police',    x: laneX(respLanes[1]), y: entryY + entryStep,   targetY: targets[1], speed: 2.6, delay: 25, elapsed: 0 },
-                    { kind: 'ambulance', x: laneX(respLanes[2]), y: entryY + entryStep*2, targetY: targets[2], speed: 2.2, delay: 55, elapsed: 0 }
-                ];
+                // Each responder prefers a row below the wreck, same as before, but falls back to a row ABOVE it if below would run off the bottom of the canvas — decided per responder, not for the whole group at once.
+                // Arrival order is by how far UP the road each one parks: the highest sets off
+                // first. That is what lets two share a lane safely - the one going further up
+                // crosses the lower spot while it is still empty, and the lower one then stops
+                // short of it, so neither ever drives through the other. The delays themselves stay
+                // 0/25/55, only which vehicle gets which changes.
+                const DELAYS = RESP_SPECS.map(s => s.delay);
+                const arrivalOrder = placed.slice().sort((a, b) => a.y - b.y);
+                CS.responders = arrivalOrder.map((p, i) => ({
+                    kind: p.kind,
+                    x: p.x,
+                    y: entryY + entryStep * i,
+                    targetY: p.y,
+                    speed: p.speed,
+                    delay: DELAYS[i],
+                    elapsed: 0
+                }));
             }
         }
 
@@ -13271,7 +13520,10 @@
             // Batch 471 — flank airflow: every car past 175 km/h, plus any ramming vehicle.
             if (gameActive && player) drawSpeedFlow(player, player.abilityState === 'ramming');
             // Batch 469 — with the road, before any traffic, so NPCs drive OVER the snail's trail.
-            if (gameActive && player && getSelectedCar().turboTrail) {
+            // Batch 484, direct request: keep drawing it through the crash sequence too. Gating on
+            // gameActive alone deleted the trail the instant you crashed, so the wreck sat on empty
+            // asphalt with no sign of how it got there.
+            if ((gameActive || CS.active) && player && getSelectedCar().turboTrail) {
                 drawSnailTrail(player, player.x, player.y);
             }
 
@@ -13573,9 +13825,10 @@
                                 // Batch 475, direct report: "I don't see any points for ramming cars with
                                 // my ship." Correct - the popups only covered passes and jump-overs. A ram
                                 // kill scores, so it pops, on the car it killed, same toggle.
+                                // Batch 484, direct request: the points stay, the "RAMMED" caption goes.
                                 if (config.scorePopupsEnabled) {
                                     scorePopups.push(new ScorePopup(v.x + v.width / 2, v.y + v.height / 2,
-                                        '+' + Math.round(ramPts * multiplier * 1.2), 'RAMMED', '#4dd2ff'));
+                                        '+' + Math.round(ramPts * multiplier * 1.2), '', '#4dd2ff'));
                                 }
                             }
                             ramsUsed++;
@@ -13604,9 +13857,17 @@
                             // sent cars sailing across the whole road. The throw is mostly UP-SCREEN now -
                             // away from the bumper, the way a hit at speed actually reads - with a modest
                             // sideways component away from the player and a calmer spin.
-                            v.launchVx = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1) * (1.1 + Math.random() * 0.7);
-                            v.launchVy = -(6.5 + Math.random() * 1.5);
-                            v.launchSpin = (Math.random() < 0.5 ? -1 : 1) * (0.1 + Math.random() * 0.1);
+                            // Batch 484, repeat report: they were still "flying around instead of just
+                            // getting launched in one direction". Batch 475 only calmed the magnitudes -
+                            // every component was still rolled per launch, and the SPIN still picked its
+                            // direction with a coin flip, so a car could tumble backwards into the throw
+                            // it was given. Nothing is random now: one fixed speed, one fixed direction
+                            // (up-screen, pushed away from the bumper), and the tumble follows the way it
+                            // was thrown instead of arguing with it.
+                            const awayFromPlayer = (player.x + player.width / 2 < v.x + v.width / 2 ? 1 : -1);
+                            v.launchVx = awayFromPlayer * 1.4;
+                            v.launchVy = -7.2;
+                            v.launchSpin = awayFromPlayer * 0.14;
                             v.launchAngle = 0;
                             v.speedOffset = 0;
                             player.energy = 0;              // the bar IS the cooldown from here
@@ -13981,7 +14242,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.6.0';
+        const GAME_VERSION = '3.7.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

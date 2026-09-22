@@ -6,6 +6,128 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.7.0 — 2026-09-22 17:30: Batch 488 — Every achievement has its own icon
+
+**59 achievements shared six shapes.** `star` alone covered 17 of them, `road` and `car` 12 each, so most cards showed a picture with nothing to do with what was earned. They now have one distinct 16x16 icon each, ported from `Achievement Icons.dc.html`.
+
+**The set maps perfectly.** Checked by name before porting anything: 59 icons, 59 achievements, 59 matches — no achievement without an icon, no icon without an achievement. Two keys differed in spelling from the game's own ids (`lanehop`/`lane_hopper`, `roadtrip`/`road_trip`), which is exactly why the match was done on the display name rather than trusting the keys.
+
+**Nothing about the format changed.** The doc stores 16x16 ASCII grids (`#` filled, `o` knockout); its own greedy run/column merger was ported to produce the same `[x, y, w, h]` rects the game already used, with the same optional 5th `1` meaning "cut out, drawn in the card background". Average 19.2 rects per icon, from 4 (the simplest) to 40 (the busiest).
+
+**One real change: the viewBox.** The old icons were drawn on a 20-unit grid, these are 16. `achIconSvg` moves to `viewBox="0 0 16 16"` so a 16px box stays 1:1 — the Batch 413 lesson that non-integer scaling is what makes pixel art blurry. Verified: the largest coordinate used anywhere in the set is exactly 16, so nothing clips.
+
+`ACH_ICONS` is now keyed by achievement id and each achievement points at its own, so a card simply asks for itself. Verified in the browser: all 37 currently-visible achievements render a distinct, non-empty icon and none falls back to the old `car` default; SCORE CHASER reads as the crown its design calls for, CLIMBING THE RANKS as four rising bars.
+
+`Achievement Icons.dc.html` is committed alongside, as the other design docs are — it is the source these were generated from. A pre-change copy of the game is in `backup/carCrash.3.6.5.pre-ach-icons.html`.
+
+## 3.6.5 — 2026-09-22 16:55: Batch 487 — `witness_crash` dropped from the daily missions
+
+Measured first, then removed. Real game frames with `endRun` neutralised so runs continue, counting genuine NPC-vs-NPC collisions:
+
+| Config | Simulated | Crashes |
+|---|---|---|
+| 4 lanes, RECKLESS | 3 min | 0 |
+| 10 lanes, SUICIDAL | 3 min | 0 |
+| 3 lanes, RECKLESS | 3 min | 0 |
+| 3 lanes, SUICIDAL | 4 x 3 min | 1 |
+
+**One crash in 21 simulated minutes**, only ever on the narrowest, densest road, and nothing at all on 4+ lanes — which is most play. As a daily with goal 1, it could be impossible on a given day purely because of how someone chose to play, taking the mission ladder and PERFECT DAY down with it.
+
+**The knob everyone assumed would fix it does not.** Forcing EVERY driver inattentive — `NPC_INATTENTIVE_CHANCE` maxed to 100% — still gave **zero crashes in 3 minutes** at the densest setting. The real limit is arithmetic: a same-lane gap closes at a median **0.225 px/frame** while a vehicle lives a median **167 frames**, so closing a typical 40-200px gap needs ~444 frames and the cars despawn roughly 2.7x before they could ever meet. Corroborated by the attentive-braking rule (14px threshold) firing **zero times in every run** — same-lane traffic never even got close enough for it to matter.
+
+**The `not_my_fault` achievement keeps it**, and should: a one-off lifetime badge is the right home for something that happens every ten-odd minutes of deliberate play. Only the daily mission is gone, along with its now-orphaned `creditMission` call. The per-run counter stays, because the achievement still reads it.
+
+Pool is 17 (9 coin, 8 XP), comfortably above the 3-of-each a daily roll needs. Verified over 600 rolled days: all 17 appear, `witness_crash` never does.
+
+## 3.6.4 — 2026-09-22 16:20: Batch 486 — Booster popup holds one size; responders stop driving through things
+
+### The booster preview is one fixed window
+
+Direct report: the hover popup "changes sizes depending on the booster... it doesn't look that good."
+
+It was cropped to whatever the **hovered** booster occupied and then scaled to fit that crop, so each swatch produced its own window size — measured on STOCK: `240x108`, `228x108`, and ROCKET PODS at `231x210`, nearly double the height of the other two. Moving the pointer along the row made the window jump.
+
+The crop box is now measured once across **every** booster the car can wear, so it is big enough for the largest and identical for all of them: a single `240x180`. A short flame simply leaves more empty room instead of shrinking the window. The crop origin is shared too, so the **car** lands on the same pixel in every preview and only the flame changes — which is the one thing the preview exists to show.
+
+The popup is also **captioned with the booster's name**, which is what PLAN.md recorded as wanted. This is not a return of Batch 350's bottom status line: that showed locked/unlocked state and was rejected because that belongs in the click dialog. A name is not a status.
+
+### Responders no longer drive over the wreck, or over each other
+
+Direct report: "depending on how many lanes you've got and in which lane you crashed, the police or ambulance can either drive on top of you to get to their place, they can drive on top of each other because two vehicles might go into one lane."
+
+**The parked positions were never the problem.** Both the old and the new placement pass an overlap test on final positions across 12,160 crash layouts — the first fix attempt here was aimed at something that was not broken. The phrase that mattered was *"to get to their place"*: a responder enters from below the screen and drives **up** to its spot, and nothing ever checked that swept column. A responder parking above the wreck has to pass it.
+
+Measured on the old code across 3,040 crash layouts (lane counts 3–10 × every player lane × every NPC lane × four crash heights × two wreck widths):
+
+| | Old | Now |
+|---|---|---|
+| Drives through a wreck | 430 (14%) | **0** |
+| Drives through an already-parked responder | 96 (3%) | **0** |
+| Overlapping parked positions | 0 | **0** |
+
+Three changes get there:
+
+- **The swept path is tested, not just the destination.** A candidate spot is rejected if any wreck sits between the responder and it.
+- **Arrival order is by height.** Whoever parks furthest up the road sets off first, so it crosses the lower spots while they are still empty and the ones behind stop short of it. That is what makes two responders safely sharing a lane possible at all; forbidding it outright cost a third of the responders on a 3-lane road.
+- **An empty lane is preferred over a used one.** Without that, every responder scanned lanes in the same order, lane 0 always had room, and all three parked nose-to-tail in it *even on a 10-lane road* — the exact look this code exists to avoid. They now use 2.91 distinct lanes on average out of 3.
+
+Also corrected: the old code marked every lane *between* the two wrecks as occupied, so on a 3-lane road with wrecks at either edge all three lanes were blocked and the fallback parked responders in the wreck's own lane. Only lanes a wreck is actually in are excluded now; real contact is caught by the rectangle test instead.
+
+A responder with nowhere clean to go is not spawned — two vehicles beat three sitting inside each other. That costs nothing above 3 lanes (0%) and 8% of 3-lane crashes, where 9,106 of 9,120 responders still place.
+
+**Two test mistakes worth recording**, both the same shape — a harness that did not match the real game, producing a clean result that meant nothing. The first checked only parked positions and declared the bug absent. The second crashed into `vehicles[0]` without moving it, so the "wreck" sat 88px above the screen, placement correctly found nowhere to put anything, and it looked like the fix had broken responders entirely. Real collisions happen with a car touching you.
+
+## 3.6.3 — 2026-09-22 15:35: Batch 485 — Flank airflow belongs to the car it comes off
+
+Direct report: the per-car air particles should come off the **back** of the vehicle rather than the nose, and should be **as wide as the vehicle is** — on something narrow they read as "a random error appearing in the air" instead of as airflow.
+
+**Both were true, and the width one was worse than it sounded.** The particle band sat a flat 1–3.5px off the flank no matter what was driving. Against the 8px-wide JET BIKE that is 44% of the bike hanging in open air beside it; against the 22px GRAND PIANO the same band is 16% and hugs the body. Same pixels, opposite readings — which is exactly why it looked like a fault on one and fine on the other.
+
+**Three things now scale with the car:**
+
+- **Spawn offset and its spread** are fractions of the car's width instead of constants.
+- **Outward drift** is too, and this was the half that actually mattered. A particle drifts sideways for its whole ~30-frame life, so the *spawn* point is not what the eye reads as "how wide is this wake" — the drift is. At a flat rate it carried a jet bike's flow as far off its flank as a grand piano's, which undid most of the spawn fix on its own. Normalised against the common 14px car, so an ordinary car is unchanged.
+- **Spawn depth** is a fraction of the car's length, putting particles in the back third. Proportional matters here too, across a 14px GO-KART and a 60px SHIP.
+
+**Measured across the roster**, following particles for their whole life rather than just where they appear:
+
+| Car | Width | Wake reach | As % of its own width |
+|---|---|---|---|
+| JET BIKE | 10.7px | 5.3px | 50% |
+| STOCK | 18.7px | 8.5px | 45% |
+| SHIP | 21.3px | 9.4px | 44% |
+| GRAND PIANO | 29.3px | 13.5px | 46% |
+
+Before, the reach was a flat ~8.5px for every one of them — 79% of the jet bike's width against 29% of the piano's. Spawn depth now sits at 0.75–0.78 along the body for every car; it was 0.02–0.25, the nose.
+
+**One mistake worth recording:** the first attempt normalised the drift against a literal `14`, forgetting that `player.width` has already been through `CAR_SCALE` — so a common car is 18.7px, not 14, and everything drifted a third too far. Caught by measuring the real function rather than trusting the arithmetic. A pixel-sampling check also briefly reported the piano's particles at its nose; that was the detector picking up the sprite's own white keys, not the flow.
+
+## 3.6.2 — 2026-09-22 15:10: Batch 484 — Snail trail, quieter popups, the SHIP's hitbox, and a launch that goes one way
+
+**The snail keeps its trail when it crashes.** It was gated on `gameActive`, which goes false the instant you hit something, so the wreck sat on empty asphalt with no sign of how it got there. The trail is now drawn through the crash sequence and **frozen** for its duration — neither grown nor reeled in. Both halves were needed: reeling in would have eaten it a point per frame as the crash drops the speed to nothing, but letting it keep emitting was just as wrong, because at near-zero speed every new point lands on the same spot and 80 of them stack into a bright stub under the wreck. Measured across all five crash phases: 39 points at impact, 39 at `beat`.
+
+**And it starts with a trail instead of growing one.** A run begins at 50 km/h, under the old 60 km/h floor, so the snail spent its opening seconds bare. The floor is now 0 — the trail simply exists whenever the snail moves, and `t` goes back to doing the one thing it is good at, brightening the beam with speed (it already floored opacity at 0.55, so visibility was never what the gate protected). The trail is also seeded at spawn the same way the live one is built, one point per frame each `currentSpeed` further down, so frame one looks like a run already under way: 46 points.
+
+**No more captions on jump and ram popups.** A jump-over read `+240 / x2 JUMP` and a ram `+180 / RAMMED`. The points stay; the captions are gone. A normal pass never had one, so the captions were the odd case rather than the plain ones. `DIRECT HIT` (the Tank's shot) and `CLOSE CALL!` are untouched — neither was named in the request.
+
+**The SHIP's hitbox is narrower: 22 → 16.** Direct report that it "gets a super lot of close calls because it just drives near the cars with its big hitbox", and the numbers agreed. At 22 wide in a 27px lane it reached the close-call band after **6px of drift where a normal car needs 10px**, and its 60px length kept it level with passing traffic **1.56× longer** — together roughly 2.6× the close calls for identical driving. Its length is deliberately untouched, because cutting that would let cars pass through the bow and stern; the hull stays wider than 16, so traffic can now clip its edges slightly without crashing, which was the accepted trade. **Worth knowing: `ROAD TRAIN` is also 60 long and gets the same length advantage — this fix was scoped to the SHIP by choice, so that one still stands.**
+
+**Launched cars go one direction now.** Repeat report — they were "still flying around instead of just getting launched in one direction". Batch 475 only calmed the magnitudes; every component was still rolled per launch, and the spin still chose its direction by coin flip, so a car could tumble *backwards into* the throw it had been given. Worse, the per-frame `launchVy += 0.12` drag turned every launch into an **arc**: the car rose, slowed, stopped and fell back, which is "flying around" no matter how gentle the initial kick. Nothing is random any more — one fixed speed, one fixed direction (up-screen, pushed away from the bumper), the tumble following the way it was thrown, and constant velocity so the path is a straight line out of frame. Verified: `dx` and `dy` identical on every frame, mirroring correctly depending on which side the bumper hit from.
+
+**Also added `docs/achievement-icons-brief.md`** — all 59 achievements with names, descriptions, tier counts and current icons, for commissioning a real icon set. It exists because the current six shapes cover 59 achievements (`star` alone does 17).
+
+## 3.6.1 — 2026-09-22 14:40: Batch 483 — Tutorial: ABOUT cards untangled and de-duplicated
+
+**HOW IT WAS BUILT was rendering inside THE PRICES ARE REAL.** A real markup bug, not a styling choice: the prices card's `tut-card-body` was never closed, so the next card opened as its child and two stray `</div>`s at the end closed the outer card instead. Reported directly — "why is how it was built box inside the prices are real box". The three cards are siblings again, confirmed by measuring them: both now report 673px wide, where a nested card would sit narrower inside the other's padded body.
+
+**Two numbers that said the same thing.** HOW IT WAS BUILT listed `473 BATCHES OF WORK` beside `474 VERSIONS SHIPPED`. One batch ships one version, so the pair could only ever restate itself — a difference of one across 473 entries is noise, not information. Dropped to the single honest figure, now **482**, joined by `6,200+ LINES OF CHANGELOG` (counted, 6,219) and the unchanged `26 / 33 DAYS WORKED / DAYS ELAPSED` (also counted — 26 distinct dates in the log between Aug 21 and Sep 22).
+
+**BY THE NUMBERS no longer opens with a batch count either.** Its headline was a hardcoded `405 BATCHES OF WORK` — stale by 77 batches, and duplicating the card three rows below it. It now reads **VEHICLES TO COLLECT** from `GARAGE_CARS.length` (currently 58), so it cannot drift again, and the body text was reworded to stop repeating the count it now headlines.
+
+The `AS OF` line moved from v3.1.1 to v3.6.0, which is what made the staleness visible in the first place. The remaining hardcoded figures — batches and changelog lines — cannot be computed at runtime, since the game does not ship its own changelog; the dated `AS OF` line is what keeps them honest.
+
+No gameplay changed.
+
 ## 3.6.0 — 2026-09-22 14:25: Batch 482 — The game updates itself
 
 **There was no way to learn an update existed.** No button, nothing in the game touched GitHub, and updating meant remembering to go and look. Now the game asks, tells you, and installs it.
