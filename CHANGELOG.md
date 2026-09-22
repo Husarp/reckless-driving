@@ -6,6 +6,28 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.5.1 — 2026-09-22 13:52: Batch 481 — One command builds both, and says what it built
+
+**`build.ps1 -Android` now builds the APK as well as the installer.** Before this, the two builds were separate: the Windows one ran from the script, the Android one needed four commands typed by hand in `mobile\`. One switch does both, at one version, with one summary line at the end:
+
+```
+BUILT 3.5.1 - RecklessDrivingSetup.exe, RecklessDriving.apk
+```
+
+**The APK is copied into `build\`** next to the installer, so `build\` holds every deliverable a run produced rather than hiding the Android one five folders deep in the Gradle output.
+
+**Stale artifacts can no longer masquerade as current.** A plain Windows-only rebuild deletes any `build\*.apk` first. Without that, the previous run's APK would sit beside a freshly built exe and look like it came from the same version. For the same reason `BUILT.json` lists only what the run actually produced — a Windows-only build never claims an Android artifact.
+
+**Why this batch happened at all:** the dev-status dashboard was showing `build: null` for this project and no APK. Three separate causes, all real — `BUILT.json` was still on an unmerged branch so no build had ever written one; the dashboard scans the top-level `build\` folder and the APK was never there; and its last scan predated the v3.5.0 release. The first two were this project's fault and are fixed here.
+
+**Toolchain fallback.** The script sets `JAVA_HOME` and `ANDROID_HOME` itself when the environment does not already define them, because on this machine the SDK and JDK are installed but not on `PATH`. An environment that already sets them wins.
+
+**A stale APK got caught, and the catch is now automatic.** The first run of this very script produced an APK one version behind. `sync-web.js` refreshes `mobile\www`, but Capacitor keeps its own copy of the web assets *inside* `android\`, and only `cap copy` moves one to the other. Without that second step Gradle saw nothing changed, reported `UP-TO-DATE`, and packaged the previous version — while every other signal said the build had succeeded.
+
+Both halves are fixed: the script now runs `cap copy android`, and then **opens the finished APK and reads `GAME_VERSION` out of the game inside it**. A mismatch throws. It is the Android counterpart of the exe self-test, and it exists because "the build said OK" turned out not to mean the artifact was right.
+
+No gameplay changed.
+
 ## 3.5.0 — 2026-09-22 13:35: Batch 480 — Android build: the game now ships as an APK too
 
 **The game builds for Android.** Until now `scripts\build.ps1` produced one artifact, a Windows installer. There was no Android packaging in the project at all — no Capacitor, no Gradle, no `android/` folder. Now there is, and a release carries both an `.exe` and an `.apk`.

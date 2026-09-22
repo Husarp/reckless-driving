@@ -78,19 +78,32 @@ is writable — a build that fails any of those is never packaged. `-NoSelfTest`
 single file — `mobile/sync-web.js` copies it into `mobile/www/index.html` at build time, and that copy is
 build output, gitignored, never edited by hand.
 
+Run `npm install` in `mobile\` once, then build both the installer and the APK with one command:
+
+```powershell
+.\scripts\build.ps1 -Android
+```
+
+It ends by stating what it produced, e.g. `BUILT 3.5.1 - RecklessDrivingSetup.exe, RecklessDriving.apk`.
+Both land in `build\`; the APK is also left at `mobile\android\app\build\outputs\apk\debug\app-debug.apk`.
+Without `-Android` only the installer is built, and any APK left in `build\` by an earlier run is deleted
+so it cannot be mistaken for part of the current build.
+
+To build the APK on its own:
+
 ```powershell
 cd mobile
-npm install
 npm run sync
 cd android
 .\gradlew.bat assembleDebug
 ```
 
-Produces `mobile\android\app\build\outputs\apk\debug\app-debug.apk` (~4.9 MB). The copy step repeats the
-Windows build's font guard: it refuses to run if `carCrash.html` still references Google Fonts.
+The copy step repeats the Windows build's font guard: it refuses to run if `carCrash.html` still
+references Google Fonts.
 
 Requires the Android SDK, a JDK 21 and Node. On the current build machine all three are installed but
-**none are on `PATH`**, so Gradle needs them pointed at explicitly:
+**none are on `PATH`**, so `build.ps1` sets these itself when the environment does not already define
+them — an environment that does define them wins:
 
 ```powershell
 $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
