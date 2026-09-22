@@ -1932,7 +1932,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.7.2</span></div>
                 </div>
             </div>
         </div>
@@ -2211,7 +2211,14 @@
                     <div class="stg-row-title">VERSION</div>
                     <div class="stg-row-hint" id="updateStatusHint">&nbsp;</div>
                 </div>
-                <button class="btn" id="checkUpdateBtn" style="flex:none;width:auto;padding:7px 12px;font-size:9px;">CHECK NOW</button>
+                <!-- Batch 490, direct report: checking from here announced an update and then offered
+                     nothing to do about it. The UPDATE action only existed on the main-menu banner,
+                     which you cannot see while you are standing in Settings. Both buttons live here
+                     now; GET UPDATE is hidden until a check actually finds one. -->
+                <div style="display:flex;gap:8px;flex:none;align-items:center;">
+                    <button class="btn btn-mint" id="getUpdateBtn" style="display:none;flex:none;width:auto;padding:7px 12px;font-size:9px;">GET UPDATE</button>
+                    <button class="btn" id="checkUpdateBtn" style="flex:none;width:auto;padding:7px 12px;font-size:9px;">CHECK NOW</button>
+                </div>
             </div>
 
             <div style="display:flex;gap:10px;margin-top:18px;">
@@ -2742,6 +2749,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">KEEPING IT UP TO DATE</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-copy">
+                                <p>The game checks for a new version when it starts, and puts a bar on the main menu when it finds one. Press <span class="k">UPDATE</span> and it fetches the new build itself &mdash; no browser, no hunting for a file.</p>
+                                <p>On Android the system asks you to confirm the install; that is Android's own rule for an app it did not get from a store, not a step this game can skip. On Windows the installer simply runs and replaces the old copy.</p>
+                                <p>Settings has the same thing under <span class="k">VERSION</span> &mdash; <span class="k">CHECK NOW</span> asks straight away, and <span class="k">GET UPDATE</span> appears if there is one. Turn the automatic check off there too if you would rather it never asked.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tut-section" data-tut-section="about">
@@ -2812,9 +2829,9 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.6.0 &mdash; AUG 21 TO SEP 22, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">482</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
-                            <div class="tut-val"><span class="tut-val-num">6,200+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
+                            <div class="tut-vals-title">AS OF v3.7.2 &mdash; AUG 21 TO SEP 22, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">490</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-val"><span class="tut-val-num">6,400+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">26 / 33</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
                     </div>
@@ -14294,7 +14311,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.7.1';
+        const GAME_VERSION = '3.7.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -15305,6 +15322,14 @@
             el.classList.add('on');
         }
 
+        // Batch 490: the Settings row gets the action too, not just the main-menu banner. Direct
+        // report: checking from Settings announced an update and then offered nothing to do about it,
+        // because the only UPDATE button lived on a screen you were not looking at.
+        function showGetUpdateButton(show) {
+            const b = document.getElementById('getUpdateBtn');
+            if (b) b.style.display = show ? 'block' : 'none';
+        }
+
         async function checkForUpdates(manual) {
             const hint = document.getElementById('updateStatusHint');
             const btn = document.getElementById('checkUpdateBtn');
@@ -15318,9 +15343,11 @@
                     updateInfo = latest;
                     showUpdateBanner(latest.version);
                     if (hint) hint.textContent = 'v' + latest.version + ' available — you have v' + GAME_VERSION + '.';
+                    showGetUpdateButton(true);
                 } else {
                     updateInfo = null;
                     if (hint) hint.textContent = 'v' + GAME_VERSION + ' — up to date.';
+                    showGetUpdateButton(false);
                 }
             } catch (e) {
                 // A failed check is almost always "no internet", which is not worth interrupting
@@ -15335,8 +15362,13 @@
             if (!updateInfo) return;
             const btn = document.getElementById('mmUpdateBtn');
             const sub = document.getElementById('mmUpdateSub');
-            const say = t => { if (sub) sub.textContent = t; };
+            const hint = document.getElementById('updateStatusHint');
+            const getBtn = document.getElementById('getUpdateBtn');
+            // Batch 490: progress goes to BOTH places, because this can now be started from either
+            // the main-menu banner or the Settings row and the player is only looking at one of them.
+            const say = t => { if (sub) sub.textContent = t; if (hint) hint.textContent = t; };
             if (btn) btn.disabled = true;
+            if (getBtn) getBtn.disabled = true;
             try {
                 const platform = updatePlatform();
                 if (platform === 'windows') {
@@ -15356,10 +15388,17 @@
                 }
             } catch (e) {
                 const msg = (e && e.message) ? e.message : String(e);
+                // Batch 490: whatever went wrong, there is always the download page. Failing with
+                // only an error message was the other half of "it doesn't show any button" - the
+                // player was told it broke and left with nowhere to go.
                 say(msg.indexOf('NEEDS_PERMISSION') !== -1
-                    ? 'Allow installs from this app, then tap UPDATE again.'
-                    : 'Update failed: ' + msg);
+                    ? 'Allow installs from this app, then press GET UPDATE again.'
+                    : 'Update failed (' + msg + '). Opening the download page instead…');
+                if (msg.indexOf('NEEDS_PERMISSION') === -1) {
+                    try { window.open(UPDATE_PAGE, '_blank'); } catch (e2) {}
+                }
                 if (btn) btn.disabled = false;
+                if (getBtn) getBtn.disabled = false;
             }
         }
 
@@ -15380,6 +15419,7 @@
             const hint = document.getElementById('updateStatusHint');
             if (hint) hint.textContent = 'v' + GAME_VERSION + (updatePlatform() === 'browser' ? ' — browser' : '');
             document.getElementById('checkUpdateBtn').addEventListener('click', () => checkForUpdates(true));
+            document.getElementById('getUpdateBtn').addEventListener('click', applyUpdate);
             document.getElementById('mmUpdateBtn').addEventListener('click', applyUpdate);
             document.getElementById('mmUpdateDismiss').addEventListener('click', () => {
                 document.getElementById('mmUpdateBanner').classList.remove('on');

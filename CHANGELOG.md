@@ -6,6 +6,29 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.7.2 — 2026-09-22 22:15: Batch 490 — An update you can actually act on, and a tutorial that knows about it
+
+### "It says there's an update but gives me no button"
+
+Exactly right, and the reason is that the **UPDATE button only ever existed on the main-menu banner** — a screen you are not looking at when you press CHECK NOW in Settings. So Settings announced a new version and then offered nothing at all.
+
+The Settings row now carries the action itself: **GET UPDATE**, hidden until a check actually finds something, sitting next to CHECK NOW. It runs the same platform-specific install the banner does — Windows downloads the installer and runs it, Android hands the APK to the system installer, and in a browser it opens the release page.
+
+Two smaller parts of the same complaint:
+
+- **Progress is reported in both places now.** `applyUpdate()` used to write only into the banner's subtitle, so a download started from Settings said nothing anywhere you could see.
+- **A failure no longer leaves you stranded.** It used to print an error and stop. Whatever goes wrong, the download page is opened as a fallback — that is the "at least give me the link to GitHub" case, and it now happens without being asked for.
+
+Verified against the live API: on 3.7.1 with 3.7.1 released, the button stays hidden and the row reads "up to date"; with a newer version in hand the button appears and opens `releases/latest`.
+
+### Tutorial caught up
+
+**New card, KEEPING IT UP TO DATE.** In-app updating shipped in 3.6.0 as a player-facing feature and the tutorial never mentioned it. It covers the menu bar, the Settings row, and the one thing that surprises people — that Android asks you to confirm the install because it is the OS's rule for an app that did not come from a store, not a step the game skipped.
+
+**Figures refreshed** in HOW IT WAS BUILT: `AS OF v3.6.0` → `v3.7.2`, 482 → **490 batches**, 6,200+ → **6,400+ lines of changelog**. Days worked was re-counted from the log's own distinct dates and is unchanged at 26 / 33. BY THE NUMBERS needed nothing — its headline has read itself from `GARAGE_CARS` since Batch 483 precisely so it cannot go stale.
+
+Verified the new card sits as a sibling of the others rather than nested inside one, the failure that produced the Batch 483 fix: all cards in its section measure identically.
+
 ## 3.7.1 — 2026-09-22 21:40: Batch 489 — Tap steering fixed, DEV closed off, and a save that could brick the game
 
 ### A tap moves one lane again
