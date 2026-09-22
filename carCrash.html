@@ -1900,7 +1900,7 @@
                         <button id="tutorialBtn" class="mm-tab" style="--tab-c:var(--c-text-dim)"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h4v1h-4zM1 1h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM3 3h3v1h-3zM3 4h2v1h-2zM3 6h2v1h-2z"></path></svg><span>TUTORIAL</span></button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.4.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.4.1</span></div>
                 </div>
             </div>
         </div>
@@ -1986,20 +1986,6 @@
                 </select>
             </div>
 
-            <div class="stg-row">
-                <div class="stg-row-label">
-                    <div class="stg-row-title">TILT STEERING</div>
-                    <div class="stg-row-hint">Phone gyroscope, mobile only.</div>
-                </div>
-                <div class="stg-toggle" id="tiltToggle">
-                    <span class="stg-toggle-label" id="tiltToggleLabel">OFF</span>
-                    <div class="stg-toggle-track" id="tiltToggleTrack"><div class="stg-toggle-knob"></div></div>
-                </div>
-                <select id="tiltSteering" style="display:none;">
-                    <option value="no" selected>Disabled</option>
-                    <option value="yes">Enabled (mobile)</option>
-                </select>
-            </div>
 
             <!-- direct request: renamed to MASTER VOLUME and given real teeth — now an overall ceiling multiplied against every category below (Music/SFX/Explosion/ Ambulance), not just an on/off gate + music-only level like before. -->
             <div class="stg-row stg-vol-row">
@@ -3069,7 +3055,6 @@
         const pauseRestartBtn = document.getElementById('pauseRestartBtn');
         const pauseMenuBtn = document.getElementById('pauseMenuBtn');
         const selectLanes = document.getElementById('laneCount');
-        const selectTilt = document.getElementById('tiltSteering');
         const multiplierSpan = document.getElementById('multiplierValue');
         const abilityBar = document.getElementById('abilityBar');
         const abilityCtx = abilityBar.getContext('2d');
@@ -3121,9 +3106,6 @@
         const multiLaneToggle = document.getElementById('multiLaneToggle');
         const multiLaneToggleLabel = document.getElementById('multiLaneToggleLabel');
         const multiLaneToggleTrack = document.getElementById('multiLaneToggleTrack');
-        const tiltToggle = document.getElementById('tiltToggle');
-        const tiltToggleLabel = document.getElementById('tiltToggleLabel');
-        const tiltToggleTrack = document.getElementById('tiltToggleTrack');
         const skipCrashToggle = document.getElementById('skipCrashToggle');
         const skipCrashToggleLabel = document.getElementById('skipCrashToggleLabel');
         const skipCrashToggleTrack = document.getElementById('skipCrashToggleTrack');
@@ -4425,28 +4407,10 @@
             // the small tick-mark notch that used to sit at the old 25% (2.5-cell) activation threshold is removed entirely, per direct feedback ("maybe remove it and just make it so you need at least three or more bars to jump") — the bar's own "ready" glow (tied to ABILITY_MIN_ENERGY now, see update()) is the only threshold indicator now, no separate marker line to keep in sync with it.
         }
 
-        // Tilt (gyroscope) steering
-        let tiltEnabled = false;
-        let tiltGamma = 0;
-
-        window.addEventListener('deviceorientation', (e) => {
-            if (e.gamma !== null) tiltGamma = e.gamma;
-        });
-
-        async function enableTilt() {
-            if (typeof DeviceOrientationEvent !== 'undefined' &&
-                typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requires explicit permission
-                try {
-                    const perm = await DeviceOrientationEvent.requestPermission();
-                    tiltEnabled = (perm === 'granted');
-                } catch (e) {
-                    tiltEnabled = false;
-                }
-            } else {
-                tiltEnabled = true;
-            }
-        }
+        // Batch 479 - tilt (gyroscope) steering REMOVED, direct decision: "it's not really possible to
+        // control every movement with this and this is way too hard". It was never finished or tested on
+        // a real device, it fought the on-screen controls added in Batch 478 over the same targetX, and
+        // it asked iOS users for a motion permission the game no longer has any use for.
 
         // Batch 42: all three drawPixel* functions below still draw at their original 14x24 (or 14x56 for trucks) design resolution — this wraps a call in a canvas scale transform so the same pixel art renders at CAR_SCALE without touching a single fillRect coordinate inside them.
         // Batch 461, direct report of a "strange grey shadow / overlay" on gameplay cars that the same
@@ -5801,7 +5765,7 @@
         }
 
 
-        // --- 6 more joke vehicles, transcribed from "Reckless Vehicles v4.dc.html" (user's own upload) ---
+        // --- 6 more special vehicles, transcribed from "Reckless Vehicles v4.dc.html" (user's own upload) ---
         // The doc ships exact per-pixel SVG paths, so these are copied out of it run by run rather than
         // redrawn by hand - including the black outline, which is why they do not call sil53(): the
         // outline is already part of the art.
@@ -6377,7 +6341,7 @@
             { key: 'supersuv',    label: 'SUPER SUV',   h: 30, draw: drawBodySuperSUV53,    unlock: 300000,  rarity: 'epic' },
             { key: 'coachbuilt',  label: 'COACHBUILT',  h: 28, draw: drawBodyCoachbuilt53,  unlock: 3500000, rarity: 'legendary' },
 
-            // Box-exclusive joke vehicles. `boxOnly: true` is the whole switch: it excludes a car from
+            // Box-exclusive special vehicles. `boxOnly: true` is the whole switch: it excludes a car from
             // NPC traffic (so one can never be spotted on the road), from canAffordCar() at any coin
             // total, and from the "own every car" check that gates Extra Boxes - which is what keeps
             // the boxes worth buying now that every ordinary car can simply be bought.
@@ -6561,7 +6525,7 @@
         // Unlocked (level + purchase), independent of whether any particular CAR can use it — see carFlameAvailable below for the separate per-car compatibility check.
         function isFlameUnlocked(key) { return isFlameLevelUnlocked(key) && isFlameOwned(key); }
         // Batch 284 — per-car booster/paint availability.
-        // Batch 445 - `noPaint` generalises what used to be a hardcoded Tank check. The v4 joke vehicles
+        // Batch 445 - `noPaint` generalises what used to be a hardcoded Tank check. The v4 special vehicles
         // each have one fixed look by direct instruction, and unlike the Tank their draw functions do not
         // even accept a colour, so this lock and the art agree rather than the UI merely hiding a choice.
         // Batch 456 — `paintsTrail` is an exception to `noPaint`, not a removal of it: the GIANT SNAIL's
@@ -6848,7 +6812,7 @@
         // The flag's meaning is inverted from what it was. It used to mark cars you could obtain
         // *only* from a box, while a box could award any car at all. Now it marks the cars a box
         // may award, and everything without it is bought with coins like any other car. Direct
-        // decision: every existing car became buyable at its real price, and the joke vehicles
+        // decision: every existing car became buyable at its real price, and the special vehicles
         // carry this flag instead (Batch 445).
         //
         // While nothing carries it, the car tier is dropped from the roll entirely rather than
@@ -7042,9 +7006,9 @@
         //
         // Gating on "is there anything left in the pool worth having" fixes it from both ends: the
         // boxes hide themselves once they are pointless, and they come back on their own the moment
-        // the joke cars land with boxOnly set.
+        // the special vehicles land with boxOnly set.
         // Batch 443 — `boxExclusiveCars().length > 0` was correct only while that list was EMPTY. It
-        // asked "do box-exclusive cars exist", which the joke cars made permanently true, so the boxes
+        // asked "do box-exclusive cars exist", which the special vehicles made permanently true, so the boxes
         // would have stayed on sale forever even to a player owning all 55 cars and every paint — the
         // exact guaranteed-loss this function was written to stop, just moved to the end of the game.
         // It has to ask whether a box can still give something you do not already HAVE.
@@ -8025,7 +7989,7 @@
         // Batch 422 made the whole roster buyable. Two tiers demanding the identical number reads as
         // broken, so Amethyst is simply omitted until a box-exclusive car exists again (the Missions
         // ladder already sets the precedent of a tiered achievement capping at Diamond). Add the
-        // joke vehicles as boxOnly and the top tier comes back by itself.
+        // special vehicles as boxOnly and the top tier comes back by itself.
         function collectorTiers() {
             // +1 covers Stock, which is owned from the start and carries no rarity of its own.
             const buyable = GARAGE_CARS.filter(c => c.rarity && !c.boxOnly).length + 1;
@@ -8974,16 +8938,6 @@
                 const speedRatio = Math.max(0, Math.min(1, (currentSpeed - baseSpeed) / (playerMaxSpeed - baseSpeed)));
                 const glideSpeed = HORIZONTAL_GLIDE_SPEED_BASE + speedRatio * (HORIZONTAL_GLIDE_SPEED_MAX - HORIZONTAL_GLIDE_SPEED_BASE);
 
-                // Tilt steering (mobile, deferred): sets a lane-snap target proportional to tilt angle directly, same as it did through the old slider before Batch 41.
-                if (tiltEnabled) {
-                    const maxTilt = 25;
-                    const dead = 3;
-                    const gamma = Math.max(-maxTilt, Math.min(maxTilt, tiltGamma));
-                    if (Math.abs(gamma) > dead) {
-                        this.targetX = roadMin + ((gamma + maxTilt) / (maxTilt * 2)) * (roadMax - roadMin);
-                    }
-                }
-
                 // Horizontal steering (Batch 44 — lane-snap; Batch 48 — fully smooth hold): holding a direction glides continuously at `glideSpeed` starting the instant it's pressed — no discrete "snap to the next lane" step first (Batch 45 had one, gated behind an arrival check; user found that initial snap felt like a jump before the smooth part kicked in).
                 const steerLerp = 0.12 + speedRatio * 0.18; // 0.12 at base speed -> 0.30 at max speed
                 const heldDir = hHeldDir.left ? -1 : (hHeldDir.right ? 1 : 0);
@@ -9893,7 +9847,7 @@
             armor: 170,      // ARMORED VAN — direct user spec
             kart: 150,       // GO-KART — direct user spec
             tractor2: 110,   // TRACTOR — direct user spec ("very slow")
-            // Batch 445 — the v4 joke vehicles. Four of these are direct user specs; the joke only works
+            // Batch 445 — the v4 special vehicles. Four of these are direct user specs; the gag only works
             // if the absurd thing is genuinely quick, so none of them is "realistically" slow.
             snail: 250,      // GIANT SNAIL — direct user spec, and the whole gag: joint-fastest in the game
             bathtub: 210,    // BATHTUB — direct user spec, explicitly faster than the piano and the donut
@@ -11513,9 +11467,9 @@
             // own config value is what enforces that: startAbility() only has branches for 'jump' and
             // 'ram', so a third value means pressing the ability key does nothing at all, with no extra
             // guard to keep in sync. The bar becomes a pure cooldown readout.
-            // 'none' is the other 7 joke vehicles. Direct decision: they trade the ability away for coins
+            // 'none' is the other 7 special vehicles. Direct decision: they trade the ability away for coins
             // rather than being handed a jump whose thruster flames assume a car silhouette and a flat
-            // underside - a donut with rockets under it reads as broken art, not as a joke.
+            // underside - a donut with rockets under it reads as broken art, not as a gag.
             config.ability = getSelectedCar().launchAbility ? 'launch'
                 : getSelectedCar().ramAbility ? 'ram'
                 : getSelectedCar().noAbility ? 'none' : 'jump';
@@ -11600,12 +11554,6 @@
             gameOverHud.style.display = 'none';
             gameOverBackdrop.style.display = 'none';   // Batch 460 — the wash follows the panel
             startMusic();
-
-            if (selectTilt.value === 'yes') {
-                enableTilt();
-            } else {
-                tiltEnabled = false;
-            }
 
             // Hide menu, show game
             menuView.classList.remove('active');
@@ -13990,7 +13938,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.4.0';
+        const GAME_VERSION = '3.4.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -14883,7 +14831,6 @@
         refreshSteeringInputRowVisibility();
         selectDifficulty.addEventListener('change', calculateMultiplier); // Batch 127 — live MULTIPLIER preview, same pattern as lanes/night mode
         bindToggle(multiLaneToggle, multiLaneToggleLabel, multiLaneToggleTrack, selectMultiLaneHold, 'yes', 'no');
-        bindToggle(tiltToggle, tiltToggleLabel, tiltToggleTrack, selectTilt, 'yes', 'no');
         bindToggle(skipCrashToggle, skipCrashToggleLabel, skipCrashToggleTrack, selectSkipCrash, 'yes', 'no');
         // Batch 474 — SCORE POPUPS toggle, persisted under its own key like sound/garageSort are. On by
         // default: the tutorial's HOW YOU SCORE scene shows the floating points, so the real game should
@@ -15135,7 +15082,7 @@
             document.getElementById('ghcName').textContent = car.label;
             // Batch 450, direct request: EVERY car states its ability, not just the ram ones. Hiding the
             // row for jump cars made jump look like "no ability" rather than the default it is, and left
-            // the ability-free joke vehicles saying nothing at all when that is their whole point.
+            // the ability-free special vehicles saying nothing at all when that is their whole point.
             const ghcAbility = document.getElementById('ghcAbility');
             ghcAbility.style.display = '';
             ghcAbility.textContent = 'ABILITY: ' + carAbilityLabel(car);
