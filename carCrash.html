@@ -333,6 +333,11 @@
         #touchControls.tcl-split .tc-right { left: calc(12px + var(--tc-btn-w, 52px) + 6px); }
         #touchControls.tcl-split .tc-down  { right: calc(12px + var(--tc-btn-w, 52px) + 6px); }
         #touchControls.tcl-split .tc-up    { right: 12px; }
+        /* Batch 546 - the same four positions, mirrored, so steering lands under the right thumb. */
+        #touchControls.tcl-split.tcs-steerright .tc-left  { left: auto; right: calc(12px + var(--tc-btn-w, 52px) + 6px); }
+        #touchControls.tcl-split.tcs-steerright .tc-right { left: auto; right: 12px; }
+        #touchControls.tcl-split.tcs-steerright .tc-down  { right: auto; left: 12px; }
+        #touchControls.tcl-split.tcs-steerright .tc-up    { right: auto; left: calc(12px + var(--tc-btn-w, 52px) + 6px); }
         /* Batch 541, direct instruction: "the ability button should be between them, not above them
            and between them - only between them." So it comes back down into the bar, still centred.
            That puts three groups in one row again, which is what Batch 532 moved it out to avoid - so
@@ -2426,7 +2431,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.19.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.20.0</span></div>
                 </div>
             </div>
         </div>
@@ -2581,6 +2586,24 @@
                         <option value="ghost" selected>Ghost</option>
                         <option value="glass">Glass</option>
                         <option value="pad">Pad</option>
+                    </select>
+                </div>
+
+                <!-- Batch 546, direct request: "so that the left and right arrows are on the right and
+                     the up and down arrows are on the left, because maybe someone prefers that". Only
+                     means anything in SPLIT, where there are two sides to swap. -->
+                <div class="stg-row touch-only" id="arrowSidesRow">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">SPLIT SIDES</div>
+                        <div class="stg-row-hint">Which thumb gets steering and which gets the pedals.</div>
+                    </div>
+                    <div class="stg-seg" id="arrowSidesSeg">
+                        <button type="button" data-val="steerleft">STEER LEFT</button>
+                        <button type="button" data-val="steerright">STEER RIGHT</button>
+                    </div>
+                    <select id="arrowSidesSetting" style="display:none;">
+                        <option value="steerleft" selected>Steer left</option>
+                        <option value="steerright">Steer right</option>
                     </select>
                 </div>
 
@@ -3935,6 +3958,9 @@
         const arrowLayoutSeg = document.getElementById('arrowLayoutSeg');
         const selectArrowLayout = document.getElementById('arrowLayoutSetting');
         const arrowLayoutRow = document.getElementById('arrowLayoutRow');
+        const arrowSidesSeg = document.getElementById('arrowSidesSeg');
+        const selectArrowSides = document.getElementById('arrowSidesSetting');
+        const arrowSidesRow = document.getElementById('arrowSidesRow');
         const selectStickSize = document.getElementById('stickSizeSetting');
         const joyPosSeg = document.getElementById('joyPosSeg');
         const selectJoyPos = document.getElementById('joyPosSetting');
@@ -4019,6 +4045,27 @@
             const scale = availW / viewW;               // fit to width first, as asked
             return Math.max(CANVAS_HEIGHT, Math.round(availH / scale));
         }
+        /**
+         * Batch 546, direct report with screenshots: switching CROSS -> SPLIT mid-run left the board
+         * narrow with grey bars down both sides, and the results screen inherited them. Quitting to
+         * the menu fixed it - which is the tell, because that is the only path that runs
+         * applyLaneLayout() again.
+         *
+         * The cause is one line up in fullscreenViewHeight(): VIEW_H is computed with
+         * gameExtraBottom() already subtracted, so the playfield's ASPECT RATIO depends on whether a
+         * touch strip is reserved. CROSS is an overlay and reserves nothing; SPLIT is a bar and
+         * reserves ~106px. sizeGameFrame() only re-fits the EXISTING ratio, so losing height to the
+         * strip lost width in proportion - hence bars on the sides rather than a shorter board.
+         *
+         * So: when the reserved height changes, the layout has to be rebuilt, not merely re-fitted.
+         * Compared against the last value rather than rebuilt unconditionally, because
+         * applyLaneLayout() also regenerates the road buffers and this is on the resize path.
+         */
+        let tcReservedAtLayout = null;
+        function refitGameLayout() {
+            if (gameExtraBottom() !== tcReservedAtLayout) applyLaneLayout(config.lanes);
+            else sizeGameFrame();
+        }
         function applyLaneLayout(lanes) {
             const roadWidthPx = REF_LANE_WIDTH * lanes;
             // Batch 472 — the canvas backing store is RENDER_SCALE x the world, so world pixels land on
@@ -4029,6 +4076,7 @@
             canvas.width = VIEW_W * RENDER_SCALE;
             canvas.height = VIEW_H * RENDER_SCALE;
             canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
+            tcReservedAtLayout = gameExtraBottom();
             sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
             ROAD_BORDER_LEFT = SIDE_MARGIN;
             ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
@@ -4173,7 +4221,9 @@
             menuOverlay.style.setProperty('--ui-scale', scale || 1);
         }
         window.addEventListener('resize', () => {
-            if (gameView.classList.contains('active')) sizeGameFrame();
+            // Batch 546 - same reason as refitGameLayout()'s own comment: a resize can change how much
+            // height is available, and the ratio has to follow it.
+            if (gameView.classList.contains('active')) refitGameLayout();
             if (menuView.classList.contains('active')) sizeMenuFrame();
         });
 
@@ -14824,11 +14874,14 @@
             ['ghost', 'glass', 'pad'].forEach(v => touchControlsEl.classList.toggle('as-' + v, selectArrowStyle.value === v));
             ['badge', 'plain'].forEach(v => touchControlsEl.classList.toggle('abs-' + v, selectAbilityStyle.value === v));
             ['together', 'split', 'cross'].forEach(v => touchControlsEl.classList.toggle('tcl-' + v, selectArrowLayout.value === v));
+            touchControlsEl.classList.toggle('tcs-steerright', selectArrowSides.value === 'steerright');
             // Re-fit AFTER the layout class is set: which layout is on decides what has to fit.
             applyTcSize();
             if (arrowStyleRow) arrowStyleRow.style.display = (mode === 'arrows') ? '' : 'none';
             // The layout picker only means anything when the arrows are the thing on screen.
             if (arrowLayoutRow) arrowLayoutRow.style.display = (mode === 'arrows') ? '' : 'none';
+            // There are only two sides to swap in SPLIT; the row and the cross have one group each.
+            if (arrowSidesRow) arrowSidesRow.style.display = (mode === 'arrows' && selectArrowLayout.value === 'split') ? '' : 'none';
             // Batch 538, direct report: and the two joystick rows only mean anything when the joystick
             // is. `joyPosRow` below already worked this way; these two never got the same treatment.
             // Batch 540 - one class on the Settings view so per-mode wording can be pure CSS.
@@ -14855,7 +14908,7 @@
             // layout from the pause menu does, and it is why coming back from Settings showed a
             // compact, wrongly-fitted board. The flag makes the next visible pass re-fit even if
             // nothing else changed by then.
-            if (gameView.classList.contains('active')) { tcFrameDirty = false; sizeGameFrame(); }
+            if (gameView.classList.contains('active')) { tcFrameDirty = false; refitGameLayout(); }
             else tcFrameDirty = true;
             // Second pass on purpose: sizeGameFrame() can change how wide the bar is (a taller bar
             // leaves the canvas narrower), and the fit above was measured against the OLD width.
@@ -16461,7 +16514,7 @@
                 // Order matters: the view has to be active FIRST, or applyTouchControls() skips its own
                 // re-fit again and we are back where we started.
                 if (typeof applyTouchControls === 'function') applyTouchControls();
-                if (tcFrameDirty) { tcFrameDirty = false; sizeGameFrame(); }
+                if (tcFrameDirty) { tcFrameDirty = false; refitGameLayout(); }
                 return;
             }
             menuView.classList.add('active');
@@ -16589,7 +16642,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.19.2';
+        const GAME_VERSION = '3.20.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -17641,6 +17694,12 @@
                 // taller strip.
                 applyTouchControls();
             });
+            try { const v = localStorage.getItem('arrowSides'); if (v === 'steerleft' || v === 'steerright') selectArrowSides.value = v; } catch (e) {}
+            bindSeg(arrowSidesSeg, selectArrowSides);
+            selectArrowSides.addEventListener('change', () => {
+                try { localStorage.setItem('arrowSides', selectArrowSides.value); } catch (e) {}
+                applyTouchControls();
+            });
             try { const v = localStorage.getItem('arrowLayout'); if (v === 'together' || v === 'split' || v === 'cross') selectArrowLayout.value = v; } catch (e) {}
             bindSeg(arrowLayoutSeg, selectArrowLayout);
             selectArrowLayout.addEventListener('change', () => {
@@ -17652,6 +17711,13 @@
             selectJoyPos.addEventListener('change', () => {
                 try { localStorage.setItem('joyPos', selectJoyPos.value); } catch (e) {}
                 applyTouchControls();
+            });
+            // Batch 546, direct report: turning MULTI-LANE HOLD on from the pause menu "doesn't work
+            // until I restart the run". It was read once, in launchGame(), which was fine when the
+            // only way to reach Settings was from the menu - Batch 543 put a SETTINGS button in the
+            // pause screen and made every launch-time read like this one stale for the rest of the run.
+            selectMultiLaneHold.addEventListener('change', () => {
+                config.multiLaneHold = selectMultiLaneHold.value === 'yes';
             });
             selectStickSize.addEventListener('change', () => {
                 try { localStorage.setItem('stickSize', selectStickSize.value); } catch (e) {}

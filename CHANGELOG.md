@@ -6,6 +6,45 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.20.0 — 2026-09-23 19:45: Batch 546 — the grey bars, found properly this time
+
+### Switching layout mid-run squashed the board
+
+Direct report, with screenshots, and the screenshots are what cracked it: the board was not merely
+smaller, it had **grey bars down BOTH sides** — so it had lost WIDTH, on a change that only takes
+away HEIGHT. That is an aspect-ratio fault, not a fitting one.
+
+`fullscreenViewHeight()` computes VIEW_H with `gameExtraBottom()` already subtracted, so the
+playfield's ratio depends on whether a touch strip is reserved. CROSS is an overlay and reserves
+nothing; SPLIT is a bar and reserves ~111px. `sizeGameFrame()` only re-fits the EXISTING ratio, so
+losing height to the strip lost width in proportion — bars on the sides rather than a shorter board.
+
+Quitting to the menu fixed it, which was the other tell: that is the only path that calls
+`applyLaneLayout()` again. A layout change now rebuilds rather than re-fits whenever the reserved
+height actually differs, and the same applies on window resize. Measured across the reported path:
+VIEW_H 312 -> 269 and the ratio 0.462 -> 0.535, with the frame filling all 375px in both layouts.
+
+**Batch 545 guessed at this one and guessed wrong.** It put a floor under a negative frame and called
+it a possible cause; the floor is harmless and stays, but it was never the problem. The screenshots
+were worth more than the whole of that reasoning.
+
+### MULTI-LANE HOLD needed a restart to take effect
+
+Direct report. It is read once, in `launchGame()`, which was fine while the only way into Settings
+was from the menu. Batch 543 put a SETTINGS button in the pause screen and thereby made every
+launch-time read stale for the rest of the run. This one now updates live.
+
+Worth flagging as a class of bug rather than a single one: anything else read once at launch has the
+same exposure now. Lanes and difficulty genuinely cannot change mid-run and are correct as they are;
+this was the toggle that could.
+
+### SPLIT SIDES
+
+Direct request: "so that the left and right arrows are on the right and the up and down arrows are on
+the left, because maybe someone prefers that." STEER LEFT / STEER RIGHT, shown only for SPLIT, since
+it is the only layout with two sides to swap. Verified mirrored exactly: 14/80 and 235/301 either way
+round.
+
 ## 3.19.2 — 2026-09-23 18:20: Batch 545 — a round of direct corrections
 
 ### Every date in this file was wrong
