@@ -7,7 +7,8 @@ Designed to run in any modern browser — on desktop and mobile.
 
 You control a car driving down a multi-lane road and must avoid oncoming traffic for as long as possible.
 Score comes from PASSING cars — not from survival time itself — multiplied by a score multiplier you raise
-with fewer lanes, higher difficulty, a bigger car, and above all speed. Settings let you tune difficulty.
+with fewer lanes, higher difficulty, a bigger car, and above all speed. Scattering an obstacle's cones and
+being in the next lane when two cars wreck each other both pay on top. Settings let you tune difficulty.
 In-game, the TUTORIAL button explains all of this with the real numbers.
 
 ## How to play

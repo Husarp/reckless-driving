@@ -787,6 +787,19 @@
         .btn-row { display: flex; gap: 7px; width: 100%; }
         .btn-row .btn { flex: 1; min-width: 0; }
 
+        /* Direct request: the footer buttons "are very wide but not the same in height - they could be
+           bigger because we have the space, and it would be easier to click."
+           Only the tab-footer row, not .btn everywhere. A global bump would also grow the six main-menu
+           buttons, and that column is the one place in the game with no spare vertical room - Batch 548
+           was spent making it fit. These rows sit under a panel that is already scrolling, so the extra
+           height comes out of slack that exists.
+           Equal specificity to .btn, so it must live AFTER it - source order is what decides.
+           Measured: 38-40px -> 50px. Comfortably past the 44px touch target both platforms ask for, which the old
+           height missed. The font and the cross-tab icon go up with it, per the same request - a taller
+           button with the same 11px label just reads as more empty space. */
+        .btn-nav { padding: 15px 0; font-size: 13px; }
+        .btn-nav.btn-xlink svg { width: 16px; height: 16px; }
+
         /* Car color picker */
         /* owned + locked colors now share ONE row (was 2 separate rows) per direct feedback. */
         /* Batch 516 - a grid, not wrapped flex: the 1b cards carry text, so letting them wrap at
@@ -1116,6 +1129,23 @@
         /* direct request: the standalone box (background/border-left) looked out of place next to every other plain column — removed, just the number now, same as .lb-weight etc. */
         .lb-perf { display: flex; align-items: center; justify-content: center; }
         .lb-perf-val { font-family: 'VT323', monospace; font-size: 17px; color: var(--c-mint); }
+
+        /* ---- narrow rows: DATE + WEIGHT + PERFORMANCE fold into one `i` ----
+           Direct instruction, after the two-line wrap was rejected twice: when the row does not fit,
+           compact those three into an info icon at the END of the line, on the right, and give both
+           numbers and the date back on hover (desktop) or tap (phone).
+           Three fixed columns worth ~230px leave, one 26px column arrives, and .lb-main gets a
+           minmax(0, 1fr) so the score block is the thing that gives way rather than the row
+           overflowing - which is what it did before, since every column here is a fixed width. */
+        .lb-info { display: none; align-items: center; justify-content: center; color: var(--c-text-dimmer); cursor: pointer; }
+        .lb-info:hover { color: var(--c-amber); }
+        .lb-info svg { width: 16px; height: 16px; display: block; }
+        .lb-compact .lb-entry { grid-template-columns: 22px minmax(0, 1fr) auto auto 26px; }
+        .lb-compact .lb-main { grid-column: 2; }
+        .lb-compact .lb-car { grid-column: 3; }
+        .lb-compact .lb-car-icon-wrap { grid-column: 4; }
+        .lb-compact .lb-info { grid-column: 5; display: flex; }
+        .lb-compact .lb-date, .lb-compact .lb-weight, .lb-compact .lb-perf { display: none; }
         /* Header aggregate — the ONE place the full "PERFORMANCE SCORE" text is written out. */
         .lb-total-perf { display: flex; flex-direction: column; align-items: flex-end; cursor: default; }
         .lb-total-perf-val { font-family: 'VT323', monospace; font-size: 18px; color: var(--c-amber); line-height: 1; }
@@ -1132,6 +1162,9 @@
             line-height: 1.4;
             padding: 6px 8px;
             max-width: 220px;
+            /* the folded info tip is three facts, one per line; every other tip is one sentence with
+               no newline in it, so this changes nothing for them. */
+            white-space: pre-line;
             box-shadow: 3px 3px 0 rgba(0,0,0,.6);
             pointer-events: none;
             z-index: 200;
@@ -2191,7 +2224,10 @@
         .confirm-cost-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; }
         .confirm-cost-row #confirmCoinIcon { width: 18px; height: 18px; }
         .confirm-cost-row span { font-family: 'Silkscreen', monospace; font-size: 15px; color: var(--c-amber); }
-        .confirm-text { font-size: 13px; color: var(--c-text-dim); margin-bottom: 16px; line-height: 1.4; }
+        /* Batch 550: `white-space: pre-line` so a dialog can put a line break where it means one.
+           The text is set with textContent, so a 
+ in it was collapsing to a space. */
+        .confirm-text { font-size: 13px; color: var(--c-text-dim); margin-bottom: 16px; line-height: 1.4; white-space: pre-line; }
 
         /* Dev menu (Batch 114) — same overlay/card look as #confirmOverlay above (mirrored, not shared, to avoid reworking showConfirm()'s single-callback ok/cancel */
         #devMenuOverlay {
@@ -2462,7 +2498,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.22.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.23.0</span></div>
                 </div>
             </div>
         </div>
@@ -2980,7 +3016,7 @@
             </div>
 
             <div class="setting-group" style="margin-top: 20px;">
-                <button class="btn" id="garageBackBtn">BACK</button>
+                <button class="btn btn-nav" id="garageBackBtn">BACK</button>
             </div>
         </div>
         <!-- car hover card, from the user-provided "garadge_hover_info" mockup. `position:fixed` (like #lbTooltip) so it never has to account for .garage-scroll's own scroll offset — repositioned per-tile in JS on mouseenter. -->
@@ -3102,8 +3138,8 @@
             </div>
 
             <div class="btn-row" style="margin-top: 16px;">
-                <button class="btn" id="statsBackBtn">BACK</button>
-                <button class="btn" id="statsScoresBtn">SCORES</button>
+                <button class="btn btn-nav" id="statsBackBtn">BACK</button>
+                <button class="btn btn-nav" id="statsScoresBtn">SCORES</button>
             </div>
         </div>
     </div>
@@ -3129,8 +3165,8 @@
                 </div>
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-                <button class="btn" id="dailyGiftBackBtn">BACK</button>
-                <button class="btn" id="dailyGiftMissionsBtn">MISSIONS</button>
+                <button class="btn btn-nav" id="dailyGiftBackBtn">BACK</button>
+                <button class="btn btn-nav" id="dailyGiftMissionsBtn">MISSIONS</button>
             </div>
         </div>
     </div>
@@ -3181,8 +3217,8 @@
                 </div>
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-                <button class="btn" id="missionsBackBtn">BACK</button>
-                <button class="btn" id="missionsGiftBtn">GIFT</button>
+                <button class="btn btn-nav" id="missionsBackBtn">BACK</button>
+                <button class="btn btn-nav" id="missionsGiftBtn">GIFT</button>
             </div>
         </div>
     </div>
@@ -3196,7 +3232,7 @@
                 <div id="achGroups"></div>
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-                <button class="btn" id="achievementsBackBtn">BACK</button>
+                <button class="btn btn-nav" id="achievementsBackBtn">BACK</button>
             </div>
         </div>
     </div>
@@ -3283,7 +3319,11 @@
                             <div class="tut-art tut-scene"><canvas id="tutSceneJump"></canvas></div>
                             <div class="tut-copy">
                                 <p>Hold <span class="keys-hint">Space</span><span class="touch-hint">the ability button</span> to jump. You fly over everything &mdash; even ambulances &mdash; for up to about <span class="k" id="tutJumpSeconds"></span>. Release to land early.</p>
-                                <p>Take-off needs <span class="k" id="tutJumpCells"></span> of the bar's nine cells. Energy does not recharge on its own: earn it back by passing cars (+1 cell, trucks +2) and near misses (+4).</p>
+                                <!-- Batch 550, direct request: state that a minimum exists rather than
+                                     quoting one number. JUMP, SHIELD BUMP, TANK SHOT and BUMPER LAUNCH
+                                     do not share a threshold - the launch needs the bar completely
+                                     full - so a single figure here was only ever true of the jump. -->
+                                <p>Every ability has its own minimum: it will not fire until the bar has enough in it, and a few need it completely full. Energy does not recharge on its own: earn it back by passing cars (+1 cell, trucks +2) and near misses (+4).</p>
                             </div>
                         </div>
                     </div>
@@ -3536,7 +3576,7 @@
                                  hardcoded batch count here did. Batches belong to HOW IT WAS BUILT, not here. -->
                             <div class="tut-art"><div style="text-align:center;"><div class="tut-big" id="tutCarCount"></div><div class="tut-big-sub">VEHICLES TO COLLECT</div></div></div>
                             <div class="tut-copy">
-                                <p>Alongside <span class="k" id="tutBiomeCount"></span> kinds of scenery, and over sixteen thousand lines in a single file.</p>
+                                <p>Alongside <span class="k" id="tutBiomeCount"></span> kinds of scenery, and over eighteen thousand lines in a single file.</p>
                                 <p>Every change since day one is written down &mdash; what changed, why, and how it was checked.</p>
                             </div>
                         </div>
@@ -3564,8 +3604,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.22.0 &mdash; AUG 21 TO SEP 23, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">549</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.23.0 &mdash; AUG 21 TO SEP 24, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">551</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -3574,7 +3614,7 @@
                 </div>
             </div>
             <div class="btn-row" style="margin-top: 12px;">
-                <button class="btn" id="tutorialBackBtn">BACK</button>
+                <button class="btn btn-nav" id="tutorialBackBtn">BACK</button>
             </div>
         </div>
     </div>
@@ -3711,8 +3751,8 @@
                 <div id="leaderboardList" class="lb-list"></div>
             </div>
             <div class="btn-row" style="margin-top: 15px;">
-                <button class="btn" id="backBtn">BACK</button>
-                <button class="btn" id="lbStatsBtn">STATS</button>
+                <button class="btn btn-nav" id="backBtn">BACK</button>
+                <button class="btn btn-nav" id="lbStatsBtn">STATS</button>
             </div>
         </div>
         <div id="lbTooltip" class="lb-tooltip"></div>
@@ -4401,6 +4441,20 @@
         // cones were supposed to pay 100 times the multiplier, not 400". 100 was the original number
         // and is the one that stands.
         const CONE_SCATTER_POINTS = 100;
+        /**
+         * Direct decision: 25 points for being beside an NPC-on-NPC crash, "same or adjacent lane,
+         * once per wreck".
+         *
+         * Lane proximity rather than the alternative that was on the table - anywhere on screen -
+         * because that one rules itself out: NPC crashes only ever happen between spawned vehicles,
+         * so "on screen" is true by definition and would pay for doing nothing at all. Lane adjacency
+         * is a real constraint, and it is also the answer to "would this be overpowered with more
+         * lanes": it tightens on its own as lanes are added, from 3 of 5 qualifying to 3 of 7.
+         *
+         * 25, not the 50 first floated - 50 is ambulance money (VEHICLE_POINTS), and watching a crash
+         * you did not cause should not out-earn threading past the hardest vehicle in the game.
+         */
+        const WITNESS_CRASH_POINTS = 25;
         let conesScatteredThisRun = 0;
         let crashCause = 'generic';
         let crashTextColor = CRASH_TEXT_COLORS[0];   // Batch 527 - the results screen reuses the crash's own colour
@@ -4757,17 +4811,21 @@
          * up?". Anywhere else, say so.
          */
         function announceAchievementIfUnseen(id) {
+            if (gameView.classList.contains('active')) return;   // the summary will list it
+            // The full roster is achData() PLUS ACH_SECRETS() - the two are only ever concatenated at
+            // the point of rendering. Batch 549 searched achData() alone and so found nothing for any
+            // SECRET, which is exactly the category that unlocks outside a run: FULL CIRCLE and
+            // THE DESTROYER both live in ACH_SECRETS(), both failed the lookup, and both announced
+            // nothing. It was reported as "didn't get the alert" twice.
+            let a = null;
+            try { a = achData().concat(ACH_SECRETS()).find(x => x.id === id); } catch (e) { /* below */ }
+            // Announce even if the roster lookup fails. The Batch 549 version returned silently on a
+            // miss AND wrapped the whole thing in a catch, so the one bug it could have had was the
+            // one bug it hid. A generic line is a bad message; no message is an invisible fault.
+            const text = a ? a.name + ' — ' + a.desc : 'You unlocked a secret. Check AWARDS.';
             try {
-                if (gameView.classList.contains('active')) return;   // the summary will list it
-                const a = achData().find(x => x.id === id);
-                if (!a) return;
-                showConfirm(null, {
-                    title: 'ACHIEVEMENT UNLOCKED',
-                    text: a.name + ' — ' + a.desc,
-                    okLabel: 'NICE',
-                    danger: false
-                });
-            } catch (e) { /* never let a notification break the thing that earned it */ }
+                showConfirm(null, { title: 'ACHIEVEMENT UNLOCKED', text: text, okLabel: 'NICE', danger: false });
+            } catch (e) { /* a notification must never break the thing that earned it */ }
         }
         // "MILLIONAIRE" one-time achievement: current BALANCE ≥ 10,000,000 at once (not lifetime-earned — that's Businessman's job).
         const MILLIONAIRE_THRESHOLD = 10000000;
@@ -4776,16 +4834,27 @@
         }
 
         // Called once per completed run (from saveScore()) — folds this run's numbers into the persistent all-time totals. `vehicleType` is the type of vehicle that ended the run (null if the run wasn't ended by a collision, which shouldn't currently happen but costs nothing to guard).
-        function recordRunStats(vehicleType, survivedMs) {
-            // Batch 326 — 3 secret achievements, checked right at run-end.
-            if (score === 0) unlockAchievement('didnt_even_try');
-            if (survivedMs < 5000) unlockAchievement('over_before_it_started');
-            if (lastLetterPickupTs && Date.now() - lastLetterPickupTs < 500) unlockAchievement('word_sacrifice');
-            // "Déjà Vu" secret: crash into the same specific MODEL 3 runs in a row (was the coarse vehicleType bucket, too easy — see lastCrashModel in endRun()).
-            if (lastCrashModel) {
-                allTimeStats.sameDeathTypeStreak = lastCrashModel === allTimeStats.lastDeathType ? (allTimeStats.sameDeathTypeStreak || 0) + 1 : 1;
-                allTimeStats.lastDeathType = lastCrashModel;
-                if (allTimeStats.sameDeathTypeStreak >= 3) unlockAchievement('deja_vu');
+        function recordRunStats(vehicleType, survivedMs, crashed) {
+            // 4 secret achievements about how the run ENDED, so they need it to have actually ended -
+            // direct report: quitting straight back out of a run was handing them over, because a quit
+            // saves the score and therefore comes through here too. Duck out of a run in the first few
+            // seconds and you collected "Over Before It Started" without crashing into anything.
+            //
+            // Only these four are gated. Everything else below describes what the player DID during
+            // the run (biomes seen, close calls, cars jumped), and a quit does not undo any of that.
+            //
+            // Déjà Vu was wrong for a second reason: `lastCrashModel` is never cleared between runs, so
+            // a quit re-counted the PREVIOUS run's crash and could walk the streak to 3 on its own.
+            if (crashed) {
+                if (score === 0) unlockAchievement('didnt_even_try');
+                if (survivedMs < 5000) unlockAchievement('over_before_it_started');
+                if (lastLetterPickupTs && Date.now() - lastLetterPickupTs < 500) unlockAchievement('word_sacrifice');
+                // "Déjà Vu": crash into the same specific MODEL 3 runs in a row (was the coarse vehicleType bucket, too easy — see lastCrashModel in endRun()).
+                if (lastCrashModel) {
+                    allTimeStats.sameDeathTypeStreak = lastCrashModel === allTimeStats.lastDeathType ? (allTimeStats.sameDeathTypeStreak || 0) + 1 : 1;
+                    allTimeStats.lastDeathType = lastCrashModel;
+                    if (allTimeStats.sameDeathTypeStreak >= 3) unlockAchievement('deja_vu');
+                }
             }
             allTimeStats.runsPlayed++;
             if (score > 0) allTimeStats.scoringRunsPlayed++;
@@ -8317,7 +8386,10 @@
                     const dialogOpts = {
                         title: (affordable ? 'BUY ' : '') + ft.label + (affordable ? '?' : ''),
                         costAmount: FLAME_BUY_COST[ft.key],
-                        text: lines.join(' '),
+                        // Batch 550, direct report: "I want this whole sentence to be on one line -
+                        // right now the 'You' is on the line above." It was flowing straight on from
+                        // the description, so the wrap landed mid-phrase. Its own line now.
+                        text: lines.join('\n'),
                         okLabel: affordable ? 'BUY' : 'OK',
                         danger: false
                     };
@@ -10517,6 +10589,24 @@
             g.font = Math.round(S * 0.5) + "px 'Silkscreen', monospace";
             g.fillStyle = 'rgba(255,248,214,.5)'; g.fillText(ch, cx, cy - u);
             g.fillStyle = '#5c4415'; g.fillText(ch, cx, cy);
+        }
+
+        // The world-unit Y the letter pre-warning may start at. Direct report from the phone: the
+        // present "appears at the very top of the screen and often even above the energy bar because
+        // there is a camera island". Both halves of that are one fault - the icon's Y was the constant
+        // 22, picked against the DESKTOP hud, and on a touch device #hudLeft is pushed down by
+        // --safe-top (at least 38 CSS px, to clear the island) so the energy bar simply grew down past
+        // it. The icon was not moving; the thing it had to stay clear of was.
+        //
+        // Measured off the real element, not replaced with a second constant: #hudLeft carries a scale
+        // transform AND a safe-area inset, so where its bottom actually ends up is only knowable from
+        // the DOM. max() with the old 22 keeps the desktop placement exactly where it was.
+        function letterWarnTopWorld() {
+            const cr = canvas.getBoundingClientRect();
+            if (!cr.width || !VIEW_W) return 22;
+            const cssPerWorld = cr.width / VIEW_W;
+            const hr = hudLeft.getBoundingClientRect();
+            return Math.max(22, Math.round((hr.bottom - cr.top) / cssPerWorld) + 8);
         }
 
         function drawPresentIcon(gctx, cx, cy) {
@@ -13576,7 +13666,7 @@
         function exitToMenu() {
             // quitting mid-run (pause → QUIT) now saves the score and coins earned so far, per direct user request ("when quitting your score saves as of right now and you get your coins"). `gameActive` is still true here specifically for that case — a run that already ended (crash → endRun() → the Game Over screen's own MENU button, which also calls this function) has already set it false and already called saveScore() once, so this only fires for a genuine voluntary quit, and never double-saves the same run.
             if (gameActive) {
-                saveScore(null); // no vehicle killed the player — they quit
+                saveScore(null, false); // no vehicle killed the player — they quit
             }
             gameActive = false;
             stopMusic();
@@ -13727,7 +13817,9 @@
             document.getElementById('missionsClaimBadge').classList.toggle('show', ready);
         }
 
-        function saveScore(vehicleType) {
+        // `crashed` says the run ended in a crash rather than a voluntary quit. Both paths land here -
+        // quitting saves the score too - so it is the only thing that can tell the two apart.
+        function saveScore(vehicleType, crashed) {
             // Batch 465, direct bug report: a saved run read "14,094.509". `score` accumulates raw
             // fractional values all run (points x multiplier, deliberately unrounded so mid-run rounding
             // cannot drift the total) and endRun() was the ONLY place that rounded it. Quitting from the
@@ -13740,7 +13832,7 @@
             // before this is ever called.
             score = Math.round(score);
             const survivedMs = Math.max(0, Date.now() - gameStartTime);
-            const finalCoins = recordRunStats(vehicleType, survivedMs);
+            const finalCoins = recordRunStats(vehicleType, survivedMs, crashed);
             const timeSurvived = Math.floor(survivedMs / 1000);
             const now = new Date();
             const entry = {
@@ -14289,6 +14381,7 @@
         const lbTooltipEl = document.getElementById('lbTooltip');
         // small hover-only calendar glyph for each leaderboard row's date (see .lb-date). currentColor so it inherits the dim/hover color already defined in CSS.
         const LB_DATE_ICON_SVG = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="11" height="10" rx="0.5"></rect><line x1="1.5" y1="5.5" x2="12.5" y2="5.5"></line><line x1="4" y1="1" x2="4" y2="3.3"></line><line x1="10" y1="1" x2="10" y2="3.3"></line></svg>';
+        const LB_INFO_ICON_SVG = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="5.6"></circle><line x1="7" y1="6.2" x2="7" y2="10"></line><line x1="7" y1="4" x2="7" y2="4.2" stroke-width="1.8" stroke-linecap="round"></line></svg>';
 
         // Batch 495, direct report: the info box "is being cut off". It was placed with no regard for
         // the viewport at all - left/top straight from the anchor, and `translate(-50%, -100%)` in CSS
@@ -14317,8 +14410,43 @@
             el.addEventListener('mouseenter', (e) => showLbTip(e, text));
             el.addEventListener('mouseleave', hideLbTip);
         }
+        // Which element opened the tip, so the info icon can toggle itself shut on a second tap.
+        let lbTipOwner = null;
+        // The folded DATE/WEIGHT/PERFORMANCE icon. Hover is not enough here: this icon only appears
+        // BECAUSE the row is too narrow, which is overwhelmingly the phone, and a phone has no hover.
+        function addLbInfoTip(el, text) {
+            if (!el) return;
+            addLbTip(el, text);
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (lbTipOwner === el) { lbTipOwner = null; hideLbTip(); }
+                else { lbTipOwner = el; showLbTip({ currentTarget: el }, text); }
+            });
+        }
         // The header's aggregate PERFORMANCE SCORE element is static HTML (unlike the per-row cells, which get rebuilt fresh every call) — its tooltip listener is attached ONCE here, not inside showLeaderboard(), so repeated calls (e.g. clicking a lane filter chip) don't stack up duplicate mouseenter/mouseleave handlers on the same DOM node.
         addLbTip(document.getElementById('lbTotalPerf'), 'PERFORMANCE SCORE — the weighted sum of every run below');
+
+        /**
+         * Decides whether a row can still show DATE, WEIGHT and PERFORMANCE separately, or has to fold
+         * them into the `i`.
+         *
+         * Measured against the real element rather than a screen-width media query, because the thing
+         * that runs out of room is the PANEL, not the window - it is a different width on desktop, on
+         * a phone, and again when the list's own scrollbar appears. A media query would be guessing at
+         * all three.
+         *
+         * The threshold is the grid's own arithmetic: 22 + 150 + 100 + 120 fixed, plus WEIGHT (auto,
+         * about 55) and PERFORMANCE (50), plus six 8px gaps and the row's 7px left padding - roughly
+         * 552 before .lb-main is given a single pixel. Under that the row used to overflow the panel,
+         * because every column in it is a fixed width.
+         */
+        const LB_FULL_MIN_PX = 560;
+        function syncLbCompact() {
+            const w = leaderboardList.clientWidth;
+            if (!w) return;   // a hidden view measures 0 - keep the last decision rather than thrash
+            leaderboardList.classList.toggle('lb-compact', w < LB_FULL_MIN_PX);
+        }
+        if (window.ResizeObserver) new ResizeObserver(syncLbCompact).observe(leaderboardList);
 
         function showLeaderboard() {
             const allScores = readSavedJSON('highscores', []);
@@ -14376,7 +14504,10 @@
                         `<div class="lb-car-icon-wrap">${carObj ? '<canvas></canvas>' : ''}</div>` +
                         (entry.date ? `<div class="lb-date">${LB_DATE_ICON_SVG}</div>` : '<div class="lb-date"></div>') +
                         `<div class="lb-weight"><span class="lb-weight-val">${Math.round(weight * 100)}%</span><span class="lb-weight-label">WEIGHT</span></div>` +
-                        `<div class="lb-perf"><span class="lb-perf-val">${perfVal.toLocaleString()}</span></div>`;
+                        `<div class="lb-perf"><span class="lb-perf-val">${perfVal.toLocaleString()}</span></div>` +
+                        // always in the DOM, shown only by .lb-compact - so switching modes is a class
+                        // on the list and never a re-render.
+                        `<div class="lb-info">${LB_INFO_ICON_SVG}</div>`;
 
                     // car sprite next to each entry, per direct request.
                     if (carObj) drawCarTileSprite(div.querySelector('.lb-car-icon-wrap canvas'), carObj, DEFAULT_PLAYER_COLOR);
@@ -14392,6 +14523,10 @@
                     addLbTip(div.querySelector('.lb-weight'), 'WEIGHT — each place is worth 5% less than the one above it');
                     addLbTip(div.querySelector('.lb-perf'), 'PERFORMANCE SCORE — what this run adds (score × weight)');
                     if (entry.date) addLbTip(div.querySelector('.lb-date'), entry.date + ' · ' + entry.time);
+                    addLbInfoTip(div.querySelector('.lb-info'),
+                        'PERFORMANCE ' + perfVal.toLocaleString() + '\n' +
+                        'WEIGHT ' + Math.round(weight * 100) + '%' +
+                        (entry.date ? '\nSET ' + entry.date + ' · ' + entry.time : ''));
                     leaderboardList.appendChild(div);
                 });
             }
@@ -14399,6 +14534,7 @@
             setupView.classList.remove('active');
             gameView.classList.remove('active');
             leaderboardView.classList.add('active');
+            syncLbCompact();   // after .active, or the list is still display:none and measures 0
             leaderboardView.querySelector('.garage-scroll').scrollTop = 0; // Batch 275 — the run list itself is what scrolls now, not the whole panel
         }
 
@@ -14876,7 +15012,11 @@
                 ['dgDropChancesTip', 'dgWordDropChancesTip', 'msnSweepsTip', 'msnTip'].map(id => document.getElementById(id)).filter(Boolean).forEach(tip => {
                     if (tip.style.display !== 'none' && !tip.contains(t)) tip.style.display = 'none';
                 });
-                if (lbTooltipEl && lbTooltipEl.classList.contains('show') && !lbTooltipEl.contains(t)) hideLbTip();
+                // .lb-info is excluded deliberately: this capture-phase listener runs BEFORE the
+                // icon's own click, so without the exclusion every second tap would be "close, then
+                // reopen" and the tip could never be dismissed by tapping the icon again.
+                if (lbTooltipEl && lbTooltipEl.classList.contains('show') && !lbTooltipEl.contains(t)
+                    && !(t.closest && t.closest('.lb-info'))) { lbTipOwner = null; hideLbTip(); }
                 const card = document.getElementById('garageHoverCard');
                 if (card && card.style.display !== 'none' && !card.contains(t) && !(t.closest && t.closest('.car-tile'))) {
                     hideGarageHoverCard();
@@ -15607,6 +15747,11 @@
             // -1 so a rounding tie lands inside the box rather than one pixel outside it.
             goTitleEl.style.fontSize = Math.max(18, Math.floor(GO_TITLE_SIZE * avail / want) - 1) + 'px';
         }
+        // Long enough to outlast a fast double-tap, short enough that a player who genuinely wants to
+        // go again does not feel the screen fighting them.
+        const GO_BTNS_LOCK_MS = 500;
+        let goBtnsLockTimer = 0;
+
         function showResultScreen(instant) {
             const r = CS.result, s = CS.snapshot;
             // Batch 527 - carry the crash's own word and colour onto the summary, so the two screens
@@ -15641,6 +15786,20 @@
             gameOverBackdrop.style.display = 'block';
             gameoverBtns.style.display = 'flex';
             fitGoTitle();
+
+            // direct report: "you click to skip animation and click again very fast, it can start the
+            // run". It is not a mis-tap - a SINGLE tap can do it. The skip is bound on pointerDOWN, so
+            // this screen (and RETRY with it) appears while that same tap is still held; the matching
+            // pointerup then lands on a button that did not exist when the finger went down, and the
+            // browser issues a real click on it. Losing a run to the tap that was only meant to skip
+            // the crash is about the worst thing a button here could do.
+            //
+            // pointer-events rather than a guard inside the handlers, because the click must never be
+            // DELIVERED - a disabled-looking button that silently eats taps reads as a frozen game.
+            // The whole row is locked, not just RETRY: BACK and SCORES sit under the same finger.
+            clearTimeout(goBtnsLockTimer);
+            gameoverBtns.style.pointerEvents = 'none';
+            goBtnsLockTimer = setTimeout(() => { gameoverBtns.style.pointerEvents = 'auto'; }, GO_BTNS_LOCK_MS);
 
             if (instant) {
                 gameOverHud.classList.remove('go-anim');
@@ -15716,7 +15875,7 @@
             gameHud.style.display = 'none';
             hudLeft.style.display = 'none';
 
-            CS.result = saveScore(vehicleType);
+            CS.result = saveScore(vehicleType, true);
             CS.snapshot = {
                 score: score,
                 // Batch 107 tried showing the run's AVERAGE multiplier (score ÷ raw base points) here instead of the live crash-time value, reasoning that "MULTIPLIER 1.8x" next to "BASE SCORE 680" implied a multiplication that never actually held (multiplier ramps up with speed all run, see calculateMultiplier(), so the crash-time value is only ever the run's PEAK, not what applied throughout).
@@ -15907,7 +16066,9 @@
                             }
                             const lane = candidates[Math.floor(Math.random() * candidates.length)];
                             letterLastLane = lane;
-                            pendingLetterWarning = { lane, timer: LETTER_WARN_FRAMES, letter };
+                            // resolved once, here, rather than every frame of the warning - it costs a
+                            // forced layout, and nothing that feeds it changes inside 1.5 seconds.
+                            pendingLetterWarning = { lane, timer: LETTER_WARN_FRAMES, letter, top: letterWarnTopWorld() };
                         }
                     }
                 }
@@ -16336,6 +16497,24 @@
                             : checkCollision(a, b);
                         if (hit) {
                             crashesWitnessedThisRun++; // Batch 320 — Daily Missions "witness a crash"
+                            // Either car being within one lane counts. They are not always in the same
+                            // one - a side-swipe mid-merge leaves them straddling two - and "was I next
+                            // to that" does not care which half of the wreck was nearer.
+                            // Once per wreck needs no flag: this branch runs once per collision and
+                            // then breaks out of the loop.
+                            if (Math.abs(a.lane - player.currentLane) <= 1
+                                || Math.abs(b.lane - player.currentLane) <= 1) {
+                                const gained = WITNESS_CRASH_POINTS * multiplier;
+                                score += gained;
+                                gainXP(WITNESS_CRASH_POINTS);
+                                if (config.scorePopupsEnabled) {
+                                    // on the wreck, not on the player - same rule a normal pass follows,
+                                    // so the number reads as "you earned this off THEM".
+                                    const front = a.y < b.y ? a : b;
+                                    scorePopups.push(new ScorePopup(front.x + front.width / 2, front.y - 4,
+                                        '+' + Math.round(gained), 'CRASH', '#ff3b3b'));
+                                }
+                            }
                             [a, b].filter(v => !v.wrecked).forEach(v => {
                                 v.wrecked = true;
                                 v.speedOffset = 0; // same "scrolls with the road, not at traffic pace" fix Batch 195 gave ram wrecks
@@ -16353,13 +16532,16 @@
                     const lw = Math.floor(ROAD_WIDTH / config.lanes);
                     const lx = ROAD_BORDER_LEFT + pendingLetterWarning.lane * lw;
                     const bob = Math.sin(Date.now() / 200) * 3;
-                    drawPresentIcon(ctx, lx + lw / 2, 22 + bob);
+                    // +11, not +7: the ribbon loops 4px ABOVE the box, so the icon's topmost pixel is
+                    // 11 above its centre. Anchoring on the centre would still clip the bow.
+                    const cy = (pendingLetterWarning.top || 22) + 11;
+                    drawPresentIcon(ctx, lx + lw / 2, cy + bob);
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#ffffff';
                     ctx.font = "bold 10px 'Silkscreen', monospace";
-                    ctx.fillText(pendingLetterWarning.letter, lx + lw / 2, 40 + bob);
+                    ctx.fillText(pendingLetterWarning.letter, lx + lw / 2, cy + 18 + bob);
                     ctx.restore();
                 }
 
@@ -16667,7 +16849,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.22.0';
+        const GAME_VERSION = '3.23.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -16886,9 +17068,6 @@
             // abbreviation to genuinely help; these per-pass values are not.
             set('tutCoinAmbJump', jumpCoins(P.ambulance).toLocaleString('en-US'));
             set('tutCloseCall', CLOSE_CALL_BASE_SCORE);
-            // Read from the constant rather than stated in prose - it is derived
-            // (ceil(3 * ENERGY_PER_CELL)) and has already moved once, when the bar went 10 cells to 9.
-            set('tutJumpCells', Math.round(ABILITY_MIN_ENERGY / ENERGY_PER_CELL));
             // Batch 440 - was the literal "3 seconds"; now derived, so a drain-rate change can't
             // leave the tutorial quoting a number the game no longer uses.
             set('tutJumpSeconds', (JUMP_FULL_DRAIN_MS / 1000).toFixed(1) + ' seconds');

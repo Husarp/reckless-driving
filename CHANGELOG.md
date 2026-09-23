@@ -6,6 +6,174 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.23.0 — 2026-09-24 03:10: Batch 551 — points for being beside a crash, and a Scores row that fits
+
+### 25 points for witnessing a crash from the next lane
+
+User's own idea, decided after the options were laid out: 25 points, same or adjacent lane, once per
+wreck.
+
+The alternative on the table was "anywhere on screen", and that one ruled itself out: NPC crashes only
+ever happen between spawned vehicles, so "on screen" is true by definition and would have paid for
+doing nothing at all. Lane proximity is a real constraint - and it is also the answer to "would this be
+overpowered with more lanes", because it tightens on its own as lanes are added: 3 of 5 lanes qualify,
+then 3 of 7.
+
+25 rather than the 50 first floated. 50 is ambulance money (`VEHICLE_POINTS.ambulance`), and watching a
+crash you did not cause should not out-earn threading past the hardest vehicle in the game.
+
+Either car being within one lane counts - a side-swipe mid-merge leaves the two straddling two lanes,
+and "was I next to that" does not care which half of the wreck was nearer. "Once per wreck" needed no
+flag: that branch already runs once per collision and then breaks. It scales with the live multiplier
+and pays XP, same as a cone scatter, and the floating `+25 CRASH` lands **on the wreck** rather than on
+the player - the rule a normal pass already follows.
+
+Measured, with the player settled in lane 2 of 5:
+
+| crash lane | paid |
+|---|---|
+| 2 (same) | 25 |
+| 1 / 3 (adjacent) | 25 |
+| 0 / 4 (two away) | 0 |
+
+At a 3.00x multiplier the same crash paid 75. Two-lanes-away still counts as *witnessed* for the Daily
+Mission and NOT MY FAULT, which were already there and are untouched.
+
+One trap the first test walked straight into, worth recording: `player.currentLane` is recomputed from
+the player's x every frame, so setting it directly and stepping a frame proves nothing - the first run
+of this test reported that a crash two lanes away paid out, which was the test being wrong, not the
+gate. The player has to be MOVED, not relabelled.
+
+### The Scores row folds instead of wrapping
+
+Direct instruction, after wrapping to two lines was rejected: when the row does not fit, compact DATE,
+WEIGHT and PERFORMANCE SCORE into a single `i` at the end of the line, on the right, and give all three
+back on hover or tap.
+
+Three fixed columns worth about 230px leave, one 26px column arrives, and `.lb-main` becomes
+`minmax(0, 1fr)` so the score block is what gives way - before this, every column in the row was a
+fixed width, which is precisely why it overflowed instead of adapting.
+
+The switch is measured off the real element, not a screen-width media query, because the thing that
+runs out of room is the **panel**: a different width on desktop, on a phone, and again when the list's
+own scrollbar appears. A media query would be guessing at all three. The 560px threshold is the grid's
+own arithmetic - 22 + 150 + 100 + 120 fixed, plus WEIGHT (~55) and PERFORMANCE (50), plus six 8px gaps
+and 7px of row padding, which is about 552 before `.lb-main` gets a single pixel. A `ResizeObserver`
+does the toggling, so it also survives a window drag between monitors.
+
+Verified at both ends: at a 569px list the row is full and does not overflow; at 264px it is compact,
+does not overflow, and the `i`'s right edge is the row's right edge exactly (308px both), which is what
+"rightmost" was asked for.
+
+Tap, not just hover, because this icon exists **because** the row is narrow - which is overwhelmingly
+the phone, and a phone has no hover. Two traps there: the capture-phase `touchstart` that dismisses
+open tooltips runs BEFORE the icon's own click, so without excluding `.lb-info` every second tap would
+have been "close, then reopen" and it could never be shut again; and the tooltip is set with
+`textContent`, so `.lb-tooltip` needed `white-space: pre-line` for the three facts to be three lines.
+Second tap closes, confirmed.
+
+---
+
+## 3.22.1 — 2026-09-24 01:40: Batch 550 — a RETRY that can't be pressed by accident, footers worth aiming at
+
+### One tap could skip the crash AND restart the run
+
+Direct report: "when you crash and you click to skip the animation and click again very fast, it can
+start the run - I don't know if it's a bug or you're just accidentally pressing retry."
+
+It is a bug, and it does not even need two taps. The skip is bound on **pointerdown** (Batch 514, so
+a phone has some way out of the crash sequence at all), and that handler calls `showResultScreen()`
+directly - so the results panel, RETRY included, appears while the finger is still down. The matching
+pointerup then lands on a button that did not exist when the tap started, and the browser dutifully
+issues a real click on it. The tap meant to skip an animation threw away the next run instead.
+
+`#gameoverBtns` now takes `pointer-events: none` the moment it is revealed and gets it back 500ms
+later. pointer-events rather than a flag checked inside the handlers, because the click must never be
+**delivered** - a button that visibly accepts taps and silently ignores them reads as a frozen game.
+The whole row is locked, not just RETRY: BACK and SCORES sit under the same finger.
+
+### Quitting a run was handing out crash achievements
+
+Direct report: "DIDN'T EVEN TRY and OVER BEFORE IT STARTED - make sure they don't trigger when you
+just go into the game and quit, because quitting saves your score. You need to actually crash."
+
+Correct, and the cause is exactly the one named: quitting saves the run (by direct request, Batch
+~360), so it goes through `saveScore()` → `recordRunStats()` like any other ending. Duck straight
+back out of a run and you had scored 0 in under 5 seconds, which is precisely what those two secrets
+test for.
+
+Four are now gated on the run having actually ended in a crash:
+
+| | why it needed the gate |
+|---|---|
+| DIDN'T EVEN TRY | score 0 |
+| OVER BEFORE IT STARTED | under 5 seconds |
+| WORD SACRIFICE | "died within 0.5s of grabbing a letter" |
+| DÉJÀ VU | see below |
+
+Déjà Vu was wrong for a second, separate reason. `lastCrashModel` is never cleared between runs, so a
+quit re-counted the **previous** run's crash - meaning a player could walk the "same model 3 runs in
+a row" streak to 3 without crashing into anything at all.
+
+Nothing else moved. Every other check in there describes what the player DID during the run - biomes
+seen, close calls, cars jumped, ambulances cleared - and quitting does not undo any of that. Quitting
+still saves the score and still pays the coins, exactly as before; verified alongside the fix.
+
+### The present warning could hide under the camera island
+
+Direct report from the phone: the Daily Word letter's pre-warning "appears at the very top of the
+screen, often even above the energy bar, because there is a camera island."
+
+Both halves of that are one fault, and the icon was not the thing that moved. Its Y was the constant
+`22`, chosen against the desktop HUD. On a touch device `#hudLeft` is pushed down by `--safe-top` (at
+least 38 CSS px, to clear the cutout) - so the energy bar grew *down past* the icon, and the icon sat
+in the strip the island covers.
+
+Measured off the real element rather than swapped for a second constant: `#hudLeft` carries a scale
+transform **and** a safe-area inset, so where its bottom actually lands is only knowable from the DOM.
+On this phone the bar now ends at world y 29.7 and the icon's topmost pixel starts at 38. `max()` with
+the old 22 leaves the desktop placement bit-for-bit where it was - measured at 22 there, unchanged.
+
+The anchor is the bow, not the box: the ribbon loops 4px above the 14px body, so the icon's real top
+is 11 above its centre, and centring it would have clipped the bow off under the bar.
+
+### The tab footers got a button worth aiming at
+
+Direct request: the footer buttons "are very wide but not the same in height - they could be bigger
+because we have the space, and it would be easier to click", and the label and tab icon should grow
+with them.
+
+38-40px → **50px**, measured, with the label at 13px and the cross-tab icon at 16px. The old height
+was under the 44px touch target both platforms ask for; the new one clears it.
+
+Scoped to a new `.btn-nav` on the footer row of every tab (Garage, Stats, Scores, Daily Gift,
+Missions, Awards, Tutorial), not to `.btn` everywhere. A global bump would also have grown the six
+main-menu buttons, and that column is the one place in the game with no vertical room to give - Batch
+548 was spent making it fit. These rows sit under a panel that already scrolls, so the extra height
+comes out of slack that exists; checked on a 375x812 phone, every footer still lands on screen.
+
+One trap worth writing down: `.btn-nav` and `.btn` have **equal** specificity, so the first version
+did nothing at all - the icon grew (that selector is more specific) while the height and font did not.
+It has to sit after `.btn` in the file, and now does.
+
+### Also
+
+- **The achievement alert fired for nothing.** Batch 549's version looked the unlocked id up in
+  `achData()` alone - but the full roster is `achData()` **plus** `ACH_SECRETS()`, and secrets are
+  exactly the category that unlocks outside a run. FULL CIRCLE and THE DESTROYER both missed the
+  lookup and both announced nothing, reported twice. It now searches both, and announces with a
+  generic line if the lookup ever fails again: the old version returned silently on a miss *and*
+  wrapped the lot in a `catch`, so the one bug it could have had was the one bug it hid.
+- **"You need 999K more coins" broke across two lines**, stranding the "u". `.confirm-text` now sets
+  `white-space: pre-line` so a dialog can put a break where it means one - the text is assigned with
+  `textContent`, which was collapsing the newline to a space.
+- **The tutorial's energy line** claimed abilities need more than three bars. They do not all need the
+  same amount, so it now says each ability has its own minimum and a few need a full bar.
+- **Comment cleanup, continued.** Three more multi-attempt narrative blocks compressed. Every
+  measurement and every "why not the obvious thing" kept; only the batch-by-batch retelling dropped.
+
+---
+
 ## 3.22.0 — 2026-09-23 23:55: Batch 549 — a duplicate secret retired, and a tutorial that shows its work
 
 ### MIRROR, MIRROR is gone, and that settles a second report with it
