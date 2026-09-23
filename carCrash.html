@@ -1748,6 +1748,14 @@
         .ach-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
         .ach-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
         .ach-tab-btn { font-family: 'Silkscreen', monospace; font-size: 10px; letter-spacing: 1px; padding: 9px 11px; cursor: pointer; }
+        /* Direct report: the last sort tab (OWNED) dropped onto a second line "even though it has
+           space in the same line". Measured on a 375px phone: the row is 328px and the five tabs need
+           346px, so it misses by 18px - just enough to wrap, little enough to look like it should not
+           have. Trimming 4px of padding off each side of five buttons frees 40px, which clears it with
+           22px spare and leaves the 10px Silkscreen label alone (it is already small enough).
+           Scoped to the Garage on the user's own instruction: AWARDS shares this class but has three
+           tabs, not five, and has room to spare. */
+        #garageSortTabs .ach-tab-btn { padding-left: 7px; padding-right: 7px; }
         /* direct request: a settings icon (not text) on the tabs row, right side, opening a small popover to control number-display: abbreviate on/off, decimal digits, and an optional percentage readout above tiered progress bars. */
         .ach-settings-wrap { position: relative; margin-left: auto; }
         /* Batch 413 - direct request: the icon alone, no box and no frame. The 34px hit area is kept
@@ -2481,7 +2489,7 @@
                         <button id="garageBtn" class="mm-tab" style="--tab-c:var(--c-mint)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M3 2h6v1h-6zM2 3h1v1h-1zM9 3h1v1h-1zM1 4h10v1h-10zM0 5h12v1h-12zM0 6h2v1h-2zM3 6h6v1h-6zM10 6h2v1h-2zM0 7h12v1h-12zM1 8h10v1h-10zM1 9h2v1h-2zM9 9h2v1h-2zM1 10h2v1h-2zM9 10h2v1h-2z"></path></svg><span>GARAGE</span><span class="mm-badge" id="garageNewBadge">NEW!</span></button>
                         <button id="leaderboardBtn" class="mm-tab" style="--tab-c:var(--c-amber)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M0 1h1v1h-1zM5 1h2v1h-2zM11 1h1v1h-1zM0 2h1v1h-1zM5 2h2v1h-2zM11 2h1v1h-1zM0 3h2v1h-2zM4 3h4v1h-4zM10 3h2v1h-2zM0 4h12v1h-12zM0 5h12v1h-12zM0 6h12v1h-12zM0 7h12v1h-12zM1 8h10v1h-10z"></path></svg><span>SCORES</span></button>
                         <button id="statsBtn" class="mm-tab" style="--tab-c:#4d9fff"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path fill="currentColor" d="M6 0h2v1h-2zM6 1h2v1h-2zM3 2h2v1h-2zM6 2h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM0 5h2v1h-2zM3 5h2v1h-2zM6 5h2v1h-2zM0 6h2v1h-2zM3 6h2v1h-2zM6 6h2v1h-2zM0 7h2v1h-2zM3 7h2v1h-2zM6 7h2v1h-2z"></path></svg><span>STATS</span></button>
-                        <button id="dailyGiftBtn" class="mm-tab" style="--tab-c:var(--c-mint)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h2v1h-2zM8 0h2v1h-2zM3 1h2v1h-2zM7 1h2v1h-2zM0 2h12v1h-12zM0 3h12v1h-12zM1 4h10v1h-10zM1 5h1v1h-1zM10 5h1v1h-1zM1 6h1v1h-1zM10 6h1v1h-1zM1 7h1v1h-1zM10 7h1v1h-1zM1 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h1v1h-1zM10 10h1v1h-1zM1 11h10v1h-10z"></path></svg><span>GIFT</span><span class="mm-badge mm-badge-green" id="dailyGiftClaimBadge">CLAIM!</span></button>
+                        <button id="dailyGiftBtn" class="mm-tab" style="--tab-c:var(--c-mint)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h5v1h-5zM7 4h5v1h-5zM0 5h5v1h-5zM7 5h5v1h-5zM1 7h4v1h-4zM7 7h4v1h-4zM1 8h4v1h-4zM7 8h4v1h-4zM1 9h4v1h-4zM7 9h4v1h-4zM1 10h4v1h-4zM7 10h4v1h-4zM1 11h4v1h-4zM7 11h4v1h-4z"></path><path fill="var(--c-amber)" d="M1 0h2v1h-2zM9 0h2v1h-2zM0 1h1v1h-1zM3 1h1v1h-1zM8 1h1v1h-1zM11 1h1v1h-1zM0 2h1v1h-1zM4 2h1v1h-1zM7 2h1v1h-1zM11 2h1v1h-1zM1 3h10v1h-10zM5 4h2v1h-2zM5 5h2v1h-2zM5 7h2v1h-2zM5 8h2v1h-2zM5 9h2v1h-2zM5 10h2v1h-2zM5 11h2v1h-2z"></path></svg><span>GIFT</span><span class="mm-badge mm-badge-green" id="dailyGiftClaimBadge">CLAIM!</span></button>
                         <button id="missionsBtn" class="mm-tab" style="--tab-c:var(--c-amber)"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M5 1h2v1h-2zM4 2h4v1h-4zM3 3h2v1h-2zM7 3h2v1h-2zM2 4h2v1h-2zM8 4h2v1h-2zM5 6h2v1h-2zM4 7h4v1h-4zM3 8h2v1h-2zM7 8h2v1h-2zM2 9h2v1h-2zM8 9h2v1h-2z"></path></svg><span>AWARDS</span></button>
                         <button id="dailyMissionsBtn" class="mm-tab" style="--tab-c:#4d9fff"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h1v1h-1zM2 1h1v1h-1zM5 1h7v1h-7zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h7v1h-7zM1 3h1v1h-1zM3 4h1v1h-1zM2 5h1v1h-1zM5 5h7v1h-7zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h7v1h-7zM1 7h1v1h-1zM3 8h1v1h-1zM2 9h1v1h-1zM5 9h7v1h-7zM0 10h1v1h-1zM2 10h1v1h-1zM5 10h7v1h-7zM1 11h1v1h-1z"></path></svg><span>MISSIONS</span><span class="mm-badge mm-badge-blue" id="missionsClaimBadge">CLAIM!</span></button>
                     </div>
@@ -2498,7 +2506,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.23.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.23.2</span></div>
                 </div>
             </div>
         </div>
@@ -3604,8 +3612,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.23.0 &mdash; AUG 21 TO SEP 24, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">551</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.23.2 &mdash; AUG 21 TO SEP 24, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">553</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -14729,6 +14737,22 @@
         }
         function tcSetVertical(up, down) { vKeys.up = up; vKeys.down = down; }
         function tcReleaseAll() {
+            // Direct report: press any arrow in the ROW layout and "a green arrow appears, duplicated,
+            // and it can flicker" - one that is not the arrow under your thumb.
+            //
+            // This line is the whole bug. `tcActive` is the map of which FINGER is holding which key,
+            // and clearing only the .pressed classes left it behind. tcApplyHeld() rebuilds those
+            // classes from tcActive on every single touch, so the stale entry painted its button mint
+            // again the moment anything else was pressed - a second lit arrow that no thumb is on, and
+            // one that flickers as the real presses come and go.
+            //
+            // Worse than cosmetic: tcApplyHeld() also feeds tcSetVertical(), so a stale `up` held the
+            // accelerator down for the rest of the run.
+            //
+            // It is reachable exactly as reported, because applyTouchControls() calls this - so
+            // changing the layout, style or size mid-run with a thumb still on the pad strands that
+            // touch permanently. Its touchend lands on a pad that has already forgotten it.
+            tcActive.clear();
             tcSetSteer(0);
             tcSetVertical(false, false);
             tcPad.querySelectorAll('.tc-btn').forEach(b => b.classList.remove('pressed'));
@@ -14774,6 +14798,29 @@
          * gutters behave as if they belonged to whichever key is closest.
          */
         const TC_HIT_SLOP = 16;
+        /**
+         * How far a finger may stray from the button it is ALREADY holding before it counts as having
+         * left. Deliberately much larger than TC_HIT_SLOP, which is the radius for picking a button up.
+         *
+         * Direct report: "even with hold-for-multiple-lanes turned off you can switch two lanes at
+         * once with one fast click", in the row layout, going right. Traced, and it is this:
+         * touchmove re-runs the whole hit test, and a miss used to DELETE the touch outright. So a
+         * finger that wobbles a few pixels through a gutter reads as release-then-press, and
+         * steerPress() targets one lane on from currentLaneIndex() - which is the car's LIVE rounded
+         * position. By the second press the car has already crossed the halfway mark, so lane+1 has
+         * become lane+2. One tap, two lanes.
+         *
+         * Two radii rather than one big one, because sliding a thumb right off the pad to cancel is a
+         * real gesture and should still release. 48px is past the gutters and past ordinary jitter,
+         * and still well inside a deliberate slide away.
+         */
+        const TC_KEEP_SLOP = 48;
+        function tcBtnDistance(b, t) {
+            const r = b.getBoundingClientRect();
+            const dx = Math.max(r.left - t.clientX, 0, t.clientX - r.right);
+            const dy = Math.max(r.top - t.clientY, 0, t.clientY - r.bottom);
+            return Math.hypot(dx, dy);
+        }
         function tcHitArrow(t) {
             const el = document.elementFromPoint(t.clientX, t.clientY);
             const btn = el && el.closest ? el.closest('.tc-btn') : null;
@@ -14781,19 +14828,26 @@
             let best = null, bestD = TC_HIT_SLOP;
             tcPad.querySelectorAll('.tc-btn').forEach(b => {
                 if (b.offsetParent === null) return;              // hidden: not a target
-                const r = b.getBoundingClientRect();
-                const dx = Math.max(r.left - t.clientX, 0, t.clientX - r.right);
-                const dy = Math.max(r.top - t.clientY, 0, t.clientY - r.bottom);
-                const d = Math.hypot(dx, dy);
+                const d = tcBtnDistance(b, t);
                 if (d < bestD) { bestD = d; best = b; }
             });
             return best ? best.dataset.tc : null;
+        }
+        // Is this finger still close enough to the button it already holds to count as holding it?
+        function tcStillOnHeld(t) {
+            const held = tcActive.get(t.identifier);
+            if (!held) return false;
+            const b = tcPad.querySelector('.tc-btn[data-tc="' + held + '"]');
+            return !!b && b.offsetParent !== null && tcBtnDistance(b, t) <= TC_KEEP_SLOP;
         }
         function tcPadTouch(e) {
             e.preventDefault();
             for (const t of e.touches) {
                 const hit = tcHitArrow(t);
-                if (hit) tcActive.set(t.identifier, hit); else tcActive.delete(t.identifier);
+                if (hit) tcActive.set(t.identifier, hit);
+                else if (!tcStillOnHeld(t)) tcActive.delete(t.identifier);
+                // else: a momentary miss on a finger that has not really gone anywhere - keep it,
+                // or the press is re-issued and costs an extra lane.
             }
             tcApplyHeld();
         }
@@ -15075,8 +15129,17 @@
             // so a style can never change how a control behaves.
             ['ghost', 'glass', 'pad'].forEach(v => touchControlsEl.classList.toggle('as-' + v, selectArrowStyle.value === v));
             ['badge', 'plain'].forEach(v => touchControlsEl.classList.toggle('abs-' + v, selectAbilityStyle.value === v));
-            ['together', 'split', 'cross'].forEach(v => touchControlsEl.classList.toggle('tcl-' + v, selectArrowLayout.value === v));
-            touchControlsEl.classList.toggle('tcs-steerright', selectArrowSides.value === 'steerright');
+            // Gated on ARROWS, which it was not, and that was a real bug. Direct report: set arrows +
+            // SPLIT, switch to the joystick, and the ability button "goes to the middle of the screen,
+            // literally in the middle". It did - the layout classes were toggled off the saved arrow
+            // layout alone, so `tcl-split` stayed on in joystick mode and
+            // `.tcl-split .tc-ability { position:absolute; left:50%; top:50% }` went on centring it.
+            // In joystick mode #touchControls is a full-screen overlay (.tc-joy), so "centre" is the
+            // centre of the SCREEN rather than of a bar - hence how far wrong it looked.
+            // A layout that describes where the arrows sit has no meaning when there are no arrows.
+            const arrowsOn = mode === 'arrows';
+            ['together', 'split', 'cross'].forEach(v => touchControlsEl.classList.toggle('tcl-' + v, arrowsOn && selectArrowLayout.value === v));
+            touchControlsEl.classList.toggle('tcs-steerright', arrowsOn && selectArrowSides.value === 'steerright');
             // Re-fit AFTER the layout class is set: which layout is on decides what has to fit.
             applyTcSize();
             if (arrowStyleRow) arrowStyleRow.style.display = (mode === 'arrows') ? '' : 'none';
@@ -16849,7 +16912,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.23.0';
+        const GAME_VERSION = '3.23.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

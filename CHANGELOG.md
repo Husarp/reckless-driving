@@ -6,6 +6,126 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.23.2 — 2026-09-24 05:20: Batch 553 — the DAILY GIFT tab gets its two-tone icon
+
+Direct instruction: change the gift tab icon to **G8** from the user's own "Gift Icon Options.dc.html"
+(round 2, "TWO-TONE"), everywhere it appears.
+
+Transcribed from the doc's own 12x12 grid through the doc's own `toPath()` rather than hand-drawn, so
+the icon in the game is the icon that was picked, pixel for pixel. The old G1B was one solid shape;
+G8 splits into two paths — the box and lid keep `currentColor` so the tab's `--tab-c` still drives
+them, and the ribbon and bow take `var(--c-amber)`.
+
+Keeping the main shape on `currentColor` matters for more than the menu: `addXlinkIcon()` CLONES this
+svg onto the footer cross-links, so the copy on the MISSIONS screen's GIFT button inherits ITS
+button's colour exactly as the single-path version did. Nothing else had to change — there is only
+one gift icon in the file, and every other place is a clone of it.
+
+Verified: both the menu button and the cloned footer link carry the same two paths, the clone is
+byte-identical to its source, `--c-amber` resolves to #f5b32a, and no copy of the old G1B path is
+left anywhere in the document.
+
+---
+
+## 3.23.1 — 2026-09-24 04:05: Batch 552 — three touch-control bugs, one of them holding the throttle
+
+### The ability button jumped to the middle of the screen
+
+Direct report: set touch controls to ARROWS with the SPLIT layout, then switch to the JOYSTICK, and
+the ability button "goes to the middle of the screen, literally in the middle" instead of back to the
+bottom right.
+
+It did, and the cause is one missing condition. The three layout classes were toggled off the saved
+arrow layout alone:
+
+```js
+['together','split','cross'].forEach(v => el.classList.toggle('tcl-'+v, selectArrowLayout.value === v));
+```
+
+Nothing there asks whether the arrows are even on screen. So `tcl-split` stayed applied in joystick
+mode, and `.tcl-split .tc-ability { position:absolute; left:50%; top:50% }` — which exists to centre
+the button between the two arrow pairs — went on centring it. In joystick mode `#touchControls` is a
+full-screen overlay rather than a bar, so "centre" meant the centre of the *screen*. That is exactly
+how far wrong it looked.
+
+A layout describing where the arrows sit has no meaning when there are no arrows, so it is now gated
+on the mode, along with the SPLIT side-swap class. Measured on a 375x812 phone:
+
+| mode | ability button | layout classes |
+|---|---|---|
+| arrows + split | (188, 759) — centred in the bar, correct | `tcl-split` |
+| joystick | (314, 745) — bottom right, correct | *none* |
+| back to arrows | restored | `tcl-split` |
+
+### The Garage's last sort tab stopped wrapping
+
+Direct report: OWNED dropped onto a second line "even though it has space in the same line".
+
+Measured on a 375px phone, and the odd look is explained by how close it was: the row is 327px and the
+five tabs needed 346px. It missed by 18px - just enough to wrap, little enough that the first line
+still looked like it had room.
+
+4px off each side of five buttons frees 40px. Now 310px needed against 327 available, one line, 17px
+spare, and the 10px Silkscreen label is untouched - it is already small enough without shrinking it
+further.
+
+Scoped to the Garage on direct instruction: AWARDS shares this CSS class but has three tabs rather
+than five and room to spare, and its padding is confirmed unchanged at 9px 11px.
+
+Honest limit: 17px of slack means a viewport below roughly 358 CSS px would wrap again. Worth knowing
+rather than assuming it is solved at every size.
+
+### A second green arrow lit up, and it was holding the accelerator down
+
+Direct report: press any arrow in the ROW layout and "a green arrow appears, duplicated, and it can
+flicker" — one that is not the arrow under your thumb. Reproduced on screen: pressing LEFT lit LEFT
+and UP together.
+
+One line of `tcReleaseAll()`. It cleared the `.pressed` classes but **not `tcActive`**, the map of
+which finger is holding which key. `tcApplyHeld()` rebuilds those classes from `tcActive` on every
+single touch, so a stranded entry repainted its own button mint the moment anything else was pressed:
+a second lit arrow with no thumb on it, flickering in and out as the real presses came and went.
+
+It was never only cosmetic. `tcApplyHeld()` also feeds `tcSetVertical()`, so a stranded `up` held the
+**accelerator down for the rest of the run** — a phantom finger on the throttle.
+
+And it is reachable exactly the way it was found: `applyTouchControls()` calls `tcReleaseAll()`, so
+changing the layout, style or size mid-run with a thumb still on the pad strands that touch for good.
+Its `touchend` arrives at a pad that has already forgotten it. That is precisely what the other two
+reports in this batch had people doing.
+
+Verified: press UP, change a touch setting mid-run, and there are now 0 stranded touches, nothing lit
+and `vKeys.up` false; the next press of LEFT lights LEFT alone.
+
+### One fast tap could move two lanes
+
+Direct report: with hold-for-multiple-lanes turned **off**, a single quick tap sometimes switched two
+lanes, in the row layout, going right.
+
+`touchmove` re-runs the whole hit test, and a miss used to delete the touch outright. A thumb that
+drifts a few pixels off the key therefore reads as release-then-press — and `steerPress()` aims one
+lane on from `currentLaneIndex()`, which is the car's **live** rounded position. By the time the
+second press lands the car has already crossed the halfway mark, so "one lane on" has quietly become
+lane + 2.
+
+Two radii now, rather than one. `TC_HIT_SLOP` (16px) still decides what a finger can pick *up*;
+`TC_KEEP_SLOP` (48px) decides how far it may stray from a key it is *already holding* before it counts
+as having left. Sliding a thumb off the pad to cancel is a real gesture and still releases; ordinary
+jitter no longer does.
+
+| thumb drifts off the key by | lanes moved |
+|---|---|
+| 20px | 1 |
+| 30px | 1 |
+| 45px | 1 |
+| 80px (a deliberate slide off and back) | 2 — correct, that is a real second press |
+
+One related case is deliberately left alone: in the ROW layout the keys are adjacent, so sliding right
+off RIGHT lands on DOWN. That is a genuine touch on a genuine key, and returning to RIGHT is a real
+second press. It is only the phantom releases that were wrong.
+
+---
+
 ## 3.23.0 — 2026-09-24 03:10: Batch 551 — points for being beside a crash, and a Scores row that fits
 
 ### 25 points for witnessing a crash from the next lane

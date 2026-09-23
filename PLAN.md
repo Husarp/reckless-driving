@@ -13,6 +13,11 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   for: drop the car NAME in compact mode (the sprite beside it already identifies the car), or show
   only the multiplier's peak instead of the start-to-peak range. Asked in chat.
 - [ ] **Licensing the repo.** Asked in chat; answered there. Not acted on.
+- [ ] **Free placement for the touch controls (drag-and-drop editor).** User's own idea: pick a
+  position manually for the fixed joystick, the arrows and/or the ability button, anywhere on the
+  gameplay screen, with an edit mode and save/cancel. Feasibility answered in chat (the honest
+  answer is that the drag part is easy and the INTERACTION with the existing layout/fit machinery is
+  the expensive part). Not started, and not to be started until the shape is agreed.
 
 ### Carried over
 
