@@ -160,7 +160,7 @@ class SetupWindow(tk.Tk):
         self.title(f"Uninstall {APP}" if uninstalling else f"{APP} Setup")
         self.geometry("520x340")
         self.resizable(False, False)
-        icon = Path(getattr(sys, "_MEIPASS", ".")) / "recklessdriving.ico"
+        icon = Path(getattr(sys, "_MEIPASS", ".")) / "gt-impact.ico"   # Batch 547
         if icon.exists():
             self.iconbitmap(str(icon))
         box = ttk.Frame(self, padding=18)

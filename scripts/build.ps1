@@ -54,8 +54,8 @@ Remove-Item $zip -ErrorAction SilentlyContinue
 Compress-Archive -Path "$Build\dist\RecklessDriving\*" -DestinationPath $zip -CompressionLevel Optimal -ErrorAction Stop
 
 & $Py -m PyInstaller --noconfirm --log-level WARN --onefile --noconsole --name RecklessDrivingSetup `
-    --icon "$Root\assets\recklessdriving.ico" --paths "$Root\app" `
-    --add-data "$zip;." --add-data "$Root\assets\recklessdriving.ico;." `
+    --icon "$Root\assets\gt-impact.ico" --paths "$Root\app" `
+    --add-data "$zip;." --add-data "$Root\assets\gt-impact.ico;." `
     --distpath $Build --workpath "$Build\work-setup" --specpath "$Build\work-setup" installer\setup.py
 if ($LASTEXITCODE) { throw "Building the installer failed" }
 

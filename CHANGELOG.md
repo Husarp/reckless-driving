@@ -6,6 +6,46 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.21.0 — 2026-09-23 21:00: Batch 547 — the game gets its own face
+
+Three files supplied by the user: `gt-impact.ico`, `loading-impact-1920x1080.png` and
+`loading-impact-transparent.png`. The third one came with "I don't know which one this is, you will
+figure out what it might be" — it is the artwork with **no background**, which is exactly what the
+two jobs that place art ON something else need, and neither of the other two can do.
+
+So both sources are used, for different things:
+
+- **`gt-impact.ico`** — a full-bleed tile carrying its own dark background, with 16/24/32/48/64/128/
+  256 frames inside it. It becomes the Windows exe icon, the installer window's icon, and the legacy
+  and round Android launcher icons.
+- **`loading-impact-transparent.png`** — the adaptive-icon foreground and every launch screen. An
+  adaptive foreground is masked to a circle by the launcher, so pasting the full tile would have put
+  a dark square inside that mask; a splash is art centred on a background, not a stretched photo.
+
+The 1920x1080 version is kept in `assets/` as the reference the others are checked against — its
+background sampled to exactly `#12161F`, the game's own `--c-night`, which is what the generated
+splashes and the adaptive background colour now use.
+
+### One script for all of it
+
+`tools/make_app_art.py` replaces `make_android_icons.py`, which built the same files from the
+traffic-cone art. The old one is deleted rather than left: running it would now quietly put the cone
+back, which is a worse kind of clutter than a stale file.
+
+**Every legacy icon is a whole-number scale of a real .ico frame** — 48x1, 24x3, 48x2, 48x3, 64x3 —
+because the art is pixel art and scaling it by a fraction can only blur or deform it, the rule this
+project has been following since Batch 413. The adaptive foregrounds are fitted inside the 66/108
+safe circle (66, 99, 132, 198, 264px), and the eleven launch screens place the logo across 72% of
+the shorter edge so it never touches an edge on a phone whose shape is nothing like the source's.
+
+26 files written: 15 launcher icons, 11 launch screens, and the adaptive background colour.
+
+### Not changed
+
+The Windows *shortcut* needed nothing — it already points at `{target},0`, the exe's own embedded
+icon, so it follows automatically. `assets/recklessdriving.ico` is left in place: nothing references
+it now, but deleting artwork the user might want back is the worse mistake of the two.
+
 ## 3.20.0 — 2026-09-23 19:45: Batch 546 — the grey bars, found properly this time
 
 ### Switching layout mid-run squashed the board

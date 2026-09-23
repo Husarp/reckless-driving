@@ -84,6 +84,24 @@ def focus_existing_window() -> None:
         pass                                    # focusing is a nicety; never fail the launch over it
 
 
+def set_taskbar_identity() -> None:
+    """Make Windows show the exe's own icon on the taskbar, and group it under the shortcut.
+
+    Batch 547. The exe, the Start Menu shortcut and the desktop shortcut all carry the right icon
+    on their own - PyInstaller embeds it, and the shortcuts point at `<exe>,0` - but the TASKBAR
+    button is a separate question. Windows groups taskbar buttons by AppUserModelID, and a process
+    that never declares one gets an implicit ID derived from its executable; that usually works and
+    occasionally does not, leaving a running window under a generic host icon and refusing to group
+    with its own pinned shortcut.
+
+    Declaring one explicitly removes the "usually". It has to happen before any window is created.
+    """
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Husarp.RecklessDriving")
+    except Exception:
+        pass                                    # cosmetic; never fail the launch over it
+
+
 def resource_root() -> Path:
     """The folder holding carCrash.html: PyInstaller's temp dir when frozen, else the project."""
     return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
@@ -260,6 +278,8 @@ def main() -> None:
     if not args.selftest and already_running():
         focus_existing_window()
         return
+
+    set_taskbar_identity()      # before the window exists, or Windows has already decided
 
     window = webview.create_window(
         APP, game_url(), hidden=bool(args.selftest), js_api=UpdateApi(), **WINDOW

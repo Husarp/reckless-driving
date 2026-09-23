@@ -37,7 +37,7 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,                            # no console window behind the game
-    icon=str(ROOT / 'assets' / 'recklessdriving.ico'),
+    icon=str(ROOT / 'assets' / 'gt-impact.ico'),   # Batch 547 - the user's own crash-impact art
 )
 coll = COLLECT(
     exe,
