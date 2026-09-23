@@ -34,6 +34,33 @@ import java.net.URL;
 @CapacitorPlugin(name = "AppUpdate")
 public class AppUpdatePlugin extends Plugin {
 
+    /**
+     * Batch 537: open a URL in the phone's browser.
+     *
+     * The game's own GITHUB button needs this because window.open() does nothing in an Android
+     * WebView unless the host opts into multiple windows - so without a native route the button
+     * would look fine and simply never do anything, which is the exact problem it was added to fix.
+     *
+     * FLAG_ACTIVITY_NEW_TASK is required: the intent is started from an Activity context but has to
+     * launch the browser as its own task, or Android refuses it outright.
+     */
+    @PluginMethod
+    public void openUrl(PluginCall call) {
+        final String url = call.getString("url");
+        if (url == null || url.isEmpty()) {
+            call.reject("No URL was given");
+            return;
+        }
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Could not open the link: " + e.getMessage());
+        }
+    }
+
     @PluginMethod
     public void downloadAndInstall(PluginCall call) {
         final String url = call.getString("url");

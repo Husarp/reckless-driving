@@ -28,7 +28,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "carCrash.html"
-FAMILIES = ["Silkscreen:wght@400;700", "DotGothic16", "VT323"]
+# Batch 526 - "Jersey 10" joins for the crash text (design doc section 3A). Its tall condensed
+# pixel face is the whole point of that treatment; Silkscreen cannot stand in for it.
+FAMILIES = ["Silkscreen:wght@400;700", "DotGothic16", "VT323", "Jersey+10"]
 KEEP_SUBSETS = {"latin", "latin-ext"}
 # Google serves a different (smaller, modern) CSS to browsers that support woff2 - ask as one.
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "

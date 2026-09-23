@@ -33,6 +33,7 @@ import tempfile
 import threading
 import time
 import urllib.request
+import webbrowser
 from pathlib import Path
 
 import webview
@@ -201,6 +202,22 @@ class UpdateApi:
     its own button to Update, so there is nothing to pass it, and nothing asks for admin because
     the install is per-user.
     """
+
+    def open_page(self, url: str) -> str:
+        """Open a URL in the player's REAL browser.
+
+        Batch 537. This app is a webview, not a browser: window.open() from the page would either do
+        nothing or load GitHub inside the game window, with no address bar and no way back. Same host
+        guard as install_update below - this one only shows a page rather than running anything, but
+        there is no reason for it to point anywhere else either.
+        """
+        try:
+            if not url.lower().startswith("https://github.com/husarp/"):
+                return "failed: refusing to open an unexpected location"
+            webbrowser.open(url)
+        except Exception as e:
+            return f"failed: {e}"
+        return "ok"
 
     def install_update(self, url: str) -> str:
         try:

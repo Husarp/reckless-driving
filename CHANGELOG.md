@@ -6,6 +6,1582 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.19.2 — 2026-09-23 18:20: Batch 545 — a round of direct corrections
+
+### Every date in this file was wrong
+
+Direct correction: today is the **23rd**, not the 24th. 18 version headings said 2026-09-24, and so
+did the notes that quoted them. All corrected, and the HOW IT WAS BUILT figures recomputed from the
+fixed file: **27 / 34 days** rather than 28 / 35, because the extra day never existed.
+
+### The two bottom diagonals pointed the wrong way
+
+Direct report. The old code rotated each diagonal's VERTICAL half by +-45 depending on its horizontal
+half — correct for the two UP diagonals, backwards for the two DOWN ones, because rotating a
+down-pointing arrow clockwise moves it toward the LEFT, not the right. Both bottom corners came out
+mirrored.
+
+Every diagonal is now the UP glyph turned to its true compass bearing (45 / 135 / 225 / 315), so
+there is no per-case sign left to get wrong. Verified: upright 45, downright 135, downleft 225,
+upleft 315.
+
+### The gap between arrows was dropping the hold
+
+Direct report, and it was defeating the feature it was next to: "if your finger goes through that
+gap it stops holding the arrow", so sliding from an arrow onto its diagonal usually failed — which is
+the one gesture the diagonals exist for.
+
+`elementFromPoint` is the whole cause. The 4-6px gutter between keys belongs to the PAD, not to any
+button, so a thumb crossing it reads as "no button" for a frame or two and the press releases.
+Widening the keys would close the grid's spacing, so instead a miss now falls back to the nearest
+button within 16px. Verified: a point in the gutter between UP and its upper-left corner resolves to
+UP rather than to nothing.
+
+### Cones pay 100, not 400
+
+Direct correction. 100 was the original number and is the one that stands; 400 came from a later
+message and should not have replaced it. The tutorial card quoting 400 is corrected with it.
+
+### A tap on a booster opens the dialog and nothing else
+
+Direct request: the preview belongs to the HOLD. On touch a WebView also fires a synthetic
+`mouseenter` on tap — the same mechanism behind the Garage card opening itself in Batch 535 — so the
+preview was appearing underneath the dialog on every tap. Hover is desktop-only now; hold-to-inspect
+is untouched.
+
+### Red and purple
+
+Direct reports. Batch 542 stopped the locked hatch from tinting them, and the paints themselves were
+still off:
+
+| | Was | Now | Why |
+|---|---|---|---|
+| Red | `#e74c3c` — hue 6, sat 74% | `#e01b24` — hue 357, sat 88% | it carried a lot of green, which is what pulled it toward orange |
+| Purple | `#9b59b6` — sat 51%, val 71% | `#a742e0` — sat 71%, val 88% | a muted, greyed violet reads as "blacked out" |
+
+**A paint is identified by its hex**, in `ownedColors` and in the saved `playerColor` — so retuning
+one silently takes it away from anyone who bought it and leaves the car wearing a colour the Garage
+no longer lists. Both keys are rewritten on load, and the rename table is meant to keep growing
+rather than being cleared. Verified against a planted old save: both colours stayed owned and the
+equipped one followed.
+
+### BACK in the pause Settings
+
+Direct report that it came out "super small". It is sized to sit BESIDE START RUN — `flex: none` with
+just enough padding — so with START RUN hidden it kept that narrow width in an empty footer. Alone,
+it takes the row.
+
+### The crash when switching layout mid-run — a floor, not a confirmed fix
+
+Direct report: starting a run on CROSS, pausing, switching to SPLIT rendered "much more compact" with
+"the box showing", then the app dropped to the home screen.
+
+Two things found, one certainly wrong and one only suspected. **Certainly wrong:** changing a touch
+setting while the game view is hidden skips the frame re-fit, which is right in itself (a hidden
+frame measures nothing useful) but left the frame stale — the strip's height was not accounted for,
+which is exactly the compact, wrongly-fitted board described. A dirty flag makes the next visible
+pass re-fit.
+
+**Suspected:** `sizeFrame()` had nothing stopping its computed box going NEGATIVE. `extra` is the
+touch strip's height, and on a short viewport it can exceed what is available; the negative box is
+then written to the style and the canvas is sized from it, and a WebView asked to allocate a nonsense
+backing store does not throw — it takes the tab down. That matches the symptom, but **I could not
+reproduce the crash** on the desktop pane, where the window is never short enough. It is a floor
+worth keeping whatever the real cause turns out to be: a visibly-too-small frame is a bug, a dead tab
+is not recoverable. If it happens again, that is worth knowing.
+
+## 3.19.1 — 2026-09-23 16:30: Batch 544 — the tutorial catches up
+
+The standing convention, run after the batch round that finished: refresh the HOW IT WAS BUILT
+figures, and check whether anything new made the existing copy wrong.
+
+### One genuinely stale number
+
+THE MULTIPLIER still quoted **SUICIDAL: x1.40**. Batch 536 rebased that scale eight hours earlier —
+it is x1.25 now, and SAFE is x0.75, which the card did not mention at all because a x1.00 floor never
+needed mentioning. Both are in it now.
+
+This is exactly the drift the convention exists to catch, and it is worth noting it was a number the
+tutorial *hardcoded* rather than generated. The ram count two cards up is `tutRamCount`, filled from
+the data, and could not have gone stale the same way.
+
+### Two things the tutorial had never said
+
+- **Difficulty sets acceleration too** (Batch 536). Added to THE MULTIPLIER, where it belongs: the
+  multiplier climbs with speed, so the harder modes reach the big numbers sooner as well as paying
+  more for them.
+- **CONES AND BREAKDOWNS**, a new card. Obstacles were not covered anywhere in the tutorial, which
+  mattered less when they were only an obstacle — Batch 543 made the cones worth 400 x multiplier,
+  and a scoring mechanic nobody is told about is a scoring mechanic nobody uses. It states the trade
+  (the car is a wall, the cones are an opportunity), that the payout needs you to get past the car,
+  that it pays once per breakdown however many cones you scatter, and that jumping clears the lot and
+  pays nothing.
+
+24 cards -> 25.
+
+### The figures
+
+| | Was (v3.7.2) | Now (v3.19.0) |
+|---|---|---|
+| batches of work | 506 | **543** |
+| lines of changelog | 6,700+ | **8,100+** |
+| days worked / elapsed | 27 / 34 | **28 / 35** |
+| span | Aug 21 - Sep 22 | **Aug 21 - Sep 24** |
+
+All counted from the files rather than estimated: batches from the highest `Batch N` in CHANGELOG.md,
+days from its distinct heading dates against the span between the first and last. The card's other
+claim — that the log runs to "about three quarters the size of the game it describes" — was
+re-checked and still holds: 1,150,768 bytes against 1,574,671, which is 0.73.
+
+## 3.19.0 — 2026-09-23 15:40: Batch 543 (M) — cones that pay, two new secrets, Settings from the pause menu
+
+### The lane track shows its own difficulty
+
+Direct request: 3 lanes red, the middle amber, 10 lanes green, and the multiplier chip beside it
+follows. It maps the way round you would hope, which is worth stating because it is easy to assume
+backwards: **fewer lanes is harder** (less room to dodge), and the reward matches — LANE_MULT runs
+x1.30 at 3 down to x1.00 at 10. Red marks the hard, high-paying end.
+
+Red -> amber -> mint are the same three signal colours the energy bar already grades itself with, so
+the game keeps one vocabulary for "how bad is this". Measured across the range: 3 is `rgb(230,57,70)`,
+6 is `rgb(243,162,46)`, 10 is `rgb(46,230,176)`, chip matching the bar at every step.
+
+### RESTART is now SETTINGS
+
+Direct decision: "why would the user restart if the run is not lost and you didn't really lose
+anything?" The slot is worth more as a way INTO Settings mid-run — change the controls, come straight
+back to the same run.
+
+Nothing ends the run: the game view is simply swapped out while `gameActive`/`gamePaused` stay put,
+START RUN is hidden (no starting a run from inside one), and BACK returns to the pause overlay
+instead of the menu. Everything that depends on the settings just changed is re-applied on the way
+in — the controls rebuild and the frame is re-fitted, because `applyTouchControls()` skips the
+re-fit while the game view is not active, which it was not a moment earlier.
+
+Verified end to end: pause shows RESUME / SETTINGS / QUIT; Settings opens with the run still alive
+and paused and START RUN hidden; BACK lands back on the paused game with the pause overlay up.
+
+### QUIT asks, above 1000 points
+
+Direct request. Above 1000 a misclick costs a real run, so it confirms with the score in the message
+("You are on 5,000 points. Quitting does not save a score."). Below it, nothing — a fresh run is not
+worth protecting and a prompt on every quit would be the more annoying bug. Verified both sides.
+
+### Cones pay 400, if you get past the car
+
+Direct decision, raised from 100 to 400 before it was built. Scattering an obstacle's cones is worth
+**400 x the live multiplier** — but only if you do not hit the broken-down car behind them.
+
+That condition needed no crash test of its own, which is the tidy part: hitting the car ends the run,
+so the payout simply waits until the obstacle has gone PAST the player. Still driving when it does
+means you threaded it. Paid **once per obstacle**, not per cone, so a wide scatter is not worth more
+than a narrow one. Measured: 400 x2 pays exactly 800, never twice, and nothing while the obstacle is
+still ahead.
+
+### Two new secret achievements (61 -> 62)
+
+- **CONE SLALOM** — scatter an obstacle's cones and get past the car. The exact opposite of
+  CANT PARK THERE, which is why it sits next to it.
+- **EMERGENCY EXIT** — launch an ambulance with the Bumper Car. Completes the ambulance set:
+  BAD SAMARITAN rams one, CEASE AND DESIST shoots one, this one sends it flying.
+
+**EMERGENCY EXIT needed no gameplay change at all, contrary to the note that had been carried in
+PLAN.md for days.** That note (and the comment it came from) said ambulances were exempt from the
+bumper's launch "for the same reason ramming spares them", so the badge looked like it needed an
+exception carving out first. Reading the actual condition: it excludes only obstacles and existing
+wrecks. Ambulances were always launchable, and ramming does not spare them either — `bad_samaritan`
+hooks that very branch. The stale comment is corrected in place.
+
+Both are veiled until earned, and the locked '?' badge is still unique to `__mystery`.
+
+### Breakdowns stop being the same car
+
+Direct report that the broken-down vehicle "should be different vehicle models". Measured before
+changing anything, because it already WAS varied: **17 distinct models across 60 obstacles**, against
+18 for normal traffic. What made it read as repetitive was a different rule — the flat 30% STOCK roll
+that all normal-type spawns go through, so roughly one in three breakdowns was the plain stock car,
+the same silhouette over and over.
+
+Obstacles opt out of that roll and draw from the weighted pool instead, which is what the rule was
+always for: making the player's own car a common sight in TRAFFIC, not at the roadside. Measured
+after: **23 distinct models and 0% stock** across 120 breakdowns, while normal traffic keeps its 30%
+exactly as before.
+
+### The game no longer rotates
+
+`android:screenOrientation="portrait"` on the activity.
+
+## 3.18.1 — 2026-09-23 14:15: Batch 542 (L) — the red paint is red again, and the booster says what you are short
+
+### "The red colour doesn't look like red"
+
+Direct report, with the right instinct attached: "is it only the icon that is showing this?" **Yes.**
+The paint itself was never wrong — `#e74c3c` is an ordinary red, and the car it puts on the road was
+always that colour. The LOCKED hatch drawn over the swatch was recolouring it.
+
+That hatch was dark navy at 72% alternating with **amber** at 40%, laid over the swatch — and amber
+over red is orange. Composited exactly:
+
+| | Was | Now |
+|---|---|---|
+| light stripe | `#ed7535` — orange, not a shade of red at all | `#ee8276` — light red |
+| dark stripe | `#4e2527` — brown-maroon | `#632b2a` — dark red |
+
+Every locked colour was being pulled toward amber; red simply had the shortest distance to travel,
+which is why it was the one that looked wrong. Neutral stripes now, so the hatch still says "locked"
+without repainting the paint. It also means the swatch finally shows what you would actually be
+buying.
+
+### The booster dialog says what is stopping you
+
+Direct report: "it says that it doesn't fit some of the vehicles, but it should also say that you
+don't have enough money."
+
+This reverses half of an earlier direct request, which made it one unified dialog whether or not you
+could afford it — "no separate 'not enough coins' wording, the player can already see their own
+balance." That reasoning does not hold here after all: the dialog opens from the Garage, so the
+balance it points at is *behind the dialog* the whole time it is open.
+
+It stays one dialog. It just adds a line saying which of the two things is in the way, and how far
+off you are — "You need 999K more coins." Verified both ways: broke, the title is ROCKET PODS with
+the shortfall line and an OK button; flush, it is BUY ROCKET PODS? with no shortfall line and a BUY
+button.
+
+## 3.18.0 — 2026-09-23 13:30: Batch 541 (K) — diagonals on the cross, and the ability button moves between the pairs
+
+### SPLIT: the ability button sits between the arrows
+
+Direct instruction: "the ability button should be between them — not above them and between them,
+only between them." Batch 532 had floated it above the bar because three groups in one row do not fit
+a narrow phone; it comes back down into the row, and the fit solves for all three instead.
+
+Two consequences, both real and both the price of the thing that was asked for: the bar is sized to
+hold the button again (Batch 538's exception for SPLIT is gone with the reason for it), and the arrows
+clamp smaller because they now share the row. On a 480px phone SPLIT at M/L lands at 67px rather than
+74/88. Verified at every size: **two arrows to the left of the button, two to the right**, nothing
+overlapping.
+
+### CROSS: diagonals appear under your thumb
+
+Direct request, and the user's own design: "if you hold down a button, the two diagonal buttons appear
+next to it from two sides, but always two — and if you start holding a different one of the main four,
+the other ones disappear."
+
+The cross's 3x3 grid already had four empty corners; they are the diagonals now. Hold UP and the two
+upper corners appear under your thumb — slide onto one and you go up-and-left with **one finger**,
+which was the whole problem: a diagonal previously needed two.
+
+A diagonal needs no new input path, because it is simply both of its halves: `upleft` expands to
+`up` + `left`, which is the same up/down/left/right the keyboard and the joystick already feed in.
+Its glyph is its vertical half rotated 45 degrees toward its horizontal one — no new art, and it
+always points where the button actually sends you.
+
+One detail worth recording: which corners show is keyed on the MAIN arrows under a thumb, while a
+held diagonal keeps itself visible through `.pressed`. Without that split, letting go of the main
+arrow to slide onto the corner would make the corner vanish from under you mid-gesture.
+
+Verified: nothing at rest; UP shows upleft+upright, DOWN shows downleft+downright, LEFT shows
+upleft+downleft, RIGHT shows upright+downright — always exactly two; holding `upleft` gives up AND
+left together and keeps itself on screen; release clears them; and SPLIT and ROW never show them at
+all, having no corners to put them in.
+
+### A note on testing
+
+Two probe runs in this batch reported "no diagonals ever appear" and were both wrong: `IS_TOUCH` is
+read once at load, so `applyTouchControls()` silently no-ops on a desktop pane and every class it
+sets goes unset. A custom viewport width does NOT emulate touch — only the mobile PRESET does, and
+the page has to be reloaded after it. Anything testing the touch controls has to check `IS_TOUCH`
+first or it is measuring nothing.
+
+## 3.17.2 — 2026-09-23 12:25: Batch 540 (J) — the score stops showing decimals, and Settings stops reshuffling
+
+### The score was showing 18.0036
+
+The user diagnosed this one themselves after I failed to find it: the HUD score had started showing
+fractions, which is why it looked enormous rather than wrong.
+
+My Batch 533 bug, and an easy one to introduce here. `score` is deliberately **fractional** — points
+times multiplier, with no per-event rounding (see `endRun()`). The old code only ever ADDED integers
+to `displayedScore`, so it stayed whole by accident. Batch 533's `Math.min(score, ...)` clamp assigns
+`score` itself on the final step of every roll, and handed its decimals straight to the HUD.
+
+Clamping to the FLOOR keeps the counter whole, and as a bonus never shows more than has actually been
+earned. The real `score` is untouched, so no total changes. Verified with the reported value: 18.0036
+displays as **18**, 1234.56789 as **1234**, and every intermediate frame of the roll is a whole number.
+
+Worth noting for next time: this is why "no fault found in the scoring maths" was the right answer in
+Batch 539 and still the wrong conclusion. The arithmetic was fine — the formatting was not, and I had
+only checked the arithmetic.
+
+### Settings stops reshuffling when you switch control type
+
+Direct instruction: TOUCH CONTROLS belongs directly under CONTROL TYPE, "because on this depends
+which options are to be shown — if you switch to the other one, everything is being shifted. It's
+better to make as small an amount of options move as possible."
+
+The order is now the selector, then the rows that apply to BOTH modes, then each mode's own block:
+
+| | Arrows | Joystick |
+|---|---|---|
+| 1 | CONTROL TYPE | CONTROL TYPE |
+| 2 | TOUCH CONTROLS | TOUCH CONTROLS |
+| 3 | ABILITY BUTTON | ABILITY BUTTON |
+| 4 | CONTROLS SIZE | ABILITY BUTTON SIZE |
+| 5+ | ARROW STYLE, ARROW LAYOUT | FLOATING JOYSTICK, JOYSTICK SIZE, JOYSTICK POSITION |
+
+Nothing in the first four rows moves when you switch; only the block underneath swaps.
+
+### The size row was not actually arrow-only
+
+The same instruction asked to hide arrow options in joystick mode, naming CONTROLS SIZE as the
+example. It looks like one, and it is not: **it also sizes the ability button**, which joystick mode
+very much has. Hiding it would have removed the only way to size the button Batch 529 exists to have
+made bigger.
+
+So it stays and says what it actually governs in each mode — CONTROLS SIZE with the arrows, ABILITY
+BUTTON SIZE with the joystick. Same setting, same stored value, one row. Everything genuinely
+arrow-only (ARROW STYLE, ARROW LAYOUT) is hidden as asked.
+
+## 3.17.1 — 2026-09-23 11:40: Batch 539 (I) — three things that were broken, two of them mine
+
+### Joystick mode still showed the arrows, and they still worked
+
+Direct report, and a real bug introduced in Batch 538. `.tc-pad` is hidden by default and shown by
+`.tc-pad.on`, which is only set in arrows mode — but the new CROSS and SPLIT rules set `display`
+**without asking for `.on`**, and outrank it on specificity. So choosing the joystick left whichever
+arrow layout was selected on screen and live. TOGETHER was unaffected, which is why it survived
+Batch 538's own testing: that layout has no `display` rule of its own.
+
+Both rules require `.on` now. Verified across all three layouts: arrows hidden with the joystick,
+shown with the arrows.
+
+### The Settings scrollbar, actually fixed this time
+
+Direct report: it still sits on top of the rows on the phone. Batch 537's `scrollbar-gutter: stable`
+was the right fix for a *desktop* scrollbar and does **nothing** here — which is exactly why it
+verified clean in the browser and failed on the device. A touch device uses an **overlay** scrollbar,
+which by definition occupies no layout space, so there is no gutter for `stable` to reserve; it
+floats over the content instead. The only thing that keeps content out from under it is real
+padding, so `body.touch .stg-scroll` now carries 10px of it.
+
+Worth remembering generally: a desktop browser at a phone's WIDTH is still a desktop browser. It does
+not emulate overlay scrollbars, so this class of bug cannot be caught there at all.
+
+### Traffic appears at once again — my own Batch 535 regression
+
+Direct report: "make the traffic start spawning as soon as you start the game, because sometimes you
+need to wait a few seconds."
+
+That is Batch 535's doing. It fixed the opening wave arriving in a straight line by spreading spawns
+further above the screen the emptier the road is — which at the start means very far above. It traded
+a wall for a wait, and widening or narrowing that jitter could only ever trade one for the other.
+
+The road now simply **starts with traffic already on it**, scattered by construction, one lane each
+so nothing can overlap, and all of it above the top edge so nothing pops into view. Placement is
+**stratified, not independently random**: each car gets its own band of the span. That matters —
+independent randoms on a 4-lane road (only two cars then) let both land nearly four seconds away,
+measured at 231 frames to the first visible car. The nearest car is now placed deliberately against
+the top edge rather than in its band, because "as soon as you start" is the actual request.
+
+Measured over 12 launches: first car visible in **5 to 29 frames (0.08–0.48s, median 0.35s)**, three
+cars seeded in distinct lanes, spread 232–324 units against a 304-unit view — so they arrive promptly
+AND staggered, which is the pair of things the last two attempts kept trading against each other.
+
+It also switches the Batch 535 jitter off by itself with no special case: that jitter scales with how
+empty the road is, and the road is no longer empty when the first spawn roll happens.
+
+### Not fixed: the score
+
+Reported as "so much score, I'm getting like thousands — something is very wrong." Measured, and
+**no fault found in the scoring maths**, so nothing was changed on a guess. Recorded here so the next
+look starts further along:
+
+- Peak per-pass values are sane. Best case in the game — TURBO THE SNAIL, 10 lanes, SUICIDAL, at its
+  250 km/h top speed — is x3.90 and pays **39 for a car, 78 for a truck, 156 for a jumped truck**.
+  Nothing pays thousands.
+- `multiplier` is recomputed from `baseMultiplier` every frame; it cannot accumulate.
+- Over a 4-minute run, total score against the OLD scale comes out at **x0.65 SAFE, x1.18 RECKLESS,
+  x1.66 SUICIDAL** — the acceleration change (Batch 536, as asked) minus the multiplier rebase.
+
+What DID change is how fast the multiplier climbs: on SUICIDAL it now reaches x3.13 after two
+minutes where it used to take twice as long. That is Batch 536 working as specified, and it may
+simply be too strong. Needs one answer before touching it: was the reported number a single +N
+popup, or the run total?
+
+## 3.17.0 — 2026-09-23 02:10: Batch 538 (H) — the cross overlay, and arrow styles you can actually tell apart
+
+The last of the eight sorted batches, and the one that goes back and reads the design doc properly.
+
+### The three arrow styles were the wrong three
+
+Direct report: "I don't see any difference between outline, keycap and glass." The user then
+diagnosed it themselves, correctly: **"you picked them from sections 1A to 1C instead of 2A to 2C."**
+
+Round 1 of `Mobile Controls.dc.html` is the BAR, and its three variants differ only in the key's
+FILL — over near-black asphalt `none`, `#232a3a` and `rgba(18,22,31,.72)` all read as "dark". Three
+real styles that genuinely looked like one.
+
+Round 2's differ in construction instead, and those are what shipped:
+
+- **GHOST** (2c) — thin white outlines, filling in while pressed. The lightest option, and the
+  default, because the bar's original look was already a thin outline: nobody who never opens this
+  setting sees a change.
+- **GLASS** (2a) — translucent keys with a press-sink.
+- **PAD** (2b) — one opaque console plus-pad.
+
+Honest caveat: GHOST and GLASS are still the closest pair. The doc draws them over a light grey road
+where translucency is obvious; over this game's asphalt the fill that separates them barely shows, so
+what is left is border weight. PAD is unmistakable. Say the word and GHOST can go brighter.
+
+### ARROW LAYOUT gains the CROSS
+
+Round 2's actual subject, and what the user had asked for twice: "D-pad cross floating over the road.
+No control panel, so the road gets the full screen." A 3x3 grid with empty corners, bottom left, the
+ability badge bottom right, and **no bar at all** — so it hands the bar's height back to the canvas
+exactly as joystick mode already does. The two share that rule rather than having one each.
+
+Cell sizes come from CONTROLS SIZE, not the doc's fixed 50/52/54px, so one control still governs
+everything. In the cross, PAD also loses the borders facing the middle and takes a single drop shadow
+— the doc's one-piece pad. Only there: in a bar the keys do not touch, and a missing border would
+read as a mistake.
+
+### NAMED removed, sizes shifted up
+
+Direct instructions. ABILITY BUTTON is badge or plain. The sizes move up a step and gain a bigger
+top: **S 62/84, M 74/108, L 88/132**. The old S (52/64) is gone entirely — it was the size that
+prompted "these buttons are way too small". Saved settings migrate rather than reset:
+`outline`/`keycap` -> `ghost`, `named` -> `badge`.
+
+### Settings only shows the rows that apply
+
+Direct report: the joystick's own settings were visible while ARROWS was selected. `joyPosRow`
+already worked this way (a floating stick has no fixed home to choose); FLOATING JOYSTICK and
+JOYSTICK SIZE never got the same treatment. Verified: ARROWS shows style and layout and hides all
+three joystick rows; JOYSTICK does the reverse.
+
+### Three fit bugs, all found by measuring, none guessed at
+
+1. **The cross used the bar's inset.** 24px against its real 14+18, overcounting by 8 — enough that
+   at L on a 375px screen the right arrow sat under the ability button.
+2. **An exactly-correct fit still fails.** At SPLIT/M on 375px, need and avail both came out at 288
+   and the two pairs overlapped by **1px**: rects are fractional, the fit is integral. 2px of slack.
+3. **SPLIT's bar was sized for a button that floats above it.** Its ability button is not in the bar,
+   but the bar's height still included it — which cost canvas height and, because a taller bar leaves
+   a narrower canvas, fed back into the width fit. Measured symptom: SPLIT at L produced SMALLER
+   arrows than at M. Fixed, and split's arrows grew from 65 to 70 at L as a result.
+
+Verified across **all 27 combinations** (3 layouts x 3 styles x 3 sizes) at both 375px and the
+phone's 480px: no button overlaps another, none collides with the ability button. At 480, SPLIT and
+CROSS deliver the full requested size at every step including the new L; only ROW clamps, because
+four arrows plus a 132px ability button do not fit one row — which is the reason the other two
+layouts move it off the row.
+
+## 3.16.1 — 2026-09-23 01:20: Batch 537 (G) — TURBO THE SNAIL, a scrollbar that stays out of the way, and a link that always works
+
+### GIANT SNAIL is now TURBO THE SNAIL
+
+Direct instruction, and the acceleration half is settled with it: **no per-car bonus.** Batch 536
+made acceleration a difficulty stat, which was the user's own better idea, and it already solves the
+waiting problem for every car — so the snail keeps exactly what it had.
+
+One real string changed (the car's `label`); everything else naming it is comments, and the key stays
+`snail`, so no save is touched. Checked that the longer name still fits: 83px in a 95px tile, the
+same width STRIPE RACER and STEAMROLLER already wrap at, and no tile in the Garage overflows.
+
+The name keeps the word SNAIL deliberately. The whole gag is that the slow animal is the joint-
+fastest car in the game; a card reading only TURBO throws that away.
+
+### Settings' scrollbar stops covering the settings
+
+Direct report. One-word cause: `scrollbar-gutter: stable` is given to `.garage-scroll`, `#goAchBox`,
+`#gameOverHud`, `.dg-scroll`, `.tut-scroll`, `.tut-rail` and `.stats-scroll` — every scrolling panel
+in the game **except** `.stg-scroll`, which arrived later (Batch 522) and never joined the list.
+Measured after: 14px reserved, content ending at 349 inside a panel whose edge is at 363.
+
+### A GITHUB button that cannot become a dead button
+
+Direct request: something that reaches the releases page "no matter what". GET UPDATE only appears
+when a check actually found something, so a failed check — or an up-to-date one — left no way
+through at all.
+
+`window.open` alone would not have delivered that, which is the whole point of the batch: **an
+Android WebView ignores it** unless the host opts into multiple windows, and **the packaged Windows
+app is a webview, not a browser** — it would either do nothing or load GitHub inside the game, with
+no address bar and no way back. A button that silently does nothing is worse than no button.
+
+So both hosts get an explicit native route:
+
+- **Windows**: `open_page()` on the pywebview API, using `webbrowser.open`, behind the same
+  `https://github.com/husarp/` host guard `install_update` already uses.
+- **Android**: `openUrl()` on the existing AppUpdate plugin, an `ACTION_VIEW` intent with
+  `FLAG_ACTIVITY_NEW_TASK` — required, or Android refuses to start the browser from an Activity
+  context at all.
+- **Browser**: `window.open`, which also stays as the last-resort fallback on both other platforms,
+  so the button can degrade but never go inert.
+
+Verified in the browser (opens the right URL) and that three buttons still fit a 375px phone: 281px
+of 337px available even with GET UPDATE showing. The two native paths are verified by construction —
+neither can be exercised until a build runs on the device.
+
+## 3.16.0 — 2026-09-23 00:45: Batch 536 — RECKLESS becomes the x1.0 anchor, and difficulty sets how fast you get up to speed
+
+### The difficulty multipliers are rebased, not extended
+
+Direct instruction: "safe is kind of boring, and making it the x1.0 mode says it is the default one."
+Right — RECKLESS is what people actually play, so it is the anchor now.
+
+| Mode | Was | Now |
+|---|---|---|
+| SAFE | x1.00 | **x0.75** |
+| RECKLESS | x1.15 | **x1.00** |
+| SUICIDAL | x1.40 | **x1.25** |
+
+The Settings tiles read the same table, so they already show the new numbers with no second place to
+update (verified on screen: `SAFE x0.75 / RECKLESS x1.00 / SUICIDAL x1.25`).
+
+**Worth knowing before it surprises anyone:** this LOWERS every score against the old scale — an
+identical RECKLESS run is now worth 13% less, SUICIDAL 11% less, SAFE 25% less. Nothing is rewritten,
+so existing leaderboard entries and achievement tiers keep the numbers they were set at, and they are
+that much harder to beat.
+
+### Difficulty now also sets acceleration
+
+Direct instruction: SAFE keeps today's ramp, RECKLESS x1.5, SUICIDAL x2. The reason given was the
+wait — minutes of a run spent getting up to speed.
+
+| Mode | Ramp/frame | STOCK to top speed | SNAIL to top speed |
+|---|---|---|---|
+| SAFE | 0.000308 | 3:58 | 5:17 |
+| RECKLESS | 0.000462 | **2:39** | 3:32 |
+| SUICIDAL | 0.000616 | **1:59** | 2:39 |
+
+**This reverses two earlier decisions of the user's own, which is fine but should not be
+re-discovered later as a bug.** Batch 127 deliberately made difficulty a traffic-DENSITY setting only
+— "speed up should be unchanged" — and Batch 71 cut the ramp by ~40% because "the game speeds up way
+too fast". The reason this time is different and specific, so it is a change of mind rather than a
+contradiction.
+
+For scale, since that old complaint is the only real reference point available: the ramp called "way
+too fast" was 0.0005/frame. **RECKLESS lands just under it at 0.000462; SUICIDAL goes past it at
+0.000616.** SAFE is untouched, so the slow ramp still exists for anyone who wants it — which is now
+the one thing SAFE is *for* besides less traffic.
+
+It also means difficulty pulls in one direction on every axis: more traffic, faster ramp, bigger
+multiplier. SAFE gives up all three together.
+
+## 3.15.2 — 2026-09-23 00:05: Batch 535 (F) — tap the card closed, and an opening wave that is not a wall
+
+### Tapping the same car closes its info card
+
+Direct report: "if you click it and the info appears, clicking the same car again should hide it -
+you shouldn't need to click something else on the screen."
+
+Worth recording what was actually happening, because **the card was never meant to open on a tap at
+all.** Hold-to-inspect (Batch 524) shows on hold and hides on touchend, so a hold cannot leave it up.
+But a WebView also fires SYNTHETIC mouse events on a tap, so the tile's `mouseenter` ran on every tap
+— opening the card and leaving it open until some other element happened to receive the synthetic
+enter. The behaviour the user has been using was an accident of mouse emulation, not a feature, which
+is also why closing it felt arbitrary.
+
+So a tap is a real toggle now, tracked against the tile the card belongs to, and the two hover
+listeners are desktop-only instead of quietly doing double duty. Verified: tap opens, tap again
+closes, tap a different tile moves it.
+
+Two guards that are not hypothetical. A tap on an owned car also **equips** it, and that handler
+rebuilds the whole grid — so by the time the toggle runs its tile can already be detached, and
+anchoring the card to a dead element puts it at 0,0. A tap on an affordable car opens the BUY dialog,
+where a card behind it is just noise. In both cases the tap did something visible already, so it is
+its own answer and the card stays shut.
+
+### The first wave no longer arrives in a line
+
+Direct report with a screenshot: "every time you start a game, the first wave is almost a straight
+line. Later it's okay, but the first one almost always looks like this."
+
+**There was already a fix for this and it was simply too small.** `startJitter` offsets each spawn
+upward by up to 46px, added for this exact symptom — but 46 against a 260-unit view is 18% of the
+screen, and the spread in the screenshot is about that. The jitter was the only thing separating
+those cars and it could not separate them enough.
+
+The cause is structural rather than random: at the start of a run the road is empty, so nothing
+blocks a spawn in any lane and several lanes convert on consecutive frames, all entering at the same
+place just above the top edge. So the spread now scales with **how empty the road actually is** —
+wide open at the start, back to the original 46 once traffic is established. That also stops a wall
+re-forming mid-run after you have cleared the road, and needs no timer deciding when "the start" has
+ended.
+
+Still upward only, which is what keeps it safe: a jittered car sits further from the traffic the
+spawn check just measured, never closer. And a car still above the top edge blocks its own lane
+(the clearance test is true for any negative y), so a large offset cannot let a second car spawn in
+on top of it.
+
+Measured by sampling spawn positions directly at each road occupancy: **302 units of spread on an
+empty road against 74 once traffic is established** — four times the separation exactly where the
+wall forms, and unchanged everywhere else. (The 74 is not the 46 jitter alone; vehicle heights differ,
+and the spawn Y is offset by each vehicle's own height.)
+
+A note for the next person who tries to measure this by simulating runs: you cannot. Stepping the
+game loop with no input crashes the player within about two seconds, which ends the run and stops
+spawning — which is why the first three attempts at a run-level harness returned one usable sample
+out of twenty. Sample the spawn distribution instead.
+
+## 3.15.1 — 2026-09-23 23:05: Batch 534 (E) — the music crosses over instead of cutting
+
+Direct request: "when exiting gameplay, don't cut the music of the gameplay instantly — also vice
+versa for the menu music. Make it fade out and then start another."
+
+### Why a volume variable would not have done it
+
+Every music voice connected straight to `ac.destination` with its own gain envelope, and notes are
+scheduled **up to 0.3s ahead**. Once a note is scheduled there is no way to quiet it — so "stop the
+music" could only ever mean "stop scheduling more", which is why it sounded like a cut, and a ragged
+one: whatever was already in the queue still played out at full volume.
+
+So each layer gets its own output bus and the fade ramps that. **One bus per layer, not one shared:**
+a shared gain cannot crossfade, because the same ramp that fades the old track out would take the new
+one with it.
+
+The scheduler also had to stop checking `gameActive`, which ends the instant you quit — it would have
+left a fade with nothing playing to fade. It checks `musicActive` now, which stays true until the
+fade finishes.
+
+### Two Web Audio traps, both found by measuring
+
+**1. `cancelScheduledValues(now)` deletes an event scheduled at that same instant.** Written the
+obvious way — silence the bus, then ramp it up — the ramp's own cancel wiped the `setValueAtTime(0)`
+that had just been made, the bus reverted to 1, and **the fade-in silently did nothing**. It measured
+as a bus sitting at 1.000 through what should have been its entire fade-in. Fixed by doing
+silence-and-rise as one set of events (`musicFadeIn`), and by reading the current value *before*
+cancelling in `musicRampTo`.
+
+**2. Repeated stops stretched the fade.** `stopMenuMusic()` is called from the view-change handler,
+which runs on every screen change, and each call restarted the ramp from wherever it had got to.
+A fade in flight is now left alone; `immediate` still cuts through it.
+
+### What it does now
+
+Entering a run genuinely crossfades — measured mid-transition at game 0.485 rising while menu 0.510
+falls. Leaving one does the reverse. A crash gets a shorter fade (0.25s vs 0.55s): it is an impact,
+not a scene change, and the crash sound should not have to share the room. Backing out of a run
+before the fade finishes catches the outgoing track and rides it back up instead of restarting it
+from the top under a gain on its way to zero.
+
+`immediate` exists for the cases that cannot wait half a second: `startMusic()`'s own reset, the
+hidden-tab suspend, and the test harness.
+
+## 3.15.0 — 2026-09-23 22:15: Batch 533 (D) — numbers that count instead of numbers that change
+
+### The run score rolls
+
+Direct request: "only the single digit one goes, and when it goes to ten then adds one to the next
+number... and the more score you've got, the faster the single digit goes, to not take ages. It
+shouldn't take longer than half a second, maybe even less."
+
+The score already animated (Batch 95) but as an EASE — `displayed += ceil((score - displayed) * 0.3)`
+— and an ease spends most of its time crawling through the last few units, which is exactly what
+stops it reading as counting. It is linear now, with a bounded duration: whatever the gap,
+`ROLL_FRAMES = 25` caps the whole roll at ~0.42s, inside the user's own budget, and a small gap
+finishes sooner because the step floors at 1.
+
+**The detail that makes it read right, and it is not fussiness:** a 2000-point award over 25 frames
+is exactly 80 per frame, and 80 is a multiple of 10 — so the ONES DIGIT WOULD NEVER CHANGE. The one
+digit the user singled out would have sat frozen while the rest of the number moved. `odometerStep()`
+adds one unit to any step that lands on a multiple of 10.
+
+Measured: +7 catches up in 6 frames (0.10s), +2000 in 24, +50000 in 24 — the cap holds regardless of
+size — and a stream of 12 awards arriving 7 frames apart keeps up and still lands exactly on the
+total.
+
+### Coin totals count too, in both directions
+
+Direct request, in two parts: coins should count up when a reward is claimed, "in daily gift and
+missions" — and, a message later, "if you buy something, for example cars in a garage, there should
+also be animation for your money going down."
+
+Both directions is why this could not reuse the score's machinery, which is built on `score` only
+ever increasing. The odometer STEP is shared, so a coin total and the score tick at the same rhythm.
+
+It animates only when the number changes **while the element is on screen**. Opening the Garage is not
+an event worth animating — the total did not just change, you just looked at it — and rolling up from
+a stale value on every screen open would be noise. The previously shown value lives on the element,
+so every caller gets that for free.
+
+Measured with rAF pumped by hand (this pane throttles it): first paint snaps with nothing queued;
+1000 -> 1500 takes 24 frames stepping by 21 and lands exactly; 1500 -> 300 takes 25 frames, descends,
+and lands exactly.
+
+### Missions gained a coin total
+
+Not scope creep — the request was for the total to count up when a mission is claimed, and **this
+screen had no coin total at all**. The Daily Gift screen has had one since Batch 163; Missions never
+got one, so there was nothing on it to animate. It is the same header widget, so the two screens now
+match.
+
+## 3.14.0 — 2026-09-23 21:10: Batch 532 (C) — one size for the touch controls, a two-thumb arrow layout, and no more OFF
+
+### OFF is gone from TOUCH CONTROLS
+
+Direct instruction: "if you're playing on touch then why wouldn't you be using it." The only thing
+that setting could produce was a phone with no way to steer. ARROWS or JOYSTICK now.
+
+Swept for `'off'` before deleting it, because this exact kind of removal has broken the game twice
+(Batch 510 left a dead `getElementById` that threw at top level; Batch 516 left `launchGame()` calling
+a handler that no longer existed, so no run could start at all). It appeared in two places and both
+are handled: the `on` class is now simply always set, and a SAVED `'off'` is migrated to ARROWS
+rather than honoured — restoring it would leave a phone with no steering and no clue why.
+
+### ONE size control, not two
+
+Direct instruction: "there should be only one control setting that controls both of their sizes, no
+not two separate", and it "should also make the section down there bigger, because you need to fit
+these buttons then."
+
+CONTROLS SIZE replaces Batch 529's ABILITY BUTTON SIZE and drives the arrows, the ability button, the
+arrow glyphs inside the buttons and the bar's own height — and through `touchUiHeight()`, the height
+the canvas gives up. Anyone who already chose an ability size keeps it: `tcSize` falls back to reading
+the old `abilitySize` key once.
+
+### A two-thumb arrow layout
+
+LEFT/RIGHT under one thumb, UP/DOWN under the other. The ability button leaves the bar and floats
+above it, centred, over the road — the user's own call, and for their own reason: above the up/down
+pair it would be unusable, because you are normally already holding up or down (to save energy) at
+the moment you want to jump, and one thumb cannot do both. "It's displayed over the road, but that
+doesn't matter."
+
+### The controls now fit the screen they are on
+
+This is the part that needed measuring rather than guessing, and three separate faults turned up.
+
+**1. The buttons were 4px wider than they claimed.** `.tc-btn` was content-box, so a declared 74px
+button rendered at 78 — and the SPLIT layout positions its pairs with `calc()` off that same
+variable. Measured result at the L size: the two pairs overlapped by 29px. `box-sizing: border-box`,
+the same trap as the joystick knob in Batch 528.
+
+**2. Fixed sizes cannot fit every phone.** At 375px, L wanted 4x74 + gaps + a 108px ability button =
+422px against 301px of usable bar, and the arrows ran 15px underneath the ability button. Both
+layouts fit fine on the 480px phone this is developed against, which is exactly why a fixed table was
+the wrong answer. So the three sizes are now what the player ASKS for, and `applyTcSize()` gives what
+the screen can actually give — the "filling algorithm" asked for earlier, applied here. Always
+computed from the request, never from what is currently rendered, so repeated calls cannot ratchet
+the controls smaller.
+
+**3. Scaling the whole expression does not work,** because the gaps are fixed pixels and do not
+shrink with the buttons. Scaling by `avail / need` left SPLIT at L still needing 296px of a 288px bar
+and still overlapping. Solved algebraically per layout instead.
+
+There is also a deliberate second fit pass: `sizeGameFrame()` can change how wide the bar is (a taller
+bar leaves the canvas narrower), so the first fit was measured against a width that no longer applied.
+
+Verified across both layouts x all three sizes, at 375px and at the phone's own 480px: no button
+overlaps another, none collides with the ability button, all stay inside the bar, and SPLIT's ability
+button sits above it every time. At 480px, S and M arrive exactly as requested in both layouts and
+SPLIT's L is full size; only TOGETHER's L clamps (68/100 from 74/108), because four arrows plus a
+108px button genuinely do not fit one row — which is the reason SPLIT moves it off the row.
+
+## 3.13.2 — 2026-09-23 20:05: Batch 531 (B) — a badge that stays put, and hints that know what you are holding
+
+### The level badge's ring stops sliding
+
+Direct report: "when you level up the name changes — RUST III, RUST IV — and the whole circle moves
+with them."
+
+All three badges are flex rows sized to their contents, so every time the rank name got wider or
+narrower the ring slid sideways. Measured before touching anything: **45.5px** of travel on the menu
+badge, **43.4px** in the Garage and Stats.
+
+Fixed by reserving the widest the text can ever be, so the row's width stops depending on what the
+name happens to say. The reservations are measured, not guessed — the longest rank of all 101 is
+SAPPHIRE VIII, and the XP line's widest (`1049/1050`) is the narrower of the two, so the rank decides
+it. The text then grows into the reserved space: leftwards in the Garage and Stats, where the ring is
+on the right, and rightwards on the menu, where it is on the left.
+
+Measured after, across RUST I → SAPPHIRE VIII → CHAMPION: **0px on all three**, with no overflow at
+the longest name.
+
+### Keyboard hints, on the device that has a keyboard
+
+Direct report: the pause screen tells a phone to press SPACE or ESC.
+
+**Keyed on DEVICE MODE, not on `body.touch`** — and the difference is the whole point. A Windows
+laptop with a touchscreen reports touch hardware while its owner is typing, and the user's own rule
+for this was "if he is using the keyboard then of course the keyboard shortcuts will be useful".
+Device mode is what the player actually told us, and it still defaults to the hardware, so nobody has
+to set it before the game reads right. Tap-target sizes stay on `body.touch`: a thumb is a thumb
+whatever the setting says. Only the words move.
+
+Swept the whole file rather than fixing the one that was reported. Six places:
+
+- **Pause screen** — "SPACE or ESC to resume" is hidden outright. There is a RESUME button directly
+  above it, so a phone needs no instruction at all.
+- **Crash skip hint** — already had both wordings (Batch 524) but was keyed on hardware; moved to the
+  same signal as the rest.
+- **Tutorial keycap art** — the wide key reads SPACE or ABILITY.
+- **"Space is your ability. P or Escape pauses."** — becomes "The ability button on the right is your
+  ability. The pause button is at the top."
+- **"Hold Space to jump."** and **"Tap Space: +40% speed"** — the key name swaps mid-sentence.
+- **MULTI-LANE KEY PRESS** — reworded on mobile, **not** hidden. `steerPress()` is shared by the
+  keyboard and both touch controls (Batch 478), so the setting genuinely does apply to the on-screen
+  arrows; only its name and hint named a key. Hiding it would have been the wrong fix.
+
+The sweep also turned up the **mirror image** of the reported bug, plus a piece of stale copy: a
+tutorial line reading "On touch: ... the **USE** button is your ability" was shown to keyboard players
+who have no touch controls, and there has been no USE button since the ability badge replaced it.
+It is now mobile-only and names the ABILITY button.
+
+`.no-touch-only` and `.touch-only-inline` had no remaining users and are removed.
+
+## 3.13.1 — 2026-09-23 19:25: Batch 530 (A) — the ring spins, PAUSED gets its lettering, and the word stops spoiling itself
+
+Batch A of five, sorted from one message. Three small, unrelated fixes.
+
+### Only the ring spins the level badge
+
+Direct report: "to spin, the player should click on the circle that shows the progress bar — clicking
+on the name and the XP shouldn't trigger it."
+
+There are **two** separate spins on that badge and only one was wrong. MIRROR, MIRROR's
+`mirrorSpinKick()` was already correctly scoped to `.mm-level-ring` (Batch 504 fixed exactly that).
+The other — the landing spin from Batch 527 — is a delegated listener that matched
+`.level-badge, .mm-level`, and those are the flex *containers* holding both the ring and the rank/XP
+text. So the text spun it.
+
+Narrowed to `.level-badge-ring-wrap, .mm-level-ring`. `spinLevelBadge()` still finds its canvas
+because the ring wrapper is exactly what contains it. Verified on the menu badge (ring spins, rank
+and XP do not) and on the Garage badge, which uses the other class.
+
+### PAUSED, design doc 4A
+
+From `Crash Text.dc.html` TURN 4 — note the file attached with the request was `Result Stats Font.dc.html`,
+which has no section 4. Jersey 10 at **66px**, white face, `3px 3px 0 #e63946` + `6px 6px 0 #a8212c`,
+replacing 20px with a single shadow. PAUSED and WRECKED are now recognisably the same lettering at
+the same size, which Batch 529 had already started. Measured at 375px: one line, 230px inside the
+panel, nothing clipped.
+
+### The last letter no longer spoils the word reward
+
+Direct report, and the reasoning is the user's own: every letter shows a `5/6` progress line, but the
+LAST one swapped it for `rewardSummary(reward)` — which is where the "+1200 XP" came from. **That
+number is today's word reward, shown on the road before the player has opened the Daily Gift tab to
+find out what they won.** It spoiled the one thing that screen exists to reveal.
+
+Asked directly whether the reward itself should go: no. It is untouched and still claimed in the tab.
+Completion just says `WORD COMPLETE!` and stops. `ScorePopup` draws an empty subtitle as nothing, so
+no other change was needed.
+
+`rewardSummary()` had no other caller and is removed — this change orphaned it.
+
+## 3.13.0 — 2026-09-23 18:40: Batch 529 — the '?' badge means locked, a white crash word, and a bigger ability button
+
+### The question mark belongs to locked secrets, and nothing else
+
+Direct instruction: "don't use the question mark icon for any unlocked. Only use it for non-discovered
+secrets." It was MIRROR, MIRROR's own art, and `__mystery` was an alias of it (Batch 504) — so an
+achievement you had *earned* wore the badge that means "you have not found this yet". Verified across
+all 60 icons by comparing glyph shape rather than colour: the question mark now resolves to exactly
+one key, `__mystery`.
+
+MIRROR, MIRROR takes the ring glyph instead, in its own purple. It is FULL CIRCLE's shape in a
+different family, which the instruction allowed for ("just pick one from the available ones") and
+which happens to fit: the achievement is for spinning your level badge.
+
+The mystery badge also stops being the brightest thing on a dark screen. It was bright purple, which
+read as a prize rather than a locked slot; its palette is now its own and near-black (`#1b2029` fill,
+`#39414f` bevel, `#0e1218` shade) with the '?' in a muted grey. Muted, not hidden — the card still
+says '?' rather than showing an empty tile.
+
+### The crash word: white face, two coloured shadows
+
+Design doc 3A, applied to BOTH screens. The results title had a coloured face over one colour and one
+black shadow; the crash screen had a near-black face. Neither was the doc, and the two did not match
+each other. Both are now white over the crash colour and its shade, so the same crash says the same
+word the same way twice.
+
+### REAR-ENDED stays on one line
+
+Direct report, and reproduced before fixing: at 375px the crash word broke into "REAR" over "ENDED".
+The cause is `#crashWord`'s positioning, not the font size — an absolutely positioned element given
+only `left: 50%` has a shrink-to-fit width of *half* the container, measured here at 187px against
+the 292px the word needs. `white-space: nowrap` on both the crash word and the results title fixes
+it; measured after, all five words are one line, and the widest spans 83→292 inside a 375px viewport.
+
+The results title also gained `fitGoTitle()`, which shrinks the word if it ever would not fit — a
+phone's panel is not a constant. The first version of it measured the title's own `clientWidth`,
+which in a centred flex column always equals its `scrollWidth`; it reads the parent's content box now.
+
+### Ability button size
+
+Direct report: "it's too small — you could even miss it and not tap it." Three sizes, and the old
+fixed 64px becomes S exactly as instructed. M is the default, because a size the user has already
+called too small is not a sensible thing to start everyone on.
+
+The steps are not arbitrary. The badge is 13 art units and `abilityBadgeCssPx()` only renders it at a
+whole number of *device* pixels per unit, which at this phone's 2.25 dpr puts the available sizes
+5.78 css px apart. 64 / 84 / 108 buy k = 11 / 14 / 18: three visibly different buttons, all
+pixel-exact. Measured: 64x64, 84x84, 108x108, with the SVG at 58.5 / 78 / 104.
+
+The arrows strip has to be at least as tall as the button standing in it, so its height and the
+canvas height `gameExtraBottom()` gives up now both derive from the chosen size. `TOUCH_UI_HEIGHT`,
+a flat 102, became `touchUiHeight()`. Measured together: strip 96/100/124, reserved 102/106/130.
+
+### Tutorial: COLLAPSE actually collapses
+
+Direct report. Below 720px the contents rail is a drawer, and
+`.tut-body.tut-rail-drawer .tut-rail { display: flex }` sits in that media query — later in the file
+than `.tut-body.tut-collapsed .tut-rail { display: none }` and of identical specificity, so the
+drawer rule won and the button did nothing at all. It closes the drawer it is inside now.
+
+### Garage prices you can read
+
+Direct report: "pretty dim and grey and also very small — especially on a phone, hard to read."
+8px of `--c-text-dimmer` against a dark tile was the lowest-contrast text in the Garage, on the one
+number on a card that decides anything. Now 10px in the full text colour.
+
+The cosmetics prices take the same 22px coin the car tiles wear (`.coin-icon-sm`) instead of the
+12px one Batch 528 gave them — asked for the rocket pods, applied to all four, because one coin size
+everywhere is the point.
+
+## 3.12.1 — 2026-09-23 11:30: Batch 528 — result stats in Silkscreen, coins on prices, a centred knob
+
+### Result stats box, design 1B
+
+From the user's own `Result Stats Font.dc.html`. The stat labels move from the body default (DotGothic16 13px) to **Silkscreen 10px** — the font achievement *names* use — so the summary's two halves, the stat rows and the achievement rows below them, finally match instead of being set in two unrelated faces.
+
+Values stay VT323 and grow 17 -> 19px, and the row gap goes 7 -> 9px. Both follow from the swap rather than being taste: Silkscreen at 10px is visually lighter and shorter than DotGothic16 at 13px, so the numbers need to lead more clearly and the rows have space to give back.
+
+### Where DotGothic16 still lives
+
+Asked directly, so: after this change it is used in exactly **two** places.
+
+- **`body`, as the default font.** This is the big one — every piece of prose that does not set its own family inherits it: the tutorial copy, the Settings hints, dialog text, empty-state notes. The result stat labels were part of this group only by inheritance, never by choice, and the file's own comment above `.stat-row` said as much.
+- **`.lb-tooltip`**, the High Scores hover tooltip, which asks for it explicitly at 10px.
+
+Nothing else names it. Silkscreen, VT323 and now Jersey 10 carry everything else.
+
+### Prices say what they cost
+
+Direct request for the booster's 1M, applied to the paint prices as well — they are the same "this costs coins" statement, and coining one but not the other would read as the two meaning different things. The car tiles have carried a coin beside their price all along; the cosmetics cards were the odd ones out. Drawn with the same `renderCoinIcon()` every other coin in the game uses, so it cannot drift from them.
+
+### The joystick knob sits in the middle now
+
+Direct report. Measured at a 112px stick: the knob was off by exactly **+2.01px on both axes** — its own 2px border.
+
+The element is `content-box`, so its rendered box is 4px wider than its declared width, while the centring margin is half the *declared* width. The difference is precisely one border, on each axis. `box-sizing: border-box` makes the two agree. Re-measured: **0.01px**.
+
+Centring by transform would have been the other fix, and is the wrong one here — `transform` is what the drag itself writes, so the two would have fought every frame.
+
+## 3.12.0 — 2026-09-23 10:15: Batch 527 — a spin that lands, SQUASHED corrected, and FULL SPECTRUM
+
+### The level badge lands where it means to
+
+Direct request: "calculate it so that it will perfectly stop at its final position."
+
+The old model was friction-then-ease — decay the velocity, and once it fell under a threshold, pick the next whole turn and ease onto it. That lands on the right spot, but it is two different motions stitched together, and the hand-off is what read as *it stops, then does another spin*. Batch 470 had already had to repair a version of that same seam.
+
+It plans the whole thing up front now. A click chooses a **landing angle** — always a whole turn, because the progress arc starts at 12 o'clock and that has to stay true — and the spin is one eased tween from the current angle to exactly there. Deceleration is not a force being applied and hoped about; it is whatever it must be to arrive on the spot.
+
+Verified by driving the tween's own maths rather than watching it: lands **exactly** on target, the target is always a whole turn, the step size decreases monotonically from 103°/frame to **0.09°** at arrival, and a click mid-spin (from 137.5°) still lands clean on 1800°. Clicks accumulate as before — three of them make six turns over 1,980ms.
+
+### SQUASHED means you came down on something
+
+Direct correction, and the first version was wrong. It asked only "did a jump end in the last 500ms", which also caught driving into the back of a car half a second after a clean landing — a rear-end, not a squash.
+
+Two conditions now, both required. The window is **160ms**, because landing on something collides on the very next frame once jump immunity lifts; anything longer can only catch crashes that had nothing to do with the landing. And the overlap must be **deep** — the player's centre inside the other vehicle's span, not a corner clipped on the way past. That is what separates coming down on a roof from catching an edge.
+
+### The results screen is the crash text
+
+Approved suggestion. The headline was the fixed word WRECKED; it is now the crash's own word in the crash's own colour, so the two screens read as one event rather than the summary restating something generic.
+
+**Inverted relative to the version on the road, deliberately.** Over grey asphalt the design doc's near-black face reads beautifully; this panel is near-black itself, so the same treatment would be invisible. The colour becomes the face here and the dark becomes the shadow — same word, same colour, same font, still legible.
+
+It also means the text is seen at all when SKIP CRASH ANIMATION is on, which was otherwise the one setting that could hide it entirely.
+
+### FULL SPECTRUM
+
+The five-colour secret, built as the cheaper of the two options costed in Batch 526: see the crash text in all five of its colours. Coupon-collector on five uniform, independent draws — `5 x H(5)` = **~11.4 crashes** on average, which is discoverable without grinding.
+
+Recorded where the colour is **shown**, not where the run ends, so skipping the crash animation cannot award a colour that was never on screen.
+
+The 25-combination version (every word in every colour) stays unbuilt and the reasoning is in PLAN.md: the words are crash causes with wildly different rates, so it would be governed by the rarest one and run to many hundreds of deliberate crashes.
+
+## 3.11.0 — 2026-09-23 08:40: Batch 526 — the crash text says what happened
+
+Section **3A** of the user's own `Crash Text.dc.html`, built as specified.
+
+### The word is a verdict, not an exclamation
+
+The old text picked at random from WRECKED / CRUSHED / TOTALED / SMASHED / MANGLED / DEMOLISHED / FLATTENED — seven words that all mean the same thing and none of which told you anything.
+
+It now names the cause, worked out at the moment of the crash:
+
+| word | what happened |
+|---|---|
+| REAR-ENDED | hit a car from behind |
+| T-BONED | hit from the side |
+| SQUASHED | crashed within 500ms of landing a jump |
+| FLATLINED | touched the ambulance |
+| WRECKED | anything else |
+
+Order of the checks matters: the ambulance is always the ambulance, a landing beats geometry because you came down *on* something, and only then does it matter which face of the car you hit. `isFrontHit()` already existed for the ram's head-on rule and answers that last question exactly.
+
+### The colour is random, and deliberately not the cause
+
+The design doc pairs each colour with a cause. Direct instruction was to decouple them — "completely random, but only one of these five, picked random every time" — so the same crash can come up red, amber, toxic green, purple or blue. Verified: all five appear across 200 draws.
+
+### The look
+
+No box, no background: near-black pixel type laid straight over the road, with two stepped coloured shadows at 3px and 6px. The old treatment was a bordered plaque with a translucent backing, which is what the doc set out to replace.
+
+**Jersey 10** is the face the section specifies, and Silkscreen cannot stand in for it — the tall condensed letterform is the whole point. It is embedded like the other three via `tools/embed_fonts.py`, so the game still fetches nothing at runtime. Cost: **+23 KB**, taking the embedded font block to 91 KB. The tool needed the family written URL-safe (`Jersey+10`); a literal space raises `InvalidURL` before the request is even sent.
+
+Verified live rather than assumed: the face is registered and really renders — "WRECKED" measures 198px in Jersey 10 against 254px in the fallback, so it is genuinely a different font and not a silent substitution.
+
+## 3.10.4 — 2026-09-23 07:00: Batch 525 — Batch F, the slow and the unreachable
+
+### AWARDS no longer takes a second to open
+
+Direct report. Measured first, and the obvious suspect was innocent: the render function runs in **15-25ms**. The cost is what it builds — **5,630 DOM nodes, of which 4,236 are SVG `<rect>`s**, roughly 70 per badge across 60 badges. That is layout and paint, which happens *after* the script returns, which is exactly why timing the function made it look fine.
+
+A badge is a static picture, so it is baked once into a data URI and reused. Each becomes a single `<img>` instead of an `<svg>` with ~70 children. The art is the byte-for-byte same SVG; only the number of elements the browser must lay out changes.
+
+Measured after: **1,394 nodes and 0 SVG rects** — a quarter of the DOM for the same screen. Cached per icon name, so 60 badges cost 60 map lookups rather than 60 string builds.
+
+One thing only the device caught: the badges came out as **broken images** on the first build. `achIconSvg()` carries no `xmlns`, and has never needed one — inline in the document the HTML parser supplies the SVG namespace. A `data:` URI is parsed as a standalone XML document, where the declaration is mandatory; without it the payload simply is not SVG. Added at the point of URI construction only, so the inline path is untouched. Verified after: 59 images, 0 broken, and correct on the phone.
+
+### The tutorial scrolled in lurches
+
+Direct report: dragging the scrollbar "starts to lag, isn't going smoothly, stops and then snaps to the place it should be".
+
+`drawTutScenes()` runs every animation frame, and to decide which scenes were on screen it did a `querySelector` plus a `getBoundingClientRect()` on the scroller **and one on every scene canvas** — seven forced synchronous layouts per frame, while the browser was trying to scroll. That is the stutter-then-snap exactly.
+
+`IntersectionObserver` answers the same question without reading layout at all; the browser reports visibility asynchronously, off the critical path. Element references are cached rather than re-queried.
+
+Measured: **0 `getBoundingClientRect()` calls per frame**, down from 7.
+
+### The chart follows your finger
+
+Direct report: a tap showed the readout but "the dragging doesn't work - it just stops showing anything".
+
+`pointermove` alone is not enough on touch: the moment the browser decides a gesture is a scroll it takes the pointer, fires `pointercancel`, and no further moves arrive. Capturing the pointer on `pointerdown` keeps them coming for the whole gesture.
+
+`touch-action: pan-y` rather than `none`, so a vertical drag still scrolls the Stats page — only horizontal movement is the chart's, which is the axis it reads. And `pointerup` no longer clears the readout for a mouse, whose cursor is still sitting on the chart.
+
+### HOW TO PLAY has chapters again
+
+Direct report: "there's no chapters, nothing, no type of context."
+
+There is a contents rail with all 24 chapters in it. It was simply `display: none` below 720px, and the button that reopens it only appears once the rail has been *collapsed* — which on a phone never happens. The chapters existed and were unreachable.
+
+On a narrow screen the rail is now a pop-out drawer over the text rather than a column beside it, since there is no room for a column, and its opener is always available. Picking a chapter closes it, as does tapping the dimmed page behind it.
+
+## 3.10.3 — 2026-09-23 05:20: Batch 524 — Batch E, Garage placement and touch polish
+
+### STOCK is sorted, not pinned
+
+Direct report: "the default car is wrongly placed — in price it should also be sorted, in tier it should be after the common one."
+
+It was emitted as its own pinned block above everything, which is precisely why it sat outside every header with nothing explaining it. It carries no `rarity` of its own, so it is folded into COMMON for the grouped sorts and simply takes part in the flat ones. Verified: TIER now reads COMMON → STOCK → WAGON, PRICE starts STOCK, GO-KART (its unlock of 0 puts it first honestly), OWNED groups it under COMMON.
+
+The pinned-block machinery from Batch 513 is gone with it. That existed to stop STOCK landing unheaded at the end of a reversed list; being inside COMMON solves the same problem properly.
+
+### The booster's grey square
+
+Direct report: "you don't even need to add this glowing aura… you added the grey background, which I don't like."
+
+Two separate causes, which is why removing one did not fix it.
+
+The **aura** was an 18% amber radial behind each icon. Over the card's near-black it reads as a muddy grey square rather than as a glow, and the design doc has no such backing at all. Removed.
+
+The **grey square that remained** was the global `canvas { background-color: #5a5f66 }` — the rule that paints the main game canvas — showing through the icon's transparent pixels. Every other small-icon canvas in the file opts out with `background: transparent`; the new booster rule never did. The file even carries a comment warning about exactly this trap. Now opted out, and confirmed to match its peers.
+
+### Hold to inspect
+
+Direct request: "tapping works as clicking, holding works as hovering on PC."
+
+A phone has no hover, so the gesture that means *tell me about this* is a hold — 350ms on a car tile or a booster swatch shows the same panel a mouse would get. One helper serves both, so the rule is identical everywhere.
+
+The press is cancelled if the finger travels more than 10px, because a drag that starts on a tile is a **scroll**, and the Garage is a long list — stealing that would be worse than having no hold at all. Android's own long-press menu is suppressed on these elements for the same reason: it would appear on top of the thing being inspected.
+
+### Long-press no longer selects text
+
+Direct report. Nothing in this UI is text anyone would want to copy, and now that a long press is a gesture, a selection highlight is only ever in the way. Disabled on touch, with inputs exempt.
+
+### Smaller things
+
+- The crash-skip hint said **[ESC] SKIP** on a device with no Esc key. It says TAP TO SKIP on touch — which has actually worked since Batch 514; only the label was wrong.
+- The results footer's **SCORES** gains the same crown icon the other cross-tab links wear, and **MENU** is now **BACK**, matching every other screen's footer. Both direct requests.
+
+## 3.10.1 — 2026-09-23 03:10: Batch 523 — Batch D, panels that fill whatever screen they are on
+
+Direct report: the results screen "is not full screen yet, and the results could be bigger because we have way more space than this" — with the standing requirement that it "needs to also work on other phones, because my phone is not the only one".
+
+Both halves were the same fixed box. The results and pause panels are a **506 x 822** design box scaled by `min(width/506, height/822)`. On a tall phone the width always binds, so the box came out 506 x 822 at about 0.95 and roughly a quarter of the screen height was simply dead.
+
+### The box adapts now
+
+When width binds, the design **height** grows to whatever the screen actually has, so the panel fills it exactly. No dead space, and no distortion, because the scale is still one number applied to both axes. When height binds instead — a wide desktop window — nothing changes, because the original box is already the limit there.
+
+### The content is 1.27x bigger, and that number was measured
+
+Not guessed. The widest thing in either panel is the stat box at **340 design px**, inside a 506 box whose padding leaves 462 usable. A third of the width was never used by anything, which is why the content was rendering at roughly 1:1 on a 480px phone and reading as small.
+
+The design box is 400 wide on touch. The same content is then 1.27x larger and still leaves 16px of slack past the widest element. Desktop keeps 506 — there the window is wide and the panel is already the size it should be.
+
+### Why this holds on other phones
+
+The scale is `clientWidth / designWidth` and the height is `clientHeight / scale`, both read from the live viewport. There is no device-specific number anywhere in it: the 400 is a *design* width, a ratio against whatever screen it lands on.
+
+Verified at an emulated 375 x 812: the panel renders 375 x 812 — **100% of the width and 100% of the height** — with the widest content at 319px, 56px clear of the edge.
+
+## 3.10.0 — 2026-09-23 02:05: Batch 522 — Batch C, the Settings revamp
+
+### CONTROL TYPE is now PC or MOBILE
+
+Direct request. It used to be ARROWS / BUTTONS — two desktop steering models — sitting above a separate TOUCH CONTROLS row, which meant the first setting in the list was about something most players never change while the ones that matter on a phone were buried.
+
+It is a device switch now. **MOBILE** reveals every on-screen-control setting directly beneath it; **PC** hides the lot. The old ARROWS / BUTTONS choice is gone on direct instruction — "I don't need arrows or buttons, both should work on PC normally" — so the keyboard is simply always live and there is nothing to pick.
+
+MOUSE/TOUCH STEERING went with it, since it only ever applied to the Steering Buttons mode. The steering-button code paths still exist and work; they just have no UI. `controlTypeSetting` stays in the DOM as a hidden `<select>` pinned to keyboard steering, because several systems still read it and deleting it out from under them would have been a much larger change than this warranted.
+
+### BACK and START RUN are fixed at the bottom
+
+Direct request. Settings gains the same scroll/footer split the Garage and the Daily Gift already use: the options scroll, the two buttons stay put.
+
+### The control style pickers
+
+Long outstanding, and owed: **ARROW STYLE** (OUTLINE / KEYCAP / GLASS) and **ABILITY BUTTON** (BADGE / NAMED / PLAIN), all from the user's own `Mobile Controls.dc.html`. OUTLINE is 1b, which is what shipped in Batch 510 and stays the default; KEYCAP is 1a; GLASS is 2a. The ability styles are badge alone (1b), badge with its ability's name (1a/2b), and a plain labelled key (1c).
+
+Every one of them is a class on `#touchControls` and nothing else — same markup, same handlers — so a style cannot change how a control behaves.
+
+### A self-inflicted break, and what caused it
+
+Worth recording because the cause was a one-character class of mistake. The script that moved the mobile rows found each row by walking up from its title to a line matching `class="stg-row`. That substring **also matches `class="stg-row-title"`**, so it matched the title line itself every time and moved only that one line, orphaning each row's label, hint and control.
+
+The result was a mangled Settings screen: four titles stacked in a block, controls floating unattached, and the old ARROWS / BUTTONS segment left behind. Repaired by reattaching the titles, deleting the orphans, and redoing the move with `^\s*<div class="stg-row[ "]` — which cannot match the title.
+
+Removing the MOUSE/TOUCH STEERING row then left `steeringModeSeg` and `steeringInputRow` null, and an unguarded `bindSeg(null, …)` threw **at the top level**, aborting the rest of the script. Everything declared after that line never ran, which surfaced as an unrelated-looking `Cannot access 'carSpriteUprightBuf' before initialization` on the Garage and Daily Gift screens. Both are guarded now.
+
+The lesson for next time is the diagnosis, not the typo: a boot-time top-level throw shows up as *later* code being undefined, and an error listener registered after load cannot see it. `read_console_messages` could, and did.
+
+## 3.9.10 — 2026-09-23 00:30: Batch 521 — Batch B, the joystick overhaul
+
+### No bottom bar in joystick mode
+
+Direct request: "if you're using the joystick there shouldn't exist this bar on the bottom — just render the ability button in the corner." The strip cost **102px of road** for a mode that needs exactly one button, and the joystick could not be used over it either.
+
+In joystick mode `#touchControls` stops being a strip and becomes a transparent overlay across the whole play area — no background, no border, no height of its own, `pointer-events: none` so only the controls inside it take touches. `gameExtraBottom()` returns 0 to match, so the canvas takes back the height the strip was holding. The ability badge floats in the bottom-right corner over the road.
+
+That also answers "the gameplay screen is still not full screen" for this mode: with the strip gone the road runs to the bottom edge of the phone.
+
+### The joystick sits where you put it, and clear of the edge
+
+Direct request. A new **JOYSTICK POSITION** row — LEFT or CENTRE — shown only when FLOATING JOYSTICK is off, because a joystick that follows your thumb has no fixed home to choose.
+
+It also sits **104px up from the bottom** rather than against it. Direct report: at the edge, dragging *down* ran your thumb off the screen, so down was the one direction you could not actually ask for.
+
+### Sizes were all too small
+
+Direct report: "the biggest option there is still small." Shifted a whole step up — the old LARGE (112) is the new **MEDIUM**, and a genuinely large 145 is added on top. S / M / L is now 84 / 112 / 145.
+
+The user's reasoning is worth recording because it is the right test: a joystick can always be made smaller, and even a fixed one has a thumb over part of the screen anyway, so erring large costs nothing.
+
+### It is a joystick, not a stick
+
+Direct request — "what is a stick, please". Renamed throughout the UI: the TOUCH CONTROLS option, FLOATING JOYSTICK, JOYSTICK SIZE, JOYSTICK POSITION and the tutorial's controls card. The internal `stickSize` / `floatStick` storage keys are unchanged, so nobody's saved settings reset over a wording fix.
+
+### The ability button's drop shadow
+
+Direct report: "why does the ability button have a shadow on the bottom, pretty big — it's not what I wanted." The design doc's 1b shadow was drawn against a light mock-up; over dark asphalt it just reads as a smear under the badge. The badge already carries its own outline and bevel, so it needs no help standing off the road. Removed.
+
+## 3.9.8 — 2026-09-23 23:15: Batch 520 — the joystick no longer traps you in a run
+
+Direct report, and the worst thing on the list: with the joystick selected, the PAUSE panel could not be used. Every press on RESUME / RESTART / QUIT summoned the stick instead, and the only way out of a run was to kill the app.
+
+The summon zone covers the lower 70% of the playfield and the pause panel sits inside that same area, so the two were always going to fight over the same touches. Pausing is not playing, so the touch controls now stand down for as long as the panel is up — which also stops a held direction sticking across the pause.
+
+One line, in `setPaused()`, reusing the `tcSetPlaying()` switch Batch 510 already added for the results screen. That switch is the single place that decides whether a control may arm, which is why this was a one-line fix rather than another special case.
+
+Shipped on its own, ahead of the rest of the reported list, because being unable to leave a run is worse than everything else waiting behind it.
+
+## 3.9.7 — 2026-09-23 22:10: Batch 519 — every screen goes full-screen, and the Garage scrolls again
+
+### Every tab is full-screen now, and every tab clears the camera island
+
+Direct report: "everything should be full screen — awards and missions are a good example; stats, gift, scores, garage and settings are not", and "many tabs do not take the camera island into account".
+
+Both had the same root. `.settings-panel` caps at **340px**, and the 640px relaxation sits behind `@media (min-width: 600px)` — which **never fires** on this phone's 480px viewport. AWARDS, MISSIONS and GIFT looked correct only because they happen to carry an unconditional 880px override; every other screen was pinned to 340px of a 480px screen, which is why they read as floating cards with frames around them.
+
+On touch the cap is lifted for all of them, the side padding shrinks from 22px to 12px to buy the width back, the border and shadow come off, and the panel fills the height — so a short screen like STATS still reads as a screen rather than a card.
+
+The top padding now carries `--safe-top` on **every** panel. Previously only the menu overlay and the in-run HUD had it, which is exactly the report: most tabs ignored the cutout.
+
+### The Garage could not be scrolled — my own regression
+
+Direct report. Batch 516 grew the cosmetics block from a row of 28px swatches into twelve paint cards plus three booster cards, and that block sits **outside** `.garage-scroll`. On a phone it ate nearly the whole panel and left the scrolling area almost no height to scroll in.
+
+The showroom is inside the scroller now, so the whole Garage scrolls as one. BACK still stays fixed below it, which was the point of that split in the first place.
+
+With the panel at full width the cosmetics grid also does what the design intended on its own: the paint cards auto-fill to four across instead of being crushed, and the booster cards sit in their proper three-column row with the icon above the label.
+
+### The brake lamp was pink
+
+Direct report: "they should be more red, right now they are just more pink."
+
+`#ff8a93` was the project's existing light-red token, but its blue (147) sits **above** its green (138) and both are high — that blue-over-green tilt is precisely what the eye reads as pink. Keeping green and blue equal removes the cast, and raising them together off the base (71/87) is what still makes it read as lit rather than as a different colour. Now `#ff5a5a`.
+
+### The energy bar stole taps
+
+Direct report: tapping the ability bar fired the ability. On a phone that bar is a readout at the top of the screen, not a control — there is a dedicated USE button for that now.
+
+Gated on the button actually being available rather than simply on being a touch device: with TOUCH CONTROLS set to OFF there is no USE button, and then the bar is the only way to use an ability, so it keeps working there.
+
+### STICK SIZE
+
+Direct request. A new S / M / L row in Settings — 66 / 84 / 112px. Medium is exactly the old size, so nothing moves for anyone who does not touch it.
+
+One variable drives the base, the knob and the travel radius, so the three cannot drift apart: the radius was a hardcoded 42, and a bigger stick with a fixed radius would have clamped halfway across its own base.
+
+## 3.9.6 — 2026-09-23 20:30: Batch 518 — the floating stick works
+
+Direct report from the phone: the stick "didn't appear when you wanted it — it only appeared very rarely and only at the top of the screen, so it was impossible to navigate with". Three separate faults, all now fixed and checked on the device.
+
+### It was pinned to the top of the screen
+
+`.tc-stick.floating` is `position: fixed` with **`top: 0`** in its CSS. The summon code set `style.bottom`.
+
+With a fixed height and both `top` and `bottom` specified, the box is over-constrained — and `top` wins. So `bottom` was discarded every single time and the stick was placed at the very top of the viewport, exactly as reported. It sets `top` now and clears `bottom` so the CSS cannot fight it.
+
+### It was offset sideways
+
+The same code subtracted the touch strip's own rect from the touch coordinates:
+
+```js
+const host = touchControlsEl.getBoundingClientRect();
+tcStick.style.left = (t.clientX - host.left - 48) + 'px';
+```
+
+The element is `position: fixed`, so its offsets are against the **viewport**, not that strip — subtracting it pushed the stick sideways by however far the strip sat in. The `48` was wrong too: the stick is 84px, so half is 42. It uses the measured size now, and clamps to the viewport so it can never hang off an edge.
+
+### Most of the screen didn't summon it
+
+`#tcStickZone` was 60% x 55% of the playfield anchored bottom-left. A thumb landing anywhere else — most of where a thumb actually lands — raised nothing at all, which is the "didn't appear when you wanted it" half of the report.
+
+Full width and the lower 70% now. The pause button and the HUD chips live in the top 30%, so they stay reachable.
+
+### On the results screen
+
+Already fixed in Batch 510 and confirmed on the device this time: the run summary shows RETRY / SCORES / MENU with no stick and no controls over them.
+
+**Verified on the phone**, not in emulation: a touch held down at device (300, 1500) put the stick's base centre at (299, 1502), with the knob pushed toward the drag point.
+
+## 3.9.5 — 2026-09-23 19:05: Batch 517 — FULLSCREEN removed, icon and level-number alignment, and an encoding accident
+
+### FULLSCREEN is gone from Settings
+
+Direct question, and the answer is no, it is not needed. Batch 514 made the app immersive natively and always, so the toggle described something that already happens — and its implementation, `requestFullscreen()`, is a no-op in an Android WebView, so it never did anything even when switched on. A setting that lies about the game is worse than no setting. The row, its toggle, its `<select>` and its change handler are all removed, with no orphans left behind.
+
+**TOUCH CONTROLS is untouched** and still offers ARROWS / STICK / OFF, alongside CONTROL TYPE, MOUSE/TOUCH STEERING and FLOATING STICK.
+
+### The cross-tab icon sat above its label
+
+Direct report, on the Stats screen's SCORES button. `.btn` is not a flex container, so the icon was an inline box sitting on the **text baseline** — and a baseline is not a centre line, so the `vertical-align` nudge it had was never going to hold. `.btn-xlink` is its own flex row now and centres both children properly.
+
+### The level number really was off centre
+
+Direct report: still not centred vertically. The box was centred exactly — measured at 0.0px — but a line box is centred on the font's ascent and descent, not on where the ink is. Silkscreen reports a font box of ascent 29 / descent 7 against ink of ascent 18 / descent 0, so the digits sit `(29-7)/2 - (18-0)/2 = 2px` below true centre at font-size 28.
+
+The correction is `-0.071em`, in the element's own units, so it holds at every badge size and at any UI scale. Two wrong attempts first, both worth recording: the sign was backwards (the ink sits low, not high), and a fixed px value drifts because this badge lives inside a scaled container.
+
+### An encoding accident, and how to undo it
+
+I bumped this version with PowerShell `Set-Content -Encoding utf8`. Windows PowerShell 5.1 reads the existing UTF-8 bytes as **CP1252** and re-encodes them, and adds a BOM — so every non-ASCII character in the file was double-encoded. `×` became `Ã—` in 18 places, and the main menu shipped to the phone reading `1.00Ã— TRAFFIC`. The user spotted it before I did.
+
+Repaired by stripping the BOM and reversing the double-encode. The diagnosis is the part worth keeping: the obvious guess, latin-1, **raises** on the damaged text. The tell is a flood of `€` (byte 0x80), `"` (0x94) and `—` (0x97) — values that are unmapped in latin-1 but real characters in cp1252:
+
+```python
+s = open(path, "rb").read().decode("utf-8-sig")
+s = s.encode("cp1252").decode("utf-8")
+```
+
+Verified afterwards: 18 `×` restored, the `▲`/`▼` sort arrows intact, zero mojibake, and the menu correct on the device. `sed` and Python were used for every other edit this session and caused none of this; PowerShell must not write these files again.
+
+## 3.9.4 — 2026-09-23 17:45: Batch 516 — Garage cosmetics rebuilt as cards, and the road reaches the top edge
+
+### The grey bar beside the camera island
+
+Direct report: "beside the camera island there is still a grey bar, no road rendered there."
+
+Batch 515 cleared the cutout with **page padding**, which kept the UI safe but also stopped the road short — that strip was the body's own background showing through, which is exactly the framed look this whole effort was meant to remove.
+
+The page is flush to all four edges now, so the road genuinely runs under the island, and the inset moved to the **content**: the menu panel gets it as padding inside its own box (a margin would fight its transform centring), and the in-run HUD — pause button, energy bar, score chips — gets the same clearance, because those sit at the very top of the canvas and the island would land on them. Draw everywhere, keep the UI clear.
+
+### Garage cosmetics, layout 1b
+
+Ported from the user's own `Garage Cosmetics.dc.html`, option **1b — "every item says what it is"**.
+
+The paint row was bare 28px squares: a locked paint and an owned one were the same square, with no name, no price and no state anywhere. Every paint is a card now — colour block, its name, and its status — and so is every booster, with its icon, real label and status:
+
+| state | shows |
+|---|---|
+| equipped | EQUIPPED, plus an ON tag on the swatch |
+| owned | OWNED |
+| buyable | its price |
+| gift-only | BOX ONLY |
+| level-locked | LV 10 / LV 100 |
+
+Locked items keep the doc's diagonal hatch, which reads as locked at a glance without a padlock glyph that would not fit a 40px block. Both sections have an `owned / total` counter in the header.
+
+**None of the click behaviour changed** — the gift-only note, the confirm-before-spending rule and the hover preview are all the code that was already there. Only what the player sees is different.
+
+Three faults found by measuring rather than by looking:
+
+- **My new CSS never applied.** I added a second `.color-picker` rule instead of editing the existing one, and the original further down the file won on source order — so the grid silently stayed wrapped flex and produced ragged rows of 4, 3, 3, 1. The originals are edited now and my duplicates are gone.
+- **PRISM was still a bare square.** It is appended after the colour loop rather than being part of `GARAGE_COLORS`, so it kept the old markup and sat beside the cards with no name and no state — the one paint that most needs to say LV 100. It is a card like the rest, and the counter counts it, so the total is 12 rather than 11.
+- **Six columns is the doc's width, not this one.** The doc is drawn at 760px; on the phone six columns squeezed the cards until names broke mid-word — "BLU E", "CY AN" — and EQUIPPED was clipped. The grid auto-fills to a minimum card width instead, so the column *count* adapts and the text never has to. Re-measured on a phone viewport: 12 cards at 5 / 5 / 2, 107px wide, nothing clipped, no name on two lines.
+
+## 3.9.3 — 2026-09-23 16:20: Batches 514-515 — immersive, a back button that works, and the menu fills the screen
+
+Everything here was verified on the reported device over ADB, not in emulation.
+
+### The system bars are gone
+
+Direct report: "the navigation bar and the controls at the top don't disappear in the game."
+
+The game's FULLSCREEN setting called `document.documentElement.requestFullscreen()`, which is a **no-op in an Android WebView** unless the host implements `onShowCustomView` — so the bars never moved however that setting was set. Hiding them is the host's job, so `MainActivity` does it.
+
+Sticky immersive rather than a hard hide: an edge swipe still brings the bars back for a few seconds and they slide away again on their own, so the phone never feels like it has trapped you. Re-applied on `onWindowFocusChanged`, because the bars return after a notification shade, a permission dialog or that transient swipe — without it the game quietly loses its full screen partway through a session and never gets it back.
+
+### The back gesture does something
+
+Direct report: it did nothing at all. `MainActivity.onBackPressed()` now asks the web layer, which is the only side that knows which screen is open:
+
+- during the crash sequence — skip it
+- with a confirm dialog open — close it
+- in a run — pause, or resume; **not** a way out, because losing a run to a stray gesture is worse than doing nothing
+- on any other screen — go back one level
+- on the menu — hand it to Android, which leaves the app
+
+It delegates to the existing Escape chain rather than duplicating it. That chain already knows every screen and which button closes it, and has been corrected twice for missing one (Batch 397); a second copy would drift out of step. Anything other than a clear "I handled it" — including an error, or a page that has not finished loading — falls through to Android's own behaviour, so back can never become a dead button.
+
+### Tapping skips the crash sequence
+
+Direct report. Escape was the only skip, and a phone has no Escape, so you sat through the whole thing. Any tap anywhere now does what Escape does — bound in the capture phase so a button underneath cannot swallow it, and gated on `CS.active` so it is completely inert at every other moment.
+
+### The menu fills the screen too
+
+Direct report: "at the bottom there is a huge chunk of space where you could just render the road."
+
+Same fault the playfield had in Batch 511, in the other canvas: the menu background is 160 world units wide by a fixed **260** tall, and `sizeFrame()` preserves that ratio — so on a 480 x 1013 phone it fitted to width, stopped at 780, and left a quarter of the screen as dead black. It grows downward now, and the demo traffic's wrap distance and the wreck cleanup follow the real height instead of the literal 340 and 260 they were hardcoded to.
+
+### The camera island was covering the title — my own regression
+
+Direct report. Batch 511 replaced the page padding with the bare safe-area insets and took the old 20px floor with it. With the app now drawing *under* the cutout, the wordmark ran straight into it.
+
+The device reports `insets=Rect(0, 80 - 0, 0)` with the island spanning x 357-723 — at DPR 2.25 that is **35.6 CSS px** of real cutout, so `env(safe-area-inset-top)` is evidently answering 0 in this WebView. The top padding now has a 38px floor, which clears it whether or not `env()` ever answers, and a larger reported inset still wins. Only the top is floored; the sides stay flush so the game keeps the full width.
+
+The level badge also sat tight under the wordmark and now has room — 30px instead of 14px, by direct request.
+
+## 3.9.2 — 2026-09-23 14:50: Batch 513 — cross-tab buttons wear their icon, and every sort reverses
+
+### Icons on the cross-tab links
+
+Approved suggestion. SCORES, STATS, GIFT and MISSIONS footer buttons now carry the same icon their main-menu tab uses. BACK stays plain text, and that contrast is the point: a sideways link and a back button stop looking identical, which is the same confusion that made the mint SCORES button feel wrong in the first place.
+
+The icon is **cloned from the main-menu button** at startup rather than re-typed into the footer markup, so a link and its destination can never end up wearing different art.
+
+### Every sort tab reverses
+
+Tapping the tab you are already on flips the order; switching to a different tab starts it at that sort's natural direction rather than inheriting the last one, so picking TIER can never silently hand you a reversed list you did not ask for. The active tab shows a small arrow, because otherwise the list changes on a second tap with nothing on screen explaining why. Both the sort and its direction persist.
+
+Making this work for the **grouped** sorts was the real job, and it was done by changing where the decision lives. `addSection()` used to draw straight into the grid; it now collects blocks, and one `emitBlocks()` applies the direction. Reversing therefore has exactly one meaning and one implementation — flip the order of the blocks, and flip the cars inside each of them — instead of a different rule per sort.
+
+| sort | forward | reversed |
+|---|---|---|
+| TIER | COMMON, RARE, EPIC, LEGENDARY, SPECIAL | SPECIAL, LEGENDARY, EPIC, RARE, COMMON |
+| ABILITY | RAM ABILITY, JUMP, SPECIAL | SPECIAL, JUMP, RAM ABILITY |
+| PRICE / SPEED | flat list | exact mirror |
+
+### The stock tile is pinned
+
+Found by measuring rather than by looking: with the first version of the reversal, TIER reversed moved the stock tile to the very end, where it landed under the COMMON header with no separation and read as a thirteenth common car — COMMON counted 13 instead of 12, which is what gave it away.
+
+Stock is not a sorted item, it is the "your default car" slot, so it is now pinned out of the reversal entirely and stays first whichever way the list runs. Re-measured: COMMON is 12 in both directions, and every section keeps its own count.
+
+This was the "some combinations read oddly" case being accepted up front. It turned out to be avoidable rather than acceptable.
+
+## 3.9.1 — 2026-09-23 14:05: Batch 512 — SPEED sort, gift/missions cross-links, and a button that was the wrong colour
+
+### The green SCORES button
+
+Direct report. Stats' footer had BACK plus a **mint** SCORES button, while the same journey in the other direction — the Scores screen's own STATS button — was a plain one. Two buttons doing the same kind of job, one of them shouting. Mint is the game's "this is the primary action" colour and a sideways link to another tab is not that. Now a plain `btn`, matching its opposite number.
+
+### GIFT and MISSIONS link to each other
+
+Direct request. They reset on the same midnight and get checked together, so each screen now has a door to the other instead of a trip back through the menu: GIFT's footer gains MISSIONS, MISSIONS' footer gains GIFT.
+
+Both go through the same `openMissionsView()` / `openDailyGiftView()` the main menu buttons use, so a screen arrives in exactly the same state however you reached it — scrolled to the top, re-rendered, countdown running. Three copies of that sequence would have drifted apart eventually.
+
+### Sorting the Garage by SPEED
+
+Direct request: sort by the car's real top speed. A fifth tab beside TIER / ABILITY / PRICE / OWNED, reading `estimateTopSpeedKmh()` — the same per-car figure that drives `playerMaxSpeed` in a run, so the order cannot disagree with how the cars actually feel.
+
+**Fastest first**, unlike PRICE's cheapest-first: the question this sort answers is "what is the quickest thing I own", so the answer belongs at the top. Ties break by name.
+
+Flat list with no tier headers, like PRICE. Unlike PRICE the box-exclusives are **not** pushed to the end — they have a real top speed, where they have no price at all, so there is nothing to push them past.
+
+Verified across all 58 tiles: the sequence is monotonically non-increasing, DRAGSTER at 250 km/h down to TRACTOR at 110, all 7 specials in place, and the rendered order cross-checked against the comparator rather than assumed.
+
+## 3.9.0 — 2026-09-23 13:10: Batch 511 — real brake lights, and the game fills the screen
+
+### Brake lights are the car's own lamps now
+
+Direct request: "just make those pixels brighter red so that they glow. I don't need any aura around them, no additional red pixels, nothing."
+
+Batch 415 painted a synthetic glow — three translucent bands and a solid core — *near* where the lamps roughly are, derived from `hitboxW`. That is what read as obnoxious: it was a made-up light source, not the car's lamps.
+
+Braking now lights the sprite's **own** tail-light pixels and nothing else.
+
+The suggestion was to hand-write three or four lamp layouts and assign cars to them. Measuring first says otherwise: **there are 29 distinct layouts across the roster**, so a four-type table would have been wrong for most of the cars. It also is not needed — every sprite in the file paints its lamps with the same single colour, `#ff4757` (35 of them do), so the positions can simply be **read off the artwork**:
+
+`brakeLampRuns()` draws the car once into an offscreen buffer, collects every pixel of exactly that colour as horizontal runs, and caches the result per car. Deliberate: this project has been burned repeatedly by hand-transcribing sprite coordinates (Batches 175, 410), and a measured answer cannot drift when a sprite is redrawn.
+
+Verified against the source: the stock car returns `[2,22,2]` and `[10,22,2]`, which is exactly what its draw function paints — `fillRect(2, h-2, 2, 1)` and `fillRect(10, h-2, 2, 1)` at h=24.
+
+Detection uses a fixed blue paint rather than the player's, because a car painted `#ff4757` would otherwise have its entire body read as one enormous lamp.
+
+**19 of the 58 cars have no lamp pixels in their art at all** — RALLY, DRIFT, FORMULA, JET BIKE, SCHOOL BUS, FIRE ENGINE, GARBAGE TRUCK and others. They now show nothing when braking, which is correct: the old code was inventing a glow for vehicles that have no lamps drawn on them. Worth deciding separately whether some of those sprites should gain real lamps.
+
+### The game fills the screen
+
+Direct request: full width, then grow the height by showing more road, and drop the frame so it stops looking like a broken box.
+
+**The frame is gone on touch.** Measured on the reported device (480 x 1013 CSS px): the page carried 20px of padding a side, and the frame added 2px of border plus 8px of canvas padding a side — **40px of 480, 8.3% of the width**, spent before a single pixel of road was drawn. On touch the page now keeps only the real safe-area insets, so the app still clears a camera cutout and a home indicator and nothing else. `sizeFrame()`'s chrome constant was hardcoded to 20 and is now computed, because it has to agree with the CSS or the frame is mis-sized by exactly the amount removed. Desktop is untouched — the framed look is deliberate in a window.
+
+**The playfield grows downward.** It was always exactly 260 world units tall, and `sizeFrame()` preserved that ratio — which is what letterboxed it. At 10 lanes the canvas is 296x260, relatively wide, so on a tall phone it fit to *width* and left most of the screen empty. The width fit now happens first and the height becomes however much road fits at that scale, so the screen fills with road instead of with nothing.
+
+Never shorter than 260: that is the designed playfield and shrinking it would move the goalposts on every score already set. Growing it shows more road ahead, which is the ask.
+
+Two clamps followed: the player's `maxY` and the crash sequence's `maxTargetY` both read the designed 260 rather than the real playfield, so a taller view would have left a band of road the car could never reach.
+
+## 3.8.3 — 2026-09-23 11:55: Batch 510 — touch arrows you can actually hit
+
+Direct instruction after real-device testing, and the numbers back it up: `.tc-btn` was 34px inside a `.tc-pad` scaled by `0.82`, so the arrows rendered at **27.9 CSS px**. Android's own minimum touch target is **48dp**. They were at 58% of the floor — not a matter of taste.
+
+The scale is gone and the keys are 52x56 (55x59 with their borders), in **one row** rather than a cross, both as specified. Style is **1B "ICON-ONLY ABILITY"** from the user's `Mobile Controls.dc.html`: flat outlined keys that fill mint while held, so the road stays readable behind them.
+
+Order is the doc's own: the steer pair first, then the speed pair — left, right, down, up.
+
+### The ability badge is the button
+
+No ring, no "USE". The button is now the ability's own badge — the same art the Garage tiles and the results screen wear — so it says whether this car jumps, rams, shoots, bumps or pays. It greys out while held, which is the entire press affordance.
+
+Nearly free: `ABILITY_BADGE_GLYPHS` and `ABILITY_BADGE_COLORS` have existed since Batch 499 with exactly the glyphs and colours the design doc specifies. `abilityBadgeCssPx()` takes its max and target as arguments now, because a Garage tile wants 20px where this wants 64 — the whole-pixel rule is untouched, which is why it stays a search rather than a division.
+
+### The arrows are drawn, not typed
+
+They were the HTML entities. Whatever font Android picked rendered them thin and wrong next to this game's pixel art. They are pixel triangles now, from the same design doc, rotated for each direction.
+
+### A collision the old layout could not prevent
+
+Measured at a 331px bar: the arrow row reached x=278 while the ability button started at x=273 — a 5px overlap, with the rightmost arrow partly untappable underneath it.
+
+Both were absolutely positioned, and absolute positioning cannot express "these must not collide". The strip is a flex row now, the ability button is pushed right with `margin-left: auto`, and the keys may shrink to a 44px floor rather than overrunning. Re-measured: no overlap, min side 55.2px, all four on one row.
+
+### Controls no longer arm on the results screen
+
+Direct report, and confirmed on the device the moment the first test run ended: the touch controls stayed up over the run summary, where the ability button sits on top of RETRY / SCORES / MENU and eats taps meant for them. The floating stick does the same, and worse, because it is invisible until touched.
+
+`.on` is the SETTING (you chose arrows or a stick). `.playing` is the STATE (a run is actually in progress). Both are now required before anything is displayed or armed, so a control cannot exist outside a run. `tcSetPlaying()` is a single function rather than scattered class writes, so exactly one place decides it: true in `launchGame()`, false at the top of `endRun()` — which also covers the crash sequence, not just the summary.
+
+Verified: `none` before a run, `flex` during, `none` after.
+
+## 3.8.2 — 2026-09-23 10:40: Batch 509 — the Android icon is the game's, and sound stops when you leave
+
+First two items from a round of real-device testing over ADB (Android 1080x2280, density override 360, so a 480 x 1013 CSS viewport at DPR 2.25).
+
+### The launcher icon was never ours
+
+Direct report: "the icon for the Android application is not what it's supposed to be, it's some random white background with some lines."
+
+It was Capacitor's stock placeholder — a white tile with a pale grid and a blue cross — exactly what `npx cap add android` writes. Nothing ever replaced it, and the adaptive icon's background colour was still `#FFFFFF`. The Windows build has used the traffic-cone artwork since Batch 427; Android simply never caught up.
+
+New `tools/make_android_icons.py` builds all fifteen from `assets/cone-*.png`:
+
+- `ic_launcher.png` — legacy square, cone at two thirds on the game's own `--c-night` (#12161F)
+- `ic_launcher_round.png` — the same, circularly masked
+- `ic_launcher_foreground.png` — adaptive foreground, transparent, art kept inside the 66/108 safe circle so a launcher's mask and parallax cannot clip it
+
+Every size is an **integer** multiple of one of the cone sources, scaled with NEAREST — 48px is cone-32 ×1, 72px is cone-16 ×3, 432px is cone-128 ×2, and so on. The table is built that way on purpose: the cone is pixel art, and scaling pixel art by a fraction can only blur or deform it, which is the same rule Batches 413, 461, 498 and 502 all learned the hard way. The script asserts the fit rather than trusting the arithmetic.
+
+`drawable/ic_launcher_background.xml` (Capacitor's 170-line grid vector) and `drawable-v24/ic_launcher_foreground.xml` are now unreferenced. Left in place — they were already unreferenced before this change, and removing scaffolding nobody asked about is not this batch's job.
+
+### Sound played on into a locked phone
+
+Direct report: sound kept playing with the screen off, and kept playing after switching apps.
+
+There was no `visibilitychange` handler anywhere in the file — nothing ever told the audio to stop. `requestAnimationFrame` does pause when the page is hidden, so the *game* freezes, but Web Audio does not: the music scheduler runs on its own timers, and notes already scheduled on the context keep sounding regardless.
+
+The audio context is now suspended when the page hides and resumed when it comes back. Suspending the context is the one call that silences everything at once — music, sirens, engine, anything mid-note — instead of hunting down each source.
+
+One trap worth recording: `getAudio()` resumes a suspended context on every call, and the music scheduler's timer keeps calling it in the background, so a plain suspend was undone on the next note. It now refuses to resume while the page is hidden.
+
+Measured: `running` → `suspended` on hide, still `suspended` after a scheduler tick while hidden, `running` again on return.
+
+## 3.8.1 — 2026-09-23 06:05: Batch 508 — results-screen badges lose their extra frame
+
+Direct report: the badges in the run summary's PROGRESS and COMPLETED rows did not look like the badges on the AWARDS screen.
+
+`.go-ach-icon` drew a 2px border and a night-coloured background *around* the badge. Since Batch 502 the badge art already contains its own outline ring and bevel, so every row showed a frame inside a frame — the AWARDS screen's `.ach-icon-box` has drawn no frame of its own since exactly that change, and this one was never updated to match.
+
+Measured before assuming anything about size: `box-sizing` here is `content-box`, so the 34px box held the 31.2px SVG at scale 1.0 — 3 device pixels per sprite pixel at DPR 1.25, on both screens. The badges were never being squeezed or blurred. The extra frame was the whole fault.
+
+`.go-ach-icon` is now the same rule as `.ach-icon-box`: no border, no background, no fixed size. Verified identical on both screens at 31.2 x 31.2 with a transparent background and no border.
+
+## 3.8.0 — 2026-09-23 05:20: Batch 507 — the TANK becomes a special vehicle, and the tutorial stops lying
+
+### The TANK is a box reward now
+
+It was a 15,000,000-coin legendary. It is now the seventh **special vehicle**, and `boxOnly: true` is the whole change — the same single flag the other six carry already does all of it:
+
+| | before | now |
+|---|---|---|
+| buy it | 15,000,000 coins | not for sale at any total |
+| meet it on the road | spawned as ordinary traffic | never spawns |
+| get it | purchase | Daily Gift **Extra Boxes** only |
+| Garage section | LEGENDARY | SPECIAL |
+| "own every car" gate | counted | exempt, like every box-exclusive |
+
+It keeps its shot. `ramAbility` and the `key === 'tank'` checks that turn the ram into TANK SHOOT are untouched. **Anyone who already bought it keeps it** — ownership lives in `allTimeStats.ownedCars`, not in the roster entry.
+
+Two counts moved on their own because they read the roster rather than a hardcoded number: cars to find went 52 → **51**, and the box-reward pool went 6 → **7**.
+
+### Sorting by ABILITY gets a SPECIAL section
+
+TIER and OWNED both group the box-exclusives into their own section. ABILITY did not — it split every car by one flag, so a grand piano, a bathtub and a giant donut sat under **JUMP**, none of which jumps, and the SHIP and the TANK under RAM ABILITY.
+
+Three sections now: RAM ABILITY (8), JUMP (43), SPECIAL (7). Sorted by name like the other modes, because a box-exclusive has no price to sort by.
+
+### A best score that fitted
+
+A 7-digit best score in the Garage hover card showed as `1,929,…`. The card's three stat columns split its 178px body evenly, so BEST SCORE got 55px — six digits' worth — no matter that RUNS and SURVIVED needed far less, and `text-overflow: ellipsis` cut the rest.
+
+Direct choice: let it run onto a second line and let the card grow, rather than abbreviate it or shrink the type. The first attempt broke it mid-group as `1,929,4 / 59`, because `overflow-wrap: anywhere` offers a break at every character and the line breaker takes the last one that fits. Each thousands separator is now a marked break point instead, so it splits into whole groups — `1,929,` / `459`.
+
+### The tutorial stopped being true
+
+Checked every card. What was wrong:
+
+- **THE WHEEL** still told phone players to *drag the road to steer* and *hold the energy bar* for the ability. Dragging was removed back in v3.4.x. It now names the real controls: on-screen ARROWS or a STICK, and the USE button.
+- **SHIELD BUMP** said *Ten heavy vehicles trade Jump for the ram*. It counted every car with `ramAbility`, which includes the SHIP and the TANK — one a box-exclusive, the other a vehicle that shoots rather than rams. Counting only the buyable ones makes the sentence true: **Eight**.
+- **BY THE NUMBERS** said *over twelve thousand lines in a single file*. It is 16,294.
+- **HOW IT WAS BUILT** was frozen at batch 490: 490 → **506**, 6,400+ → **6,700+** lines of changelog, 26 / 33 → **27 / 34** days.
+- Two cards claimed the changelog was *several times longer than the game itself* and *longer than most of the code*. Neither is true and they contradicted each other: the changelog is 6,735 lines / 1.03 MB against the game's 16,294 lines / 1.39 MB. The duplicate claim is gone from BY THE NUMBERS and the surviving one in HOW IT WAS BUILT now says what it actually is — about three quarters the size of the game.
+- **SPECIAL VEHICLES** said *one or two* of them learned something stranger than a coin bonus. With the TANK joining the SHIP and the BUMPER CAR it is three, so: *a few*.
+
+### IT STARTED AS A CAPTCHA is gone
+
+Removed entirely by direct request, along with the sprite that only existed to illustrate it. The ABOUT section now runs WHERE IT CAME FROM → DRAWN IN CODE.
+
 ## 3.7.17 — 2026-09-23 07:05: Batch 506 — a wrecked menu car stops driving
 
 Direct bug report: the cars you blow up behind the main menu carried on driving.
