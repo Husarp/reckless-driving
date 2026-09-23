@@ -1,6 +1,6 @@
 # PLAN
 
-Open work only. Everything from the lettered batches A-M (2026-09-23/24) is finished and lives in
+Open work only. Everything from the lettered batches A-M (2026-09-23) is finished and lives in
 CHANGELOG.md under its own version heading; the full old plan is in git history (`git log -- PLAN.md`).
 
 ## Open

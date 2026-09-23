@@ -6,6 +6,139 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.22.0 — 2026-09-23 23:55: Batch 549 — a duplicate secret retired, and a tutorial that shows its work
+
+### MIRROR, MIRROR is gone, and that settles a second report with it
+
+Direct instruction: "we have a duplicate secret achievement, remove the mirror mirror because we
+already have the full circle." It was a second spin AND a second achievement bolted onto the same
+click - its own exponential-decay animation on the menu ring, next to `spinLevelBadge()`'s eased spin
+on all three badges.
+
+Removing it answers the other report in the same message for free: **"you don't get the achievement
+if you click your rank in Stats or in the Garage."** FULL CIRCLE is delegated across every badge, so
+with the menu-only rival gone there is one spin and one achievement, and it fires wherever you click.
+68 lines of spin machinery went with it.
+
+### Achievements earned outside a run now say so
+
+Direct report: wrecking a car on the menu gives you THE DESTROYER in complete silence.
+
+MIRROR, MIRROR's dialog was the only announcement in the game, hand-written for that one achievement
+- and it left with it. The general version: an unlock during a run is already listed on the results
+screen, and an unlock anywhere else has no surface at all. So the test is "is a results screen coming
+for this?", which is "is the game view up?". Anywhere else - the menu, the Garage, the Daily Gift -
+it announces itself.
+
+### Tutorial
+
+- **The SHIELD BUMP wreck was drawn at half height.** Direct report: "only half of them appears as
+  wrecks underneath." They were drawn at 14x14 from a 14x24 source - 58% - so each read as half a
+  car. That matched the game once and has not since Batch 463, when the real renderer's squash was
+  removed on the feedback that a flattened car "read as not a car at all, just a rectangle". The
+  tutorial never followed, and its own comment went on claiming it matched. Full height now, tinted
+  with the same recipe `drawCrushedWreck()` uses.
+- **THE WHEEL's art demonstrates the movement.** A highlight runs round the four direction keys.
+  One animation serves both platforms, because those four shapes ARE the on-screen arrows as well as
+  the keyboard's.
+- **Its steering line was still keyboard-only** - "the arrows or A / D". The Batch 531 sweep caught
+  every other key-named line on that screen and missed the first thing a phone player reads about
+  steering.
+- **Two new cards.** SETTING UP A RUN (the lane track and the three modes, and what each pays) and
+  TAP, OR HOLD TO LOOK (a tap acts, a hold shows you the thing - a phone has no hover, so holding is
+  where that information lives). 25 cards -> 27.
+
+### The level badge is centred again
+
+Direct report: it "isn't centred, it's shifted to the left". Batch 531 stopped the ring sliding about
+by reserving the width of the longest rank in the game, which left a short name up to 92px of empty
+space to its right - **measured at 46px off centre on RUST I**.
+
+The two wants look contradictory, but the original complaint said which grain mattered:
+"Rust 3, Rust 4, Rust 5 - the roman numbers change". So the reservation is per TIER now. The ring
+holds still for all ten levels of one, and the box is only as wide as that tier needs.
+**Measured: ring drift within a tier 0px, offset from centre 46 -> 9.**
+
+### Garage
+
+- **The ROCKET PODS card was taller than the other two boosters.** Its status row was 22px against
+  their 16px - the coin Batch 529 matched to the car tiles. 16px now, the row's own text height, so
+  the coin rides along instead of setting it. Two of the three then matched; the third was short for
+  an unrelated reason (a one-line name), so booster names reserve two lines.
+- **Abbreviated totals expand on a tap.** Hovering an abbreviated total shows the exact number, and a
+  phone has no hover, so the three places that do this had no way in. One helper for all three now:
+  hover on a mouse, tap-to-toggle on touch - a toggle rather than press-and-hold, because a finger
+  held on a number covers the number.
+
+### Comment cleanup, honestly reported
+
+Asked to find useless comments again, the way an earlier pass removed nearly 2,000 lines.
+
+Measured first: **2,986 comment lines of 18,687 (16%), in 1,100 blocks.** Filtering for the category
+that is genuinely valueless - a block narrating three or more SUPERSEDED attempts, where only the
+last paragraph describes the code that exists - finds **20 blocks totalling 407 lines**. The three
+largest are compressed here, removing **74 lines** while keeping every measurement and every "why not
+the obvious thing" in them.
+
+**A realistic total for that category is ~220 lines, not 2,000**, and the rest of the 2,986 is mostly
+not history: it is measurements, traps, and reasons the obvious approach was rejected. This session
+alone leant on those notes repeatedly. One genuinely stale comment did real harm this week - the
+claim that ambulances were exempt from the bumper's launch made EMERGENCY EXIT look like it needed a
+gameplay exception carved out, when it needed nothing - so the value of the cleanup is accuracy more
+than line count. The remaining 17 blocks are listed by line number in this batch's working notes and
+can go whenever wanted.
+
+## 3.21.1 — 2026-09-23 22:10: Batch 548 — a launch screen that fills the phone, and a car that stops hiding under the bar
+
+### The launch logo is much bigger, and no longer distorted
+
+Asked for: as big as possible on the phone, stretching to the width of the screen.
+
+Checking how it was actually drawn turned up a second, worse problem. The theme sets the splash as
+`android:background`, and **a bitmap used that way is STRETCHED to fill the window**. Capacitor ships
+eleven canvases for that reason, one per orientation and density, so the stretch stays small — but
+none of them is anywhere near a modern phone's shape. On a 1080x2280 screen the closest one
+(1280x1920) is squashed **29% horizontally**. The artwork was being deformed, not merely drawn small.
+
+So it is a layer-list now: a solid `#12161F` underneath, the logo centred on top at its own size.
+A layer-list cannot be stretched, so the art keeps its proportions on any screen. The logo only has
+to exist per DENSITY rather than per density-and-orientation, and each one is sized to land near
+**350dp wide — about 92% of a typical phone's ~380dp** — so it fills the width on anything:
+
+| density | logo | at that density |
+|---|---|---|
+| mdpi | 350x264 | ~350dp |
+| hdpi | 525x396 | ~350dp |
+| xhdpi | 700x529 | ~350dp |
+| xxhdpi | 1050x793 | ~350dp |
+| xxxhdpi | 1310x990 | ~328dp, capped at the source's own width |
+
+The xxxhdpi one is capped deliberately: the artwork is 1310px across and upscaling pixel art past its
+own resolution only softens it. 328dp is still ~91% of the width.
+
+The eleven stretched `splash.png` files are deleted — left in place they would have overridden the
+new XML for their own configurations.
+
+### On Windows there is nothing to make bigger
+
+The desktop app has **no launch screen at all** — `webview.create_window()` is handed no splash and
+no loading page, so the window simply appears and the game loads into it. Nothing was made bigger
+there because there is nothing there to resize. Adding one is a real change rather than a tweak, so
+it is left for the user to ask for.
+
+### The car stopped driving under the control bar
+
+Direct report: after switching CROSS -> SPLIT mid-run, "if my car is at the bottom, it gets covered
+by the bar".
+
+VIEW_H shrinks when a strip appears (Batch 546 made sure of that), but the player's own bottom bound
+is worked out once in its constructor — `maxY = VIEW_H - height - 1` — and was left stale. A car
+sitting low was suddenly below the shortened playfield, drawn underneath the controls. The bound is
+recomputed and the car pulled up with it whenever the layout is rebuilt. Measured with the car parked
+at the very bottom: maxY 279 -> 236, and it stays inside the view instead of 43px under the bar.
+
+Only the floor moves: lanes cannot change mid-run, so the X side needed nothing.
+
 ## 3.21.0 — 2026-09-23 21:00: Batch 547 — the game gets its own face
 
 Three files supplied by the user: `gt-impact.ico`, `loading-impact-1920x1080.png` and

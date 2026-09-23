@@ -200,14 +200,21 @@
         .gc-lock { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(18,22,31,.62) 0 4px, rgba(255,255,255,.30) 4px 8px); }
         .gc-on { position: absolute; top: -2px; right: -2px; background: var(--c-mint); color: #0c2a22; font-family: 'Silkscreen', monospace; font-size: 8px; padding: 2px 4px; border: 2px solid var(--c-night); }
         .gc-meta { display: flex; flex-direction: column; gap: 3px; padding: 6px 6px 7px; min-width: 0; }
-        .gc-name { font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; line-height: 1.5; color: var(--c-text); }
+        /* Batch 549: two lines' worth reserved, so a one-word booster (UNDERGLOW) makes as tall a card
+           as a two-word one (CENTER THRUSTER, ROCKET PODS). Fixing the coin evened two of the three;
+           this evens the third, which was short for an unrelated reason - its name simply fits on one
+           line. A row of cards that are all different heights reads as a mistake either way. */
+        .gc-name { font-family: 'Silkscreen', monospace; font-size: 8px; letter-spacing: 1px; line-height: 1.5; color: var(--c-text); min-height: 24px; }
         .gc-status { font-family: 'VT323', monospace; font-size: 16px; line-height: 1; }
         /* Batch 528 - a price says what it costs. The car tiles have carried a coin beside their price
            all along; the cosmetics cards were the odd ones out. */
         .gc-status-price { display: inline-flex; align-items: center; gap: 4px; }
-        /* Batch 529, direct instruction: the same 22px coin the car tiles wear (.coin-icon-sm), not a
-           smaller one of its own - one coin size across everything that costs coins. */
-        .gc-status-price canvas { width: 22px; height: 22px; image-rendering: pixelated; background: transparent; flex-shrink: 0; }
+        /* Batch 529 matched this to the car tiles' 22px coin. Batch 549 takes it back to 16, on a
+           direct report that the ROCKET PODS card was taller than the other two boosters: measured,
+           its status row was 22px against their 16px, and the card carried all 6px of that. 16px is
+           the row's own text height, so the coin rides along instead of setting it, and the three
+           cards match. The car tiles keep 22 - their rows are taller and have the room. */
+        .gc-status-price canvas { width: 16px; height: 16px; image-rendering: pixelated; background: transparent; flex-shrink: 0; }
         .gc-buy { font-family: 'Silkscreen', monospace; font-size: 8px; color: #2b1c00; background: var(--c-amber); border: 2px solid #000; padding: 2px 0; cursor: pointer; }
         /* Boost cards are the same idea, centred, with room for the flame sprite. */
         .gc-boost { align-items: center; text-align: center; padding: 12px 8px 10px; gap: 7px; }
@@ -1509,6 +1516,21 @@
         .tut-keys { display: grid; grid-template-columns: repeat(3, 22px); grid-auto-rows: 22px; gap: 3px; justify-content: center; align-content: center; }
         kbd.tut-key { font-family: 'Silkscreen', monospace; font-size: 9px; color: var(--c-text); background: var(--c-card); border: 2px solid var(--c-card-border); box-shadow: 2px 2px 0 #000; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
         kbd.tut-key.wide { grid-column: span 3; font-size: 8px; letter-spacing: 1px; }
+        /* Batch 549, direct request: highlight the movement in THE WHEEL's art, "also for a mobile
+           version". One animation serves both, because the four shapes ARE the on-screen arrows as
+           well as the keyboard's - it is the same four directions either way, so a highlight running
+           round them reads as "these are what move you" on a phone and on a desktop alike.
+           Staggered delays rather than four animations: one keyframe set, four offsets into it. */
+        @keyframes tutKeyPulse {
+            0%, 14%  { background: var(--c-mint); border-color: var(--c-mint); color: #0d1017; }
+            22%, 100% { background: var(--c-card); border-color: var(--c-card-border); color: var(--c-text); }
+        }
+        kbd.tut-key.dir { animation: tutKeyPulse 3.2s linear infinite; }
+        kbd.tut-key.k-left  { animation-delay: 0s; }
+        kbd.tut-key.k-up    { animation-delay: .8s; }
+        kbd.tut-key.k-right { animation-delay: 1.6s; }
+        kbd.tut-key.k-down  { animation-delay: 2.4s; }
+        @media (prefers-reduced-motion: reduce) { kbd.tut-key.dir { animation: none; } }
         @keyframes tutFlash { 0% { border-left-color: #fff; } 100% { border-left-color: inherit; } }
         .tut-card.tut-flash { animation: tutFlash 1.1s steps(5) 1; }
         /* Batch 419 — animated road scenes. A scene is a 64x88 native road strip at 2x (the same
@@ -2236,6 +2258,9 @@
         .mm-h2 { font-family: 'Silkscreen', monospace; font-size: 13px; letter-spacing: 6px; color: #fff; text-shadow: 2px 2px 0 #1b2130; }
 
         .mm-level { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 14px; margin-top: 30px; }   /* Batch 515, direct request: was 14px, too tight under the wordmark */
+        /* Batch 549 - all three rings are clickable (spinLevelBadge is delegated to them), so they
+           all say so. The menu one used to get this from MIRROR, MIRROR's own handler, which is gone. */
+        .level-badge-ring-wrap, .mm-level-ring { cursor: pointer; }
         .mm-level-ring { position: relative; width: 88px; height: 88px; flex: none; }
         .mm-level-ring canvas { width: 88px; height: 88px; display: block; background: transparent; }
         .mm-level-num {
@@ -2253,8 +2278,14 @@
             top: -.071em;
         }
         /* Ring is on the LEFT here, so the text is left-aligned and grows rightwards. See the note
-           above .level-badge-text - same fault, same fix, bigger type so a bigger reservation. */
-        .mm-level-text { display: flex; flex-direction: column; gap: 2px; width: 170px; }
+           above .level-badge-text - same fault, same fix, bigger type so a bigger reservation.
+           Batch 549: the width is no longer the fixed 170px Batch 531 reserved for the LONGEST rank
+           in the game. That kept the ring still, but it also meant a short name left up to 92px of
+           empty reserved space on its right - measured, the whole badge's ink sat 46px left of centre
+           on RUST I, which is exactly the "isn't centred" that was reported. syncLevelBadgeWidth()
+           sets it per TIER now, which is the grain the original complaint was actually about
+           ("Rust 3, Rust 4, Rust 5"). */
+        .mm-level-text { display: flex; flex-direction: column; gap: 2px; align-items: center; text-align: center; }
         .mm-level-rank { font-family: 'VT323', monospace; font-size: 30px; line-height: 1; color: var(--c-mint); letter-spacing: 1px; white-space: nowrap; }
         .mm-level-xp { font-family: 'VT323', monospace; font-size: 18px; line-height: 1; color: var(--c-text-dim); }
 
@@ -2431,7 +2462,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.21.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.22.0</span></div>
                 </div>
             </div>
         </div>
@@ -3191,9 +3222,12 @@
                     <div class="tut-card">
                         <div class="tut-card-head"><span class="tut-card-label">THE WHEEL</span><span class="tut-card-rule"></span></div>
                         <div class="tut-card-body">
-                            <div class="tut-art"><div class="tut-keys"><span></span><kbd class="tut-key">&#9650;</kbd><span></span><kbd class="tut-key">&#9668;</kbd><kbd class="tut-key">&#9660;</kbd><kbd class="tut-key">&#9658;</kbd><kbd class="tut-key wide"><span class="keys-hint">SPACE</span><span class="touch-hint">ABILITY</span></kbd></div></div>
+                            <div class="tut-art"><div class="tut-keys"><span></span><kbd class="tut-key dir k-up">&#9650;</kbd><span></span><kbd class="tut-key dir k-left">&#9668;</kbd><kbd class="tut-key dir k-down">&#9660;</kbd><kbd class="tut-key dir k-right">&#9658;</kbd><kbd class="tut-key wide"><span class="keys-hint">SPACE</span><span class="touch-hint">ABILITY</span></kbd></div></div>
                             <div class="tut-copy">
-                                <p>Steer with the arrows or A / D &mdash; one tap moves exactly one lane. Up and down slide you along the road.</p>
+                                <!-- Batch 549: the Batch 531 sweep caught every other key-named line on
+                                     this screen and missed this one, which is the FIRST thing a phone
+                                     player reads about steering. -->
+                                <p><span class="keys-hint">Steer with the arrows or A / D &mdash; one tap moves exactly one lane. Up and down slide you along the road.</span><span class="touch-hint">Steer with the on-screen arrows or the joystick &mdash; one tap moves exactly one lane. Up and down slide you along the road.</span></p>
                                 <p><span class="keys-hint">Space is your ability. P or Escape pauses.</span><span class="touch-hint">The ability button on the right is your ability. The pause button is at the top.</span></p>
                                 <!-- Batch 530, found by the same sweep: this is the mirror of the bug being
                                      fixed - a line about touch controls, shown to a keyboard player who has
@@ -3407,6 +3441,27 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Batch 549, direct requests: two things the tutorial never said out loud. -->
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">SETTING UP A RUN</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-copy">
+                                <p>Both dials live on the menu itself, above <span class="k">START RUN</span>, because both change what you are paid.</p>
+                                <p><span class="k">LANES</span> is the track you drag &mdash; 3 to 10. Fewer lanes is less room and pays more (<span class="k">3 lanes: x1.30</span>); ten is the easiest and pays <span class="k">x1.00</span>. The track is coloured red through green to say which is which.</p>
+                                <p><span class="k">MODE</span> is the three tiles under it. <span class="k">SAFE</span> x0.75, <span class="k">RECKLESS</span> x1.00, <span class="k">SUICIDAL</span> x1.25 &mdash; and each one also decides how quickly you get up to speed.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tut-card">
+                        <div class="tut-card-head"><span class="tut-card-label">TAP, OR HOLD TO LOOK</span><span class="tut-card-rule"></span></div>
+                        <div class="tut-card-body">
+                            <div class="tut-copy">
+                                <p class="touch-hint">A tap does the thing &mdash; equip the car, open the buy dialog, close the card you just opened.</p>
+                                <p class="touch-hint"><span class="k">HOLD</span> anything to look at it instead: a car in the Garage shows its stats, a paint or a booster shows a preview. Let go and it disappears. A phone has no hover, so holding is where that information lives.</p>
+                                <p class="keys-hint">Hover a car in the Garage for its stats, or a paint or booster for a preview. On a phone the same information comes from <span class="k">HOLDING</span> it, since there is nothing to hover with.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="tut-card">
                         <div class="tut-card-head"><span class="tut-card-label">CONES AND BREAKDOWNS</span><span class="tut-card-rule"></span></div>
                         <div class="tut-card-body">
@@ -3509,9 +3564,9 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.19.2 &mdash; AUG 21 TO SEP 23, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">545</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
-                            <div class="tut-val"><span class="tut-val-num">8,300+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
+                            <div class="tut-vals-title">AS OF v3.22.0 &mdash; AUG 21 TO SEP 23, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">549</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
                     </div>
@@ -4078,6 +4133,15 @@
             canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
             tcReservedAtLayout = gameExtraBottom();
             sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
+            // Batch 548, direct report: after switching CROSS -> SPLIT mid-run "my car is driving
+            // under the bar". VIEW_H shrinks when a strip appears, but the player's bottom bound is
+            // worked out once in its constructor (maxY = VIEW_H - height - 1) and was left stale - so
+            // a car sitting low was suddenly below the shortened playfield, drawn under the controls.
+            // The lanes cannot change mid-run, so the X side needs nothing; only the floor moves.
+            if (player) {
+                player.maxY = VIEW_H - player.height - 1;
+                player.y = Math.max(PLAYER_MIN_Y, Math.min(player.maxY, player.y));
+            }
             ROAD_BORDER_LEFT = SIDE_MARGIN;
             ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
             ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
@@ -4676,6 +4740,34 @@
             allTimeStats.achievementsUnlocked[id] = true;
             newlyUnlockedThisRun.push(id); // Batch 347 — result-screen "UNLOCKED" section reads this
             saveAllTimeStats();
+            announceAchievementIfUnseen(id);
+        }
+        /**
+         * Batch 549, direct report: wrecking a car on the menu gives you THE DESTROYER and says
+         * nothing at all, where clicking the level badge used to pop a dialog.
+         *
+         * That dialog was MIRROR, MIRROR's own bespoke one - the only achievement in the game that
+         * ever announced itself - and it went with that achievement earlier this batch. The right
+         * version is general: an unlock earned DURING a run already gets told on the results screen
+         * (newlyUnlockedThisRun), and an unlock earned anywhere else has no surface at all and so
+         * passes in silence. That is the gap, and it is not specific to the menu - the Garage and the
+         * Daily Gift can both unlock things too.
+         *
+         * So the test is "is a results screen coming for this?", which is exactly "is the game view
+         * up?". Anywhere else, say so.
+         */
+        function announceAchievementIfUnseen(id) {
+            try {
+                if (gameView.classList.contains('active')) return;   // the summary will list it
+                const a = achData().find(x => x.id === id);
+                if (!a) return;
+                showConfirm(null, {
+                    title: 'ACHIEVEMENT UNLOCKED',
+                    text: a.name + ' — ' + a.desc,
+                    okLabel: 'NICE',
+                    danger: false
+                });
+            } catch (e) { /* never let a notification break the thing that earned it */ }
         }
         // "MILLIONAIRE" one-time achievement: current BALANCE ≥ 10,000,000 at once (not lifetime-earned — that's Businessman's job).
         const MILLIONAIRE_THRESHOLD = 10000000;
@@ -5256,6 +5348,44 @@
             }
             if (dy) numEl.style.transform = 'translateY(' + dy + 'px)';
         }
+        /**
+         * Batch 549, direct report: the menu's level badge "isn't centred - it's shifted to the left".
+         *
+         * Batch 531 stopped the ring sliding about by reserving the width of the LONGEST rank in the
+         * game (SAPPHIRE VIII, 170px). That fixed the movement and created this: a short name left up
+         * to 92px of empty reserved space to its right, so the badge's ink sat left of centre - 46px
+         * out on RUST I, 26px on GOLD VIII, 0 only on the longest name of all.
+         *
+         * The two wants look contradictory (a still ring needs a fixed width; centred ink needs a
+         * width that follows the text) but they are not, because of what the original report actually
+         * said: "Rust 3, Rust 4, Rust 5 - the roman numbers change". The complaint was the numeral
+         * changing WITHIN a tier, not the tier changing. So reserve the widest name in the CURRENT
+         * tier: the ring holds still for all ten levels of it, and the box is only ever as wide as
+         * that tier needs, so the ink stays centred. It steps once per tier - every ten levels,
+         * alongside a colour change nobody will miss.
+         */
+        let levelBadgeMeasureCtx = null;
+        function syncLevelBadgeWidth() {
+            const box = document.querySelector('.mm-level-text');
+            if (!box) return;
+            if (!levelBadgeMeasureCtx) levelBadgeMeasureCtx = document.createElement('canvas').getContext('2d');
+            const c = levelBadgeMeasureCtx;
+            const level = allTimeStats.playerLevel;
+
+            // Every rank this tier can show. Champion (101+) has no numeral, so it is its own width.
+            c.font = "30px 'VT323', monospace";
+            const tierBase = level >= 101 ? [LEGENDARY_TIER.name] :
+                ROMAN_NUMERALS.map(n => levelTier(level).name + ' ' + n);
+            // measureText ignores letter-spacing, which this line has at 1px per character.
+            const rankMax = Math.max(...tierBase.map(t => c.measureText(t.toUpperCase()).width + t.length));
+
+            // The XP line grows within a level too: widest is one short of the requirement.
+            c.font = "18px 'VT323', monospace";
+            const req = levelReq(level);
+            const xpMax = c.measureText((req - 1) + '/' + req).width;
+
+            box.style.width = Math.ceil(Math.max(rankMax, xpMax)) + 'px';
+        }
         function paintLevelBadgeAt(ringCanvas, numEl, xpEl, rankEl, level, xp, ringPct) {
             const S = 24;
             ringCanvas.width = S; ringCanvas.height = S;
@@ -5294,38 +5424,18 @@
         function markLevelAnimStart() {
             if (!levelBadgeAnimFrom) levelBadgeAnimFrom = { level: allTimeStats.playerLevel, xp: allTimeStats.playerXP };
         }
-        // Batch 444, user's own idea: "click on the players level : animation : progress bar goes like
-        // up (does whole circle and comes to its place)". The fill sweeps forward from where it really
-        // is, all the way round, and lands back on its real value - `(real + eased) % 1` ends at
-        // exactly `real` when eased hits 1, so it can never settle on a wrong-looking fill.
+        // Clicking the badge spins the ring. The whole spin is planned up front: a click picks a
+        // LANDING ANGLE and the motion is one eased tween onto it, so deceleration is whatever it has
+        // to be to arrive exactly there. Friction-then-snap was the obvious alternative and it reads
+        // as two motions stitched together - it stops, then does a little extra spin.
         //
-        // No cursor:pointer anywhere near the badge, and no hover hint: this is a secret achievement,
-        // so anything that advertises the badge as clickable would give it away.
-        // Batch 462, rebuilt from the described behaviour: a click SPINS the ring, repeated clicks make
-        // it spin faster rather than restarting it, and it coasts down to a stop on its own.
+        // The landing is always a WHOLE turn, because the progress arc starts at 12 o'clock and has to
+        // keep meaning that. Clicks accumulate: another during a spin extends the landing by two more
+        // turns and re-times the tween from the current angle, so it speeds up rather than restarting.
         //
-        // The spin is a CSS rotate on the ring canvas, not a redraw. That matters for three reasons: the
-        // number is a separate element so it stays put and upright exactly as asked; the ring keeps
-        // showing the player's real XP the whole time, because its pixels never change; and nothing has
-        // to block paintLevelBadge() any more, which is what made the previous version able to strand the
-        // badge permanently if a frame never arrived.
-        //
-        // It always settles on a WHOLE turn. Stopping at an arbitrary angle would leave the progress arc
-        // pointing somewhere it does not mean - the arc starts at 12 o'clock and that has to stay true.
-        // Batch 527, direct request: "calculate it so that it will perfectly stop at its final position".
-        //
-        // The old model was friction-then-ease: decay the velocity, and once it fell below a threshold,
-        // pick the next whole turn and ease onto it. That lands on the right spot but it is two
-        // different motions stitched together, and the hand-off is what read as "it stops, then does
-        // another spin". Batch 470 had already had to fix a version of that seam.
-        //
-        // This plans the whole thing up front instead. A click chooses a LANDING ANGLE - always a whole
-        // turn, because the progress arc starts at 12 o'clock and that has to stay true - and the spin
-        // is one eased tween from where it is now to exactly there. Deceleration is therefore not a
-        // force being applied and hoped about; it is whatever it has to be to arrive on the spot.
-        //
-        // Clicks still accumulate: another click during a spin extends the landing by two more turns
-        // and re-times the tween from the current angle, so it speeds back up rather than restarting.
+        // It is a CSS rotate on the ring canvas, not a redraw: the number is a separate element so it
+        // stays upright, the ring keeps showing real XP because its pixels never change, and nothing
+        // blocks paintLevelBadge() - which is what could strand the badge if a frame never arrived.
         const SPIN_TURNS_PER_CLICK = 2;
         const SPIN_BASE_MS = 420;      // the landing itself
         const SPIN_PER_TURN_MS = 260;  // added per turn of travel, so more turns means longer, not faster
@@ -5386,74 +5496,16 @@
             }
             paintLevelBadgeAt(ringCanvas, numEl, xpEl, rankEl, allTimeStats.playerLevel, allTimeStats.playerXP);
         }
-        // "Mirror, Mirror" spin — JS-driven (not a fixed CSS @keyframes animation) for 2 direct
-        // reasons: (1) rapid re-clicks should ACCELERATE the spin instead of restarting it from
-        // scratch, and take proportionally longer to settle back down; (2) a fixed-duration CSS
-        // animation's timeline behaves oddly across a tab switch (backgrounding a tab mid-spin then
-        // returning read as "it restarts, even though I didn't click again"). Model: each click adds
-        // 360° to a "still owed" pool; current angular speed is proportional to that pool (classic
-        // critically-damped decay, closed-form/exponential rather than per-frame Euler integration —
-        // stable for ANY elapsed dt, including a long tab-away gap, so returning to the tab just
-        // correctly finishes the spin instead of replaying anything). Since angle always advances by
-        // exactly however much the pool shrinks, it lands on an exact multiple of 360° (upright) by
-        // construction, with no separate "snap to true north" step needed.
-        const MIRROR_SPIN_RATE = 7;       // 1/s decay rate — higher = snappier single-click spin
-        const MIRROR_SPIN_MAX_DEG = 1440; // cap the "owed" pool at 4 full spins so mashing can't spin forever
-        const MIRROR_SPIN_STOP_DEG = 0.5; // below this, snap to the exact target angle and stop
-        const mirrorSpinState = new WeakMap();
-        function mirrorSpinKick(wrap) {
-            let st = mirrorSpinState.get(wrap);
-            if (!st) {
-                st = { angle: 0, remaining: 0, lastTs: performance.now(), running: false };
-                mirrorSpinState.set(wrap, st);
-            }
-            st.remaining = Math.min(MIRROR_SPIN_MAX_DEG, st.remaining + 360);
-            st.lastTs = performance.now();
-            if (st.running) return;
-            st.running = true;
-            const tick = (now) => {
-                const dt = Math.max(0, (now - st.lastTs) / 1000);
-                st.lastTs = now;
-                const before = st.remaining;
-                st.remaining *= Math.exp(-MIRROR_SPIN_RATE * dt);
-                st.angle += before - st.remaining;
-                if (st.remaining < MIRROR_SPIN_STOP_DEG) {
-                    st.remaining = 0;
-                    st.running = false;
-                    wrap.style.transform = '';
-                    return;
-                }
-                wrap.style.transform = `rotate(${st.angle}deg)`;
-                requestAnimationFrame(tick);
-            };
-            requestAnimationFrame(tick);
-        }
-        // "Mirror, Mirror" secret: the MAIN MENU badge only, which is what the achievement has always
-        // said - "click your own level badge on the main menu".
+        // Batch 549, direct instruction: MIRROR, MIRROR is gone - "we have a duplicate secret
+        // achievement, remove the mirror mirror because we already have the full circle". It was a
+        // second spin AND a second achievement bolted onto the same click: its own exponential-decay
+        // animation on the menu ring only, next to spinLevelBadge()'s eased spin on all three badges.
         //
-        // Batch 504, direct report: "why do you get a notification for clicking the player's level in
-        // stats? (didn't get it when I clicked it in the main menu)". Exactly backwards, and this was
-        // why: the selector was `.level-badge-ring-wrap`, which the Garage and Stats badges use and the
-        // main menu badge does not - it is `.mm-level-ring`. So the one screen the text names was the
-        // one screen excluded, and the two it does not name both fired it. Stats also fired FULL CIRCLE
-        // at the same time (that one is delegated across all three badges and is meant to be), so a
-        // click there set off two achievements at once while the main menu set off the silent one.
-        document.querySelectorAll('.mm-level-ring').forEach(wrap => {
-            wrap.style.cursor = 'pointer';
-            wrap.addEventListener('click', () => {
-                mirrorSpinKick(wrap);
-                const firstTime = !allTimeStats.achievementsUnlocked.mirror_mirror;
-                unlockAchievement('mirror_mirror');
-                if (firstTime) {
-                    showConfirm(null, {
-                        title: 'ACHIEVEMENT UNLOCKED',
-                        text: 'Mirror, Mirror — click your own level badge, just to watch it spin.',
-                        okLabel: 'NICE',
-                        danger: false
-                    });
-                }
-            });
-        });
+        // Removing it settles a second report in the same message for free - "you don't get the
+        // achievement if you click your rank in Stats or in the Garage". FULL CIRCLE is delegated
+        // across every badge, so with the menu-only one gone there is one spin and one achievement,
+        // and it fires wherever you click.
+
         // Builds one segment per level crossed between the "before" snapshot and the real current values — each segment fills that level's ring from wherever it starts to full (or, for the final segment, to the real ending XP) — so a level-up mid-animation reads as the ring genuinely filling up and rolling over to the next level, not just jumping to a new number.
         function animateLevelBadge(ringCanvas, numEl, xpEl, rankEl, fromLevel, fromXp, toLevel, toXp) {
             const segments = [];
@@ -6238,6 +6290,30 @@
          * rolling up from a stale value every time a screen opens would be noise. The previously
          * shown value lives on the element, so every caller gets this for free without tracking it.
          */
+        /**
+         * Batch 549, direct request: an abbreviated total expands to the exact number on HOVER, and
+         * "the same thing should happen on mobile when you just press it". A phone has no hover, so
+         * the three places that do this had no way in at all.
+         *
+         * One helper for all three (Garage header, Daily Gift header, results screen) rather than a
+         * third copy of the same two lines: hover on a mouse, tap-to-toggle on touch. The tap toggles
+         * rather than being press-and-hold, because a finger held on a number covers the number.
+         */
+        function bindExactOnDemand(el, exactOf, shortOf) {
+            if (!el) return;
+            el.onmouseenter = () => { if (!IS_TOUCH) el.textContent = exactOf(); };
+            el.onmouseleave = () => { if (!IS_TOUCH) el.textContent = shortOf(); };
+            el.onclick = () => {
+                if (!IS_TOUCH) return;
+                const showing = el.dataset.exact === '1';
+                el.dataset.exact = showing ? '0' : '1';
+                el.textContent = showing ? shortOf() : exactOf();
+            };
+            if (IS_TOUCH) {
+                el.style.cursor = 'pointer';
+                el.dataset.exact = '0';
+            }
+        }
         const rollTimers = new WeakMap();
         function stopRoll(el) {
             const t = rollTimers.get(el);
@@ -9240,8 +9316,9 @@
         function renderDailyGiftHeader() {
             // direct repeated instruction: the header's day-streak readout duplicates the gift card's own STREAK stat tile, remove it.
             rollNumberInto(dgHeaderCoins, allTimeStats.totalCoins, coinDisplay);
-            dgHeaderCoins.onmouseenter = () => { dgHeaderCoins.textContent = allTimeStats.totalCoins.toLocaleString('en-US'); };
-            dgHeaderCoins.onmouseleave = () => { dgHeaderCoins.textContent = coinDisplay(allTimeStats.totalCoins); };
+            bindExactOnDemand(dgHeaderCoins,
+                () => allTimeStats.totalCoins.toLocaleString('en-US'),
+                () => coinDisplay(allTimeStats.totalCoins));
             renderCoinIcon(dgHeaderCoinIcon);
         }
 
@@ -9509,7 +9586,6 @@
             back_to_back:           [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 3, 1, '#e63946'], [5, 3, 3, 1, '#12161f'], [8, 3, 3, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 3, 1, '#e63946'], [5, 5, 3, 1, '#12161f'], [8, 5, 3, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 3, 1, '#e63946'], [5, 6, 3, 1, '#12161f'], [8, 6, 3, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 9, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             dripped_out:            [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#e0a8ff'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#e0a8ff'], [2, 2, 9, 1, '#c060ff'], [11, 2, 1, 1, '#8a33c4'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#e0a8ff'], [2, 3, 9, 1, '#c060ff'], [11, 3, 1, 1, '#8a33c4'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#e0a8ff'], [2, 4, 2, 1, '#c060ff'], [4, 4, 5, 1, '#12161f'], [9, 4, 2, 1, '#c060ff'], [11, 4, 1, 1, '#8a33c4'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#e0a8ff'], [2, 5, 1, 1, '#c060ff'], [3, 5, 7, 1, '#12161f'], [10, 5, 1, 1, '#c060ff'], [11, 5, 1, 1, '#8a33c4'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#e0a8ff'], [2, 6, 1, 1, '#c060ff'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#c060ff'], [11, 6, 1, 1, '#8a33c4'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#e0a8ff'], [2, 7, 2, 1, '#c060ff'], [4, 7, 5, 1, '#12161f'], [9, 7, 2, 1, '#c060ff'], [11, 7, 1, 1, '#8a33c4'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#e0a8ff'], [2, 8, 3, 1, '#c060ff'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#c060ff'], [11, 8, 1, 1, '#8a33c4'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#e0a8ff'], [2, 9, 4, 1, '#c060ff'], [6, 9, 1, 1, '#12161f'], [7, 9, 4, 1, '#c060ff'], [11, 9, 1, 1, '#8a33c4'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#e0a8ff'], [2, 10, 9, 1, '#c060ff'], [11, 10, 1, 1, '#8a33c4'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#e0a8ff'], [2, 11, 10, 1, '#8a33c4'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             just_in_time:           [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ffd97a'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ffd97a'], [2, 2, 9, 1, '#f5b32a'], [11, 2, 1, 1, '#b87c0a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ffd97a'], [2, 3, 2, 1, '#f5b32a'], [4, 3, 5, 1, '#12161f'], [9, 3, 2, 1, '#f5b32a'], [11, 3, 1, 1, '#b87c0a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ffd97a'], [2, 4, 1, 1, '#f5b32a'], [3, 4, 1, 1, '#12161f'], [4, 4, 2, 1, '#f5b32a'], [6, 4, 1, 1, '#12161f'], [7, 4, 2, 1, '#f5b32a'], [9, 4, 1, 1, '#12161f'], [10, 4, 1, 1, '#f5b32a'], [11, 4, 1, 1, '#b87c0a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ffd97a'], [2, 5, 1, 1, '#f5b32a'], [3, 5, 1, 1, '#12161f'], [4, 5, 2, 1, '#f5b32a'], [6, 5, 1, 1, '#12161f'], [7, 5, 2, 1, '#f5b32a'], [9, 5, 1, 1, '#12161f'], [10, 5, 1, 1, '#f5b32a'], [11, 5, 1, 1, '#b87c0a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ffd97a'], [2, 6, 1, 1, '#f5b32a'], [3, 6, 1, 1, '#12161f'], [4, 6, 2, 1, '#f5b32a'], [6, 6, 2, 1, '#12161f'], [8, 6, 1, 1, '#f5b32a'], [9, 6, 1, 1, '#12161f'], [10, 6, 1, 1, '#f5b32a'], [11, 6, 1, 1, '#b87c0a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ffd97a'], [2, 7, 1, 1, '#f5b32a'], [3, 7, 1, 1, '#12161f'], [4, 7, 5, 1, '#f5b32a'], [9, 7, 1, 1, '#12161f'], [10, 7, 1, 1, '#f5b32a'], [11, 7, 1, 1, '#b87c0a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ffd97a'], [2, 8, 1, 1, '#f5b32a'], [3, 8, 1, 1, '#12161f'], [4, 8, 5, 1, '#f5b32a'], [9, 8, 1, 1, '#12161f'], [10, 8, 1, 1, '#f5b32a'], [11, 8, 1, 1, '#b87c0a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ffd97a'], [2, 9, 2, 1, '#f5b32a'], [4, 9, 5, 1, '#12161f'], [9, 9, 2, 1, '#f5b32a'], [11, 9, 1, 1, '#b87c0a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ffd97a'], [2, 10, 9, 1, '#f5b32a'], [11, 10, 1, 1, '#b87c0a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ffd97a'], [2, 11, 10, 1, '#b87c0a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
-            mirror_mirror:          [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#e0a8ff'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#e0a8ff'], [2, 2, 9, 1, '#c060ff'], [11, 2, 1, 1, '#8a33c4'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#e0a8ff'], [2, 3, 2, 1, '#c060ff'], [4, 3, 5, 1, '#12161f'], [9, 3, 2, 1, '#c060ff'], [11, 3, 1, 1, '#8a33c4'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#e0a8ff'], [2, 4, 1, 1, '#c060ff'], [3, 4, 1, 1, '#12161f'], [4, 4, 2, 1, '#c060ff'], [6, 4, 1, 1, '#12161f'], [7, 4, 2, 1, '#c060ff'], [9, 4, 1, 1, '#12161f'], [10, 4, 1, 1, '#c060ff'], [11, 4, 1, 1, '#8a33c4'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#e0a8ff'], [2, 5, 1, 1, '#c060ff'], [3, 5, 1, 1, '#12161f'], [4, 5, 2, 1, '#c060ff'], [6, 5, 1, 1, '#12161f'], [7, 5, 2, 1, '#c060ff'], [9, 5, 1, 1, '#12161f'], [10, 5, 1, 1, '#c060ff'], [11, 5, 1, 1, '#8a33c4'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#e0a8ff'], [2, 6, 1, 1, '#c060ff'], [3, 6, 1, 1, '#12161f'], [4, 6, 2, 1, '#c060ff'], [6, 6, 2, 1, '#12161f'], [8, 6, 1, 1, '#c060ff'], [9, 6, 1, 1, '#12161f'], [10, 6, 1, 1, '#c060ff'], [11, 6, 1, 1, '#8a33c4'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#e0a8ff'], [2, 7, 1, 1, '#c060ff'], [3, 7, 1, 1, '#12161f'], [4, 7, 5, 1, '#c060ff'], [9, 7, 1, 1, '#12161f'], [10, 7, 1, 1, '#c060ff'], [11, 7, 1, 1, '#8a33c4'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#e0a8ff'], [2, 8, 1, 1, '#c060ff'], [3, 8, 1, 1, '#12161f'], [4, 8, 5, 1, '#c060ff'], [9, 8, 1, 1, '#12161f'], [10, 8, 1, 1, '#c060ff'], [11, 8, 1, 1, '#8a33c4'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#e0a8ff'], [2, 9, 2, 1, '#c060ff'], [4, 9, 5, 1, '#12161f'], [9, 9, 2, 1, '#c060ff'], [11, 9, 1, 1, '#8a33c4'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#e0a8ff'], [2, 10, 9, 1, '#c060ff'], [11, 10, 1, 1, '#8a33c4'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#e0a8ff'], [2, 11, 10, 1, '#8a33c4'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             word_sacrifice:         [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#9af5d8'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#9af5d8'], [2, 2, 9, 1, '#2ee6b0'], [11, 2, 1, 1, '#16a07a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#9af5d8'], [2, 3, 1, 1, '#2ee6b0'], [3, 3, 7, 1, '#12161f'], [10, 3, 1, 1, '#2ee6b0'], [11, 3, 1, 1, '#16a07a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#9af5d8'], [2, 4, 1, 1, '#2ee6b0'], [3, 4, 1, 1, '#12161f'], [4, 4, 5, 1, '#2ee6b0'], [9, 4, 1, 1, '#12161f'], [10, 4, 1, 1, '#2ee6b0'], [11, 4, 1, 1, '#16a07a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#9af5d8'], [2, 5, 1, 1, '#2ee6b0'], [3, 5, 1, 1, '#12161f'], [4, 5, 1, 1, '#2ee6b0'], [5, 5, 3, 1, '#12161f'], [8, 5, 1, 1, '#2ee6b0'], [9, 5, 1, 1, '#12161f'], [10, 5, 1, 1, '#2ee6b0'], [11, 5, 1, 1, '#16a07a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#9af5d8'], [2, 6, 1, 1, '#2ee6b0'], [3, 6, 1, 1, '#12161f'], [4, 6, 5, 1, '#2ee6b0'], [9, 6, 1, 1, '#12161f'], [10, 6, 1, 1, '#2ee6b0'], [11, 6, 1, 1, '#16a07a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#9af5d8'], [2, 7, 1, 1, '#2ee6b0'], [3, 7, 7, 1, '#12161f'], [10, 7, 1, 1, '#2ee6b0'], [11, 7, 1, 1, '#16a07a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#9af5d8'], [2, 8, 2, 1, '#2ee6b0'], [4, 8, 2, 1, '#12161f'], [6, 8, 5, 1, '#2ee6b0'], [11, 8, 1, 1, '#16a07a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#9af5d8'], [2, 9, 2, 1, '#2ee6b0'], [4, 9, 1, 1, '#12161f'], [5, 9, 6, 1, '#2ee6b0'], [11, 9, 1, 1, '#16a07a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#9af5d8'], [2, 10, 9, 1, '#2ee6b0'], [11, 10, 1, 1, '#16a07a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#9af5d8'], [2, 11, 10, 1, '#16a07a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             serpentine:             [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#9ccaff'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#9ccaff'], [2, 2, 9, 1, '#4d9fff'], [11, 2, 1, 1, '#2c6fc4'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#9ccaff'], [2, 3, 3, 1, '#4d9fff'], [5, 3, 1, 1, '#12161f'], [6, 3, 5, 1, '#4d9fff'], [11, 3, 1, 1, '#2c6fc4'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#9ccaff'], [2, 4, 2, 1, '#4d9fff'], [4, 4, 6, 1, '#12161f'], [10, 4, 1, 1, '#4d9fff'], [11, 4, 1, 1, '#2c6fc4'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#9ccaff'], [2, 5, 3, 1, '#4d9fff'], [5, 5, 1, 1, '#12161f'], [6, 5, 5, 1, '#4d9fff'], [11, 5, 1, 1, '#2c6fc4'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#9ccaff'], [2, 6, 9, 1, '#4d9fff'], [11, 6, 1, 1, '#2c6fc4'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#9ccaff'], [2, 7, 5, 1, '#4d9fff'], [7, 7, 1, 1, '#12161f'], [8, 7, 3, 1, '#4d9fff'], [11, 7, 1, 1, '#2c6fc4'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#9ccaff'], [2, 8, 1, 1, '#4d9fff'], [3, 8, 6, 1, '#12161f'], [9, 8, 2, 1, '#4d9fff'], [11, 8, 1, 1, '#2c6fc4'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#9ccaff'], [2, 9, 5, 1, '#4d9fff'], [7, 9, 1, 1, '#12161f'], [8, 9, 3, 1, '#4d9fff'], [11, 9, 1, 1, '#2c6fc4'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#9ccaff'], [2, 10, 9, 1, '#4d9fff'], [11, 10, 1, 1, '#2c6fc4'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#9ccaff'], [2, 11, 10, 1, '#2c6fc4'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             addicted:               [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ffd97a'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ffd97a'], [2, 2, 9, 1, '#f5b32a'], [11, 2, 1, 1, '#b87c0a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ffd97a'], [2, 3, 4, 1, '#f5b32a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#f5b32a'], [11, 3, 1, 1, '#b87c0a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ffd97a'], [2, 4, 3, 1, '#f5b32a'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#f5b32a'], [11, 4, 1, 1, '#b87c0a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ffd97a'], [2, 5, 2, 1, '#f5b32a'], [4, 5, 2, 1, '#12161f'], [6, 5, 1, 1, '#f5b32a'], [7, 5, 1, 1, '#12161f'], [8, 5, 3, 1, '#f5b32a'], [11, 5, 1, 1, '#b87c0a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ffd97a'], [2, 6, 2, 1, '#f5b32a'], [4, 6, 5, 1, '#12161f'], [9, 6, 2, 1, '#f5b32a'], [11, 6, 1, 1, '#b87c0a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ffd97a'], [2, 7, 1, 1, '#f5b32a'], [3, 7, 2, 1, '#12161f'], [5, 7, 1, 1, '#f5b32a'], [6, 7, 4, 1, '#12161f'], [10, 7, 1, 1, '#f5b32a'], [11, 7, 1, 1, '#b87c0a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ffd97a'], [2, 8, 1, 1, '#f5b32a'], [3, 8, 2, 1, '#12161f'], [5, 8, 2, 1, '#f5b32a'], [7, 8, 3, 1, '#12161f'], [10, 8, 1, 1, '#f5b32a'], [11, 8, 1, 1, '#b87c0a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ffd97a'], [2, 9, 2, 1, '#f5b32a'], [4, 9, 5, 1, '#12161f'], [9, 9, 2, 1, '#f5b32a'], [11, 9, 1, 1, '#b87c0a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ffd97a'], [2, 10, 9, 1, '#f5b32a'], [11, 10, 1, 1, '#b87c0a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ffd97a'], [2, 11, 10, 1, '#b87c0a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
@@ -9666,7 +9742,6 @@
             // deliberately not built - the words are crash CAUSES with wildly different rates, so it
             // would be governed by the rarest one and run to many hundreds of crashes. See PLAN.md.
             { id: 'full_spectrum', icon: 'full_palette', name: 'FULL SPECTRUM', desc: 'See the crash text in all five of its colours.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.full_spectrum },
-            { id: 'mirror_mirror', icon: 'mirror_mirror', name: 'MIRROR, MIRROR', desc: 'Click your own level badge on the main menu, just to watch it spin. No one asked you to.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.mirror_mirror },
             { id: 'word_sacrifice', icon: 'word_sacrifice', name: 'WORD SACRIFICE', desc: 'Collect a Daily Word letter, then crash within half a second of it.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.word_sacrifice },
             { id: 'serpentine', icon: 'serpentine', name: 'SERPENTINE', desc: 'Switch lanes 20 times within 5 seconds.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.serpentine },
             { id: 'addicted', icon: 'addicted', name: 'ADDICTED?', desc: 'Play for one whole hour in one sitting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.addicted },
@@ -11010,41 +11085,25 @@
 
                 // Reverted per user feedback: bell-curve lane offset made cars look off-center; back to centered
                 this.x = ROAD_BORDER_LEFT + lane * this.laneWidth + (this.laneWidth - this.width) / 2;
-                // Ambulances spawn behind the player and overtake from behind (Batch 52) — user feedback was that an ambulance appearing ahead and rushing toward the player read as oncoming traffic, not a real emergency vehicle catching up and passing.
-                // Batch 426 - the breakdown obstacle needs a deeper start than everything else.
-                // Its barrier and cones are drawn BELOW the parked car (drawBreakdownDressing53 is
-                // called at this.y + height + 6, so the player meets the cones first), and the
-                // lowest cone reaches another 30px past that. At the shared -height-10 start the
-                // car was off-screen but its dressing began at y=-4, so the cones popped into
-                // existence at the top edge instead of scrolling in - the reported "they just
-                // appear weirdly". Backing the whole assembly out by its real full height fixes it.
-                // Batch 431 - traffic starts at a jittered depth above the screen instead of all at
-                // the same line. Every spawn used to begin at exactly -height-10, so on an empty road
-                // (i.e. the first seconds of a run, when nothing blocks a spawn) consecutive spawns
-                // entered nearly level with each other and read as a wall arriving in formation.
-                // Jitter is UPWARD only, so it can never reduce the clearance canSpawnAt() checked.
-                // Batch 535, direct report with a screenshot: "every time you start a game, the first
-                // wave of vehicles is almost a straight line. Later it's okay, but the first one
-                // almost always looks like this."
+                // Ambulances spawn behind the player and overtake from behind (Batch 52): one appearing
+                // ahead and rushing toward you reads as oncoming traffic, not as catching up.
                 //
-                // The jitter above was already the fix for this and it was simply too small: 46px
-                // against a 260-unit view is 18% of the screen, and the spread in the user's
-                // screenshot is about that - so the jitter was the ONLY thing separating those cars,
-                // and it could not separate them enough.
+                // The breakdown obstacle starts deeper than everything else. Its barrier and cones are
+                // drawn BELOW the parked car (drawBreakdownDressing53 at this.y + height + 6, so the
+                // player meets the cones first) and the lowest cone reaches 30px past that, so at the
+                // shared -height-10 start the dressing began at y=-4 and popped in at the top edge.
                 //
-                // The cause is structural, not random. At the start of a run the road is empty, so
-                // nothing blocks canSpawnAt() in any lane and several lanes convert on consecutive
-                // frames - all entering at the same place just above the top edge. So the spread
-                // scales with how empty the road actually is: wide open at the start, back to the
-                // original 46 once traffic is established. That also stops a wall re-forming
-                // mid-run after you have cleared the road, without needing a timer to decide when
-                // "the start" has stopped.
+                // Everything else starts at a jittered depth, and the jitter SCALES WITH HOW EMPTY THE
+                // ROAD IS. A fixed offset cannot work: at the start of a run nothing blocks a spawn in
+                // any lane, so several convert on consecutive frames and arrive in a line, and 46px
+                // against a 260-unit view is too little to break that up. Wide open when the road is
+                // empty, back to 46 once traffic is established, with no timer deciding when "the
+                // start" ended - and it stops a wall re-forming after you clear the road mid-run.
                 //
-                // Still UPWARD only, which is what keeps it safe: a jittered car sits further from
-                // the traffic canSpawnAt() just measured, never closer. And a car still above the
-                // top edge blocks its own lane (canSpawnAt's `v.y - vH - buffer < safetyY` test is
-                // true for any negative y), so a big offset cannot let a second car spawn in on top
-                // of it - it holds its lane until it comes down.
+                // Jitter is UPWARD only, which is what keeps it safe: a jittered car sits further from
+                // the traffic canSpawnAt() just measured, never closer. A car still above the top edge
+                // also blocks its own lane (canSpawnAt's `v.y - vH - buffer < safetyY` is true for any
+                // negative y), so a large offset cannot let a second car spawn in on top of it.
                 const roadSparse = 1 - Math.min(1, vehicles.length / Math.max(2, config.lanes * 0.6));
                 const jitterRange = 46 + roadSparse * VIEW_H * 0.9;
                 const startJitter = type === 'ambulance' || type === 'obstacle' ? 0 : Math.random() * jitterRange;
@@ -13641,7 +13700,10 @@
             calculateMultiplier();
             mmSyncSetup();
             // direct bug report: claiming a mission (and, by the same mechanism, any Daily Gift/Word/Extra Box reward) calls this UNCONDITIONALLY as a "keep the menu's cached badge fresh for later" pattern, even while some other screen is actually the one visible.
-            if (menuView.classList.contains('active')) paintLevelBadge(menuLevelRing, menuLevelNum, menuLevelXpText, menuLevelRankText);
+            if (menuView.classList.contains('active')) {
+                paintLevelBadge(menuLevelRing, menuLevelNum, menuLevelXpText, menuLevelRankText);
+                syncLevelBadgeWidth();
+            }
             updateGarageNewBadge();
             updateDailyGiftClaimBadge();
             updateMissionsClaimBadge();
@@ -15602,8 +15664,9 @@
             // exact-number pattern already used in the Garage/Daily Gift (`.onmouseenter`/
             // `.onmouseleave` assignment, not addEventListener, so re-showing the result screen
             // doesn't stack listeners on this same persistent element).
-            goCoins.onmouseenter = () => { goCoins.textContent = r.finalCoins.toLocaleString('en-US'); };
-            goCoins.onmouseleave = () => { goCoins.textContent = coinDisplay(r.finalCoins); };
+            bindExactOnDemand(goCoins,
+                () => r.finalCoins.toLocaleString('en-US'),
+                () => coinDisplay(r.finalCoins));
         }
 
         // Batch 74: split trigger (here) from the result screen (showResultScreen(), above) — scoring is computed immediately (state is still fresh), but the numbers aren't shown until after the crash sequence plays, so it can animate in rather than cut straight to the summary. `playerRect`/`otherVehicle`/`otherColor` carry crash-site geometry (Batch 97: `otherVehicle` is now the live `Vehicle` instance itself, not just its x/y — the wreck needs its real body/type/width/height to draw the actual vehicle, not a generic placeholder) for the sequence's wrecks; omitting them (any OTHER endRun() call site that doesn't have real crash geometry to give) falls back to the old instant cut, unchanged.
@@ -16098,52 +16161,14 @@
                             // needed a gameplay exception carved out first. It needed nothing.
                             v.launched = true;
                             if (v.type === 'ambulance') unlockAchievement('emergency_exit');
-                            // Batch 475, direct report: launched cars flew off in "very random directions".
-                            // The lateral kick could be nearly as strong as the upward one, so a side tap
-                            // sent cars sailing across the whole road. The throw is mostly UP-SCREEN now -
-                            // away from the bumper, the way a hit at speed actually reads - with a modest
-                            // sideways component away from the player and a calmer spin.
-                            // Batch 484, repeat report: they were still "flying around instead of just
-                            // getting launched in one direction". Batch 475 only calmed the magnitudes -
-                            // every component was still rolled per launch, and the SPIN still picked its
-                            // direction with a coin flip, so a car could tumble backwards into the throw
-                            // it was given. Nothing is random now: one fixed speed, one fixed direction
-                            // (up-screen, pushed away from the bumper), and the tumble follows the way it
-                            // was thrown instead of arguing with it.
-                            // Batch 494, direct report: "bumping still doesn't work... the first time you
-                            // implemented it, it worked perfectly - the car just went flying straight in
-                            // the opposite direction from what it was bumped."
+                            // The launch is the impact vector: centre-to-centre, normalised, at a fixed
+                            // speed, so the car leaves the way it was hit - squarely from behind sends it
+                            // straight up the road, a clip on the left sends it right. Speed 8.1 is the
+                            // original's magnitude (sqrt(3^2 + 7.5^2)), kept when the direction was fixed.
                             //
-                            // Checked against the original (Batch 446, 8916aaf) instead of guessing, and
-                            // the regression is mine. It threw at vx 2.2-3.8 against vy 6-9: a launch
-                            // about 22 degrees off vertical, clearly knocked ASIDE. Batch 475 cut that to
-                            // 1.1-1.8 and Batch 484 - my determinism pass - left it at a flat 1.4, which
-                            // is 11 degrees. Nearly straight up the screen, so nothing reads as having
-                            // been bumped anywhere; it just drifts off. The complaint Batch 475 answered
-                            // was that the direction was RANDOM, and that is fixed by removing the
-                            // randomness, which it should never have paid for with the force.
-                            //
-                            // Original magnitudes restored, still deterministic: one speed, one direction,
-                            // away from the bumper, and the tumble follows the throw. The constant
-                            // velocity from Batch 484 stays - "flying STRAIGHT" is what was asked for, and
-                            // the old per-frame gravity is what bent every launch into an arc.
-                            // Batch 496, with a diagram: "if you bump into the car from behind, the car
-                            // is supposed to go flying forward. If you bump it from the side, it should
-                            // go to the opposite direction."
-                            //
-                            // Every version until now - mine included - ignored WHERE the hit came from.
-                            // It always applied a fixed sideways kick plus a fixed upward one, so a car
-                            // struck squarely from behind still got thrown diagonally, and nothing ever
-                            // matched the direction of the bump. Restoring the original's force (Batch
-                            // 494) made that more obvious rather than less: it now flew hard in a
-                            // direction that had nothing to do with the impact.
-                            //
-                            // The launch is simply the impact vector: centre-to-centre, normalised, at a
-                            // fixed speed. Hit from directly behind and the car goes straight up the
-                            // road; catch it on the left and it leaves to the right; clip it on a
-                            // diagonal and it leaves on that diagonal. Speed 8.1 is the magnitude the
-                            // original threw at (sqrt(3^2 + 7.5^2)), so the force is unchanged - only
-                            // its direction is now correct.
+                            // Deterministic on purpose: one speed, one direction, and the tumble follows
+                            // the throw. Rolling any of it per launch is what made these look random, and
+                            // constant velocity (no per-frame gravity) is what keeps the flight straight.
                             const pcx = player.x + player.width / 2, pcy = player.y + player.height / 2;
                             const vcx = v.x + v.width / 2, vcy = v.y + v.height / 2;
                             let ix = vcx - pcx, iy = vcy - pcy;
@@ -16642,7 +16667,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.21.0';
+        const GAME_VERSION = '3.22.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -17071,8 +17096,17 @@
                     pop('+' + CLOSE_CALL_BASE_SCORE, TUT_SCENE_W / 2, 52 - rise, '#ffffff');
                 }
             } },
-            // SHIELD BUMP — the Monster Truck with the live ability's own three renderers, flattening
-            // two cars in a row. Wrecks are squashed + darkened and driven over, as in play.
+            // SHIELD BUMP — the Monster Truck with the live ability's own three renderers, wrecking
+            // two cars in a row. The wreck is darkened and driven over, as in play.
+            //
+            // Batch 549, direct report: "only half of them appears as wrecks underneath". They were
+            // drawn at 14x14 from a 14x24 source - 58% of their height - so each wreck read as half a
+            // car. That matched the game once, and has not since Batch 463: the real renderer's
+            // `ctx.scale(1, 0.22)` squash was removed then, on the direct feedback that a flattened
+            // car "read as not a car at all, just a rectangle". drawCrushedWreck() darkens and blurs
+            // and does not squash at all. The tutorial simply never followed, and its own comment went
+            // on claiming it matched. Full height now, and tinted with the same recipe the real one
+            // uses so the claim is true rather than merely repeated.
             tutSceneRam: { period: 3600, speed: 1.4, draw(c, t, pop, T) {
                 const car = GARAGE_CARS.find(g => g.key === 'monster');
                 const bw = car.hitboxW, bx = carLocalX53(bw), truckY = 44;
@@ -17084,13 +17118,17 @@
                     if (lt < tc) { tutNpc(c, 'sedan', tutLaneX(1), -30 + 0.05 * lt, '#dfe6e9'); return; }
                     if (!tutWreckBuf) {
                         tutWreckBuf = buf53(14, 24, g => {
+                            // Same treatment as drawCrushedWreck(): grayscale + darken + a touch of
+                            // blur, then a source-atop tint that respects the car's own silhouette.
+                            g.filter = 'grayscale(85%) brightness(0.4) blur(0.6px)';
                             drawBodySedan53(g, '#dfe6e9');
+                            g.filter = 'none';
                             g.globalCompositeOperation = 'source-atop';
-                            g.fillStyle = 'rgba(16,12,12,.72)'; g.fillRect(0, 0, 14, 24);
+                            g.fillStyle = 'rgba(8,7,7,.6)'; g.fillRect(0, 0, 14, 24);
                         });
                     }
                     const wy = Math.floor(hitY + 10 + 0.07 * (lt - tc));
-                    c.drawImage(tutWreckBuf, tutLaneX(1), wy, 14, 14);
+                    c.drawImage(tutWreckBuf, tutLaneX(1), wy);
                     // Batch 474, direct request: the scene used to fake the impact with three static
                     // sparks. It now plays the REAL Shield Bump burst - same renderer, same 12 frames at
                     // 45ms - so what the tutorial shows is exactly what the road does.
@@ -18401,8 +18439,9 @@
             const garageCoinTotalEl = document.getElementById('garageCoinTotal');
             // direct correction: no title tooltip, the displayed text itself swaps to the exact number on hover and swaps back on mouse-leave. `.onmouseenter`/`.onmouseleave` (assignment, not addEventListener) so re-running this render doesn't stack listeners on this same persistent element every time the Garage is opened.
             rollNumberInto(garageCoinTotalEl, allTimeStats.totalCoins, coinDisplay);
-            garageCoinTotalEl.onmouseenter = () => { garageCoinTotalEl.textContent = allTimeStats.totalCoins.toLocaleString('en-US'); };
-            garageCoinTotalEl.onmouseleave = () => { garageCoinTotalEl.textContent = coinDisplay(allTimeStats.totalCoins); };
+            bindExactOnDemand(garageCoinTotalEl,
+                () => allTimeStats.totalCoins.toLocaleString('en-US'),
+                () => coinDisplay(allTimeStats.totalCoins));
         }
 
         // paint colors are bought too, same as cars.
