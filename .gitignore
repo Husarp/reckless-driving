@@ -29,8 +29,22 @@ mobile/android/app/src/main/assets/capacitor.config.json
 notes/
 
 # Design working material: conversation exports and delivery archives.
+# _archive/ is listed because it HAS been committed before - a whole design-tool export, support.js
+# and all, plus a second copy of the game. It is still readable in this repo's public history; this
+# only stops it happening again.
 *.dc.html
 *.zip
+_archive/
+.thumbnail
+
+# Design sources and screen recordings. None of these have leaked yet - they are here so that
+# dropping one in the project folder cannot quietly publish it.
+*.psd
+*.ai
+*.fig
+*.sketch
+*.mp4
+*.mov
 
 # The icons the build actually uses are assets/cone-*.png and carsprite.ico. This folder is the
 # working copy they were exported from - the same five files again.
