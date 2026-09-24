@@ -214,3 +214,10 @@ built — see `CHANGELOG.md`. Road pickups were tried and deliberately removed.)
 - Target: Chrome, Firefox, Safari (iOS), Chrome (Android). Mobile is no longer treated as a prototype:
   v3.4.0 added real on-screen controls and safe-area handling, and v3.5.0 ships this same HTML as an
   Android APK through Capacitor rather than the separate native app once planned
+
+## Licence
+
+**All rights reserved** — © 2026 Husarp. The code is public to read, and the releases are free to
+download and play, but the game may not be copied, changed, shared, sold or built upon without
+written permission. The embedded fonts (Silkscreen, VT323, DotGothic16) keep their own licence, the
+SIL Open Font License. Full terms in [LICENSE](LICENSE).
