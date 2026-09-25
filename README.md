@@ -45,13 +45,11 @@ steer with.
 
 | Setting | Options | What it does |
 |---|---|---|
-| Control Type | Lane snap / Steering buttons | How the car changes lane |
-| Multi-Lane Key Press | On / Off | Off = one lane per press; On = hold to glide across several |
-| Mouse/Touch Steering | On / Off | Only used when Control Type is Steering Buttons |
+| Control Type | PC / Mobile | PC: keyboard only. Mobile: on-screen controls |
+| Multi-Lane Hold | On / Off | Off = one lane per press or tap; On = hold to glide across several. On Mobile it lives on the Controls screen |
+| Controls (Mobile) | EDIT → its own screen | Every touch option - arrows or joystick, size, height, style, layout, joystick position - with a live preview of your screen. Tap the preview to see it full size |
 | Volumes | Master, plus music / siren / explosion / SFX | — |
 | Skip Crash Animation | On / Off | Straight to the summary |
-| Touch Controls | Off / Arrows / Stick | On-screen steering. Arrows are precise; the stick allows diagonals |
-| Floating Stick | On / Off | The stick appears where your thumb lands instead of a fixed spot |
 | Fullscreen | On / Off | Hides the phone's navigation bar while you play |
 | Score Popups | On / Off | Floating +points when you pass or jump over a car |
 | FPS Counter | On / Off | Bottom-right of the game screen |
@@ -59,7 +57,7 @@ steer with.
 | Speed-Scaled Music | On / Off | Tempo rises as you speed up |
 | Check For Updates | On / Off | See [Updating](#updating) |
 
-Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu
+Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu (the lane count is remembered)
 (they drive the score multiplier: 3 lanes x1.30 down to 10 x1.00), and paint is in the Garage.
 
 Speed always accelerates and semi trucks are always on — no longer configurable. The ability you get is

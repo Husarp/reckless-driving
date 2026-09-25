@@ -6,6 +6,65 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.27.0 — 2026-09-26 00:40: Batch 558 — a CONTROLS screen with a live preview, and four fixes
+
+### The touch controls get their own screen, with a preview of your screen
+
+Direct request. On a phone in MOBILE mode, Settings now shows just CONTROL TYPE and a **CONTROLS → EDIT**
+row; every touch option — mode, size, height, style, layout, joystick settings, and MULTI-LANE HOLD —
+lives on the new CONTROLS screen. On PC, MULTI-LANE HOLD is the only control option Settings shows, as
+asked.
+
+At the top of that screen is a **preview**: a box in your screen's own shape showing exactly where every
+control will sit, updating as you change things. Tap it to see it full size; tap again to shrink it back.
+
+The preview is not a drawing of the controls — it is the **real game screen**, shown without starting
+the game and scaled into the box. So it cannot disagree with what you will see in a run: same controls,
+same sizing logic, same HUD. Outside a run it shows an empty road; opened from the pause menu it shows
+the paused run itself. Nothing in it takes a tap — the controls are drawn but inert, and a tap on the
+box only enlarges it. The rows were MOVED to the new screen at start-up rather than copied, so there is
+one of each control and every existing setting keeps working exactly as before.
+
+Verified: the preview matches the screen's shape and lands in its box instantly; the full-size view
+covers the whole screen and taps back; Escape and Android back close it; switching PC / MOBILE moves
+MULTI-LANE HOLD between the two screens; a run started afterwards is untouched; and opened mid-run, the
+paused run comes back still paused, with the controls re-arming only on RESUME. One wording fix came with
+it: CONTROLS SIZE / ABILITY BUTTON SIZE was showing both titles at once, because the rule that picks one
+only looked at the Settings screen.
+
+### Holding a diagonal keeps changing lanes
+
+Direct request: in the CROSS, holding a diagonal "should constantly change lanes, not very fast, and go
+forward". It now steps one lane every **600 ms** while held, and keeps accelerating (or braking) with it.
+The rate is measured, not picked: one lane change takes ~32 frames (~0.53 s) to settle, so anything
+faster chains into one diagonal slide instead of reading as separate lane changes. Each step aims one on
+from the lane the car is heading for, not the one it is in. With MULTI-LANE HOLD on it does nothing
+extra — holding already glides across lanes there.
+
+### The fixed joystick sat on the wrong side
+
+Direct report: FLOATING JOYSTICK off and JOYSTICK POSITION set to LEFT, yet the stick was on the right.
+Reproduced: the floating stick positions itself by writing an inline position wherever your thumb lands,
+and nothing ever removed it. After one floating run, the fixed stick kept your last thumb position — and
+an inline style beats both the LEFT/CENTRE setting and CONTROLS HEIGHT. The fixed stick is placed only by
+its settings now.
+
+### Tapping the energy bar played the jump sound without jumping
+
+Direct report. On a phone the bar deliberately ignores taps (Batch 519 — it is a readout; the ability
+button does the job). But the tap was ignored without being cancelled, and an uncancelled tap is
+followed by the mouse events a browser imitates for old websites: mousedown, then mouseup, back to back.
+mousedown started the jump and its sound; mouseup released it before the car left the road. Measured:
+one tap called the ability once before, zero times now. On PC, clicking the bar still works — it is the
+only ability control there.
+
+### The lane count is remembered
+
+Direct request: 4 lanes on the very first launch, then whatever you last picked. It was never saved, so
+every start reset it. Tested: first launch 4, pick 7, restart, still 7.
+
+---
+
 ## 3.26.0 — 2026-09-25 23:10: Batch 557 — old survival times cleared, TIME PLAYED, LEGENDARY fits
 
 Three answers from the Batch 556 questions, all approved: clear the inflated survival times, show both

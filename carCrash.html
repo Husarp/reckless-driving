@@ -2089,6 +2089,28 @@
         /* A touch device gets a bigger pause button - 24px is a mouse target, not a thumb target. */
         body.touch .pause-btn { min-width: 34px; min-height: 34px; }
         .touch-only { display: none; }
+
+        /* ---- Batch 558: CONTROLS editor ---- */
+        .tce-preview-wrap { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0 12px; }
+        .tce-preview { box-sizing: content-box; border: 2px solid var(--c-panel-border); background: #0b0e14; cursor: pointer; }
+        .tce-caption { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: var(--c-text-dimmer); text-align: center; }
+        /* The preview IS the game screen: shown (without being the active view, so the game loop does
+           not run it), fixed over the whole viewport, and scaled into the box by --tce-t. Nothing in it
+           takes input - every control stays drawn but inert, and taps fall through to the editor. */
+        body.tc-preview #gameView {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 40;
+            pointer-events: none; transform-origin: 0 0; transform: var(--tce-t, none); transition: transform .22s ease;
+        }
+        body.tc-preview #gameView * { pointer-events: none !important; }
+        body.tc-preview #hudLeft, body.tc-preview #gameHud { display: flex !important; }
+        body.tc-preview #gameOverHud, body.tc-preview #gameOverBackdrop, body.tc-preview #pauseHud,
+        body.tc-preview #pauseBackdrop, body.tc-preview #crashFlash, body.tc-preview #crashWord,
+        body.tc-preview #crashSkipHint { display: none !important; }
+        /* Full size: the scaled screen grows to the whole viewport, and this catches the tap back. */
+        #tceFullCatcher { display: none; position: fixed; inset: 0; z-index: 41; align-items: center; justify-content: center; }
+        #tceFullCatcher span { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; color: #fff; background: rgba(9,12,18,.8); border: 2px solid var(--c-panel-border); padding: 8px 12px; }
+        body.tc-preview-full #tceFullCatcher { display: flex; }
         /* Batch 524 - the crash-skip hint named a key a phone does not have. */
         /* Batch 530, direct report: the pause screen told a phone to press SPACE or ESC.
            Keyed on DEVICE MODE (the PC / MOBILE setting), not on `body.touch`, and the difference
@@ -2100,7 +2122,8 @@
            setting says. Only the WORDS move. */
         /* Batch 540 - swapping a word between the two touch modes, so one row can say what it does
            in each without becoming two rows. Driven from applyTouchControls(), not from a media query. */
-        #setupView.tc-mode-arrows .tc-stick-only, #setupView.tc-mode-stick .tc-arrows-only { display: none; }
+        #setupView.tc-mode-arrows .tc-stick-only, #setupView.tc-mode-stick .tc-arrows-only,
+        #controlsView.tc-mode-arrows .tc-stick-only, #controlsView.tc-mode-stick .tc-arrows-only { display: none; }   /* Batch 558: the rows moved */
         .touch-hint { display: none; }
         body.device-mobile .touch-hint { display: inline; }
         /* A whole paragraph carrying the class needs to come back as a BLOCK, not as inline text
@@ -2550,7 +2573,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.26.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.27.0</span></div>
                 </div>
             </div>
         </div>
@@ -2611,6 +2634,17 @@
                         <option value="keys" selected>Arrows / WASD</option>
                         <option value="buttons">Steering Buttons</option>
                     </select>
+                </div>
+
+                <!-- Batch 558, direct request: on MOBILE the touch options live on their own CONTROLS
+                     screen, with a live preview of where everything sits. This row opens it; on PC it
+                     is hidden and MULTI-LANE HOLD is the only control option, as asked. -->
+                <div class="stg-row touch-only" id="tcEditorRow">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">CONTROLS</div>
+                        <div class="stg-row-hint">Touch controls, their layout and size - with a live preview.</div>
+                    </div>
+                    <button type="button" class="btn" id="tcEditorBtn" style="width:auto;flex:none;padding:9px 18px;">EDIT</button>
                 </div>
 
                 <!-- Batch 522, direct request: every mobile option sits directly under CONTROL TYPE and
@@ -2812,7 +2846,7 @@
                 </div>
     
                 <!-- direct feedback: renamed away from "HOLD FOR..." to stop clashing with "Hold & Drag" below (mouse/touch-only) — both used the word "hold" for two unrelated things. This one is keyboard-specific, so it's placed right after CONTROL TYPE rather than after the mouse/touch row it has nothing to do with. -->
-                <div class="stg-row">
+                <div class="stg-row" id="multiLaneRow">
                     <div class="stg-row-label">
                         <!-- Batch 530: this one is NOT hidden on mobile. steerPress() is shared by the
                              keyboard and both touch controls (Batch 478), so the setting genuinely applies
@@ -3676,8 +3710,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.26.0 &mdash; AUG 21 TO SEP 25, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">557</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.27.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">558</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -3690,6 +3724,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Batch 558: the CONTROLS editor. Its rows are not written here - #mobileSettings and
+         #multiLaneRow are MOVED in at start-up (see tceInit), so every existing binding keeps working
+         and there is exactly one copy of each control. The preview is not a drawing either: it is
+         the real #gameView, shown and scaled into the box (see tceLayoutPreview). -->
+    <div id="controlsView" class="view">
+        <div class="settings-panel stg-panel">
+            <div class="stg-header"><div class="stg-title">CONTROLS</div></div>
+            <div class="tce-preview-wrap">
+                <div class="tce-preview" id="tcePreview" role="button" aria-label="Preview - tap for full screen"></div>
+                <div class="tce-caption" id="tceCaption">TAP THE PREVIEW TO SEE IT FULL SIZE</div>
+            </div>
+            <div class="stg-scroll" id="tceList"></div>
+            <div class="stg-footer">
+                <button class="btn btn-nav" id="tceBackBtn">BACK</button>
+            </div>
+        </div>
+    </div>
+    <div id="tceFullCatcher"><span>TAP ANYWHERE TO GO BACK</span></div>
 
     <!-- VIEW 3: GAME SCREEN -->
     <div id="gameView" class="view">
@@ -4014,6 +4067,14 @@
         let tcFrameDirty = false;
         const pauseMenuBtn = document.getElementById('pauseMenuBtn');
         const selectLanes = document.getElementById('laneCount');
+        // Batch 558, direct request: 4 lanes on the very first launch, then whatever the player last
+        // picked. The lane count was never saved, so every start reset it to the select's default.
+        // Checked against the select's own options rather than a 3..10 literal, so a stale or edited
+        // value can never select something the menu cannot show.
+        try {
+            const savedLanes = localStorage.getItem('lanes');
+            if ([...selectLanes.options].some(o => o.value === savedLanes)) selectLanes.value = savedLanes;
+        } catch (e) {}
         const multiplierSpan = document.getElementById('multiplierValue');
         const abilityBar = document.getElementById('abilityBar');
         const abilityCtx = abilityBar.getContext('2d');
@@ -4076,6 +4137,17 @@
         const deviceModeSeg = document.getElementById('deviceModeSeg');
         const selectDeviceMode = document.getElementById('deviceModeSetting');
         const mobileSettingsBox = document.getElementById('mobileSettings');
+        const controlsView = document.getElementById('controlsView');
+        const tcePreview = document.getElementById('tcePreview');
+        const tceCaption = document.getElementById('tceCaption');
+        const tceList = document.getElementById('tceList');
+        const tceFullCatcher = document.getElementById('tceFullCatcher');
+        const tcEditorRow = document.getElementById('tcEditorRow');
+        const multiLaneRow = document.getElementById('multiLaneRow');
+        // Where MULTI-LANE HOLD lives in Settings, so it can go back there on PC (see tcePlaceMultiLane).
+        const multiLaneHome = document.createComment('multi-lane hold, Settings position');
+        multiLaneRow.before(multiLaneHome);
+        tceList.appendChild(mobileSettingsBox);   // the touch options now live on the CONTROLS screen
         const arrowStyleSeg = document.getElementById('arrowStyleSeg');
         const selectArrowStyle = document.getElementById('arrowStyleSetting');
         const arrowStyleRow = document.getElementById('arrowStyleRow');
@@ -4420,7 +4492,8 @@
         window.addEventListener('resize', () => {
             // Batch 546 - same reason as refitGameLayout()'s own comment: a resize can change how much
             // height is available, and the ratio has to follow it.
-            if (gameView.classList.contains('active')) refitGameLayout();
+            if (gameFrameShown()) refitGameLayout();
+            if (document.body.classList.contains('tc-preview')) tceLayoutPreview();
             if (menuView.classList.contains('active')) sizeMenuFrame();
         });
 
@@ -13926,6 +13999,7 @@
                     const x = Math.max(0, Math.min(r.width - 1, e.clientX - r.left));
                     const n = MM_LANE_MIN + Math.floor(x / (r.width / (MM_LANE_MAX - MM_LANE_MIN + 1)));
                     selectLanes.value = String(Math.max(MM_LANE_MIN, Math.min(MM_LANE_MAX, n)));
+                    try { localStorage.setItem('lanes', selectLanes.value); } catch (_) {}   // Batch 558
                     calculateMultiplier();
                     mmSyncSetup();
                 };
@@ -14828,6 +14902,11 @@
                     hideConfirm();
                     return;
                 }
+                if (controlsView.classList.contains('active')) {   // Batch 558
+                    e.preventDefault();
+                    if (tceFull) tceSetFull(false); else closeControlsEditor();
+                    return;
+                }
                 if (setupView.classList.contains('active')) {
                     e.preventDefault();
                     setupBackBtn.click();
@@ -14922,7 +15001,12 @@
         function abilityBarRelease() {
             if (player && player.abilityState === 'jumping') player.jumpHeld = false;
         }
-        abilityBar.addEventListener('mousedown', abilityBarPress);
+        // Batch 558 - the mouse handlers ask the same question as the touch ones below. Direct report:
+        // tapping the bar on the phone "does not jump, but still gives you the sound of jumping". The
+        // touch handler ignored the tap as intended, but a tap nobody cancels is followed by the mouse
+        // events a browser imitates for old websites - mousedown, then mouseup, back to back. mousedown
+        // started the jump (and its sound), and mouseup released it before the car ever left the road.
+        abilityBar.addEventListener('mousedown', () => { if (!tcAbilityButtonAvailable()) abilityBarPress(); });
         abilityBar.addEventListener('mouseup', abilityBarRelease);
         abilityBar.addEventListener('mouseleave', abilityBarRelease);
         // Batch 519, direct report: tapping the energy bar fired the ability. On a phone that bar is a
@@ -14938,8 +15022,10 @@
                 && !tcAbility.classList.contains('hidden');
         }
         abilityBar.addEventListener('touchstart', (e) => {
+            // Cancelled even when ignored: preventDefault is what stops the imitation mouse events.
+            e.preventDefault();
             if (tcAbilityButtonAvailable()) return;
-            e.preventDefault(); abilityBarPress();
+            abilityBarPress();
         }, { passive: false });
         abilityBar.addEventListener('touchend', (e) => {
             if (tcAbilityButtonAvailable()) return;
@@ -14990,6 +15076,7 @@
             // touch permanently. Its touchend lands on a pad that has already forgotten it.
             tcActive.clear();
             tcSetSteer(0);
+            tcSetDiagRepeat(0);
             tcSetVertical(false, false);
             tcPad.querySelectorAll('.tc-btn').forEach(b => b.classList.remove('pressed'));
             ['up', 'down', 'left', 'right'].forEach(d => tcPad.classList.remove('diag-' + d));
@@ -15021,6 +15108,38 @@
             ['up', 'down', 'left', 'right'].forEach(d => tcPad.classList.toggle('diag-' + d, raw.has(d)));
             tcSetVertical(held.has('up'), held.has('down'));
             tcSetSteer(held.has('left') ? -1 : held.has('right') ? 1 : 0);
+            const diag = [...raw].find(k => TC_DIAGONALS[k]);
+            tcSetDiagRepeat(diag ? (TC_DIAGONALS[diag][1] === 'left' ? -1 : 1) : 0);
+        }
+        /**
+         * Batch 558, direct request: HOLDING a diagonal in the CROSS "should constantly change lanes,
+         * not very fast, and go forward". The first lane change already happens on the press (the
+         * diagonal is up/down plus left/right, and left/right steers); this repeats it for as long as
+         * the corner is held. The forward (or brake) half needs nothing new - it is the held up/down.
+         *
+         * 600ms a lane. Measured: one lane change takes ~32 frames, ~0.53s, to settle, so anything
+         * faster chains into a single diagonal slide instead of reading as separate lane changes.
+         * Each repeat steps on from the lane the car is HEADING for, not the lane it is in, so a repeat
+         * can never re-aim at the lane it is still travelling to.
+         *
+         * Only with MULTI-LANE HOLD off. With it on, holding the direction already glides across lanes
+         * continuously, so a repeat on top would fight the glide.
+         */
+        const TC_DIAG_REPEAT_MS = 600;
+        let tcDiagTimer = null, tcDiagDir = 0;
+        function tcSetDiagRepeat(dir) {
+            if (dir === tcDiagDir) return;
+            clearInterval(tcDiagTimer);
+            tcDiagTimer = null;
+            tcDiagDir = dir;
+            if (!dir || config.multiLaneHold) return;
+            tcDiagTimer = setInterval(() => {
+                if (!gameActive || gamePaused || !player || !tcDiagDir) return;
+                const lw = Math.floor(ROAD_WIDTH / config.lanes);
+                const heading = Math.round((player.targetX + player.width / 2 - ROAD_BORDER_LEFT - lw / 2) / lw);
+                const next = Math.max(0, Math.min(config.lanes - 1, heading + tcDiagDir));
+                player.targetX = laneCenterX(next);
+            }, TC_DIAG_REPEAT_MS);
         }
         /**
          * Batch 545, direct report: "between those arrows is a tiny gap, and if your finger goes
@@ -15206,11 +15325,78 @@
             const mobile = selectDeviceMode.value === 'mobile';
             document.body.classList.toggle('device-mobile', mobile);
             if (mobileSettingsBox) mobileSettingsBox.style.display = mobile ? '' : 'none';
+            if (tcEditorRow) tcEditorRow.style.display = mobile ? '' : 'none';
+            tcePlaceMultiLane();
             // Steering-buttons mode went with the old ARROWS / BUTTONS picker: on a keyboard both input
             // routes already work, so there was nothing left to choose between.
             if (selectControlType) selectControlType.value = 'keys';
             if (typeof applyTouchControls === 'function') applyTouchControls();
         }
+        // Batch 558 - whether the game screen is on show and so can be measured: the real game, or the
+        // CONTROLS preview (which shows #gameView without making it the active view).
+        function gameFrameShown() {
+            return gameView.classList.contains('active') || document.body.classList.contains('tc-preview');
+        }
+        // On a phone in MOBILE mode MULTI-LANE HOLD goes with the other controls; anywhere else it is the
+        // one control option Settings shows ("if it's PC, the only thing displayed is multi-lane hold").
+        function tcePlaceMultiLane() {
+            if (selectDeviceMode.value === 'mobile' && IS_TOUCH) tceList.appendChild(multiLaneRow);
+            else multiLaneHome.after(multiLaneRow);
+        }
+        let tceFull = false, tcePrevPlaying = false;
+        // Sizes the box to the screen's own shape and scales the real game screen into it. The box is a
+        // third of the screen's height, capped, so the settings below it still have room on a phone.
+        function tceLayoutPreview() {
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const h = Math.round(Math.min(vh * 0.34, 300)), w = Math.round(h * vw / vh);
+            tcePreview.style.width = w + 'px';
+            tcePreview.style.height = h + 'px';
+            const r = tcePreview.getBoundingClientRect();
+            gameView.style.setProperty('--tce-t', tceFull ? 'none'
+                : 'translate(' + (r.left + tcePreview.clientLeft) + 'px, ' + (r.top + tcePreview.clientTop) + 'px) scale(' + (w / vw) + ')');
+            // A floating stick has no home to show - it appears wherever the thumb lands.
+            tceCaption.textContent = (selectTouchMode.value === 'stick' && selectFloatStick.value === 'yes')
+                ? 'FLOATING JOYSTICK: APPEARS WHERE YOUR THUMB LANDS'
+                : 'TAP THE PREVIEW TO SEE IT FULL SIZE';
+        }
+        function tceSetFull(on) {
+            tceFull = on;
+            document.body.classList.toggle('tc-preview-full', on);
+            tceLayoutPreview();
+        }
+        function openControlsEditor() {
+            setupView.classList.remove('active');
+            controlsView.classList.add('active');
+            controlsView.querySelector('.stg-scroll').scrollTop = 0;
+            document.body.classList.add('tc-preview');
+            // Controls draw only while `.playing` (Batch 510). Set for the preview, and put back on the
+            // way out - mid-run this is the paused state, which must not come back armed.
+            tcePrevPlaying = touchControlsEl.classList.contains('playing');
+            touchControlsEl.classList.add('playing');
+            // Outside a run the game screen may never have been laid out, or may still hold the last
+            // run's final frame: lay it out for the chosen lanes and show a clean, empty road.
+            if (!gameActive) {
+                applyLaneLayout(parseInt(selectLanes.value, 10) || 4);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            applyTouchControls();
+            // Placed without the zoom: the animation is for the tap-to-enlarge. On opening it would
+            // play the whole screen shrinking into the box, a full-screen flash every time.
+            gameView.style.transition = 'none';
+            tceLayoutPreview();
+            void gameView.offsetWidth;
+            gameView.style.transition = '';
+        }
+        function closeControlsEditor() {
+            tceSetFull(false);
+            document.body.classList.remove('tc-preview');
+            gameView.style.removeProperty('--tce-t');
+            touchControlsEl.classList.toggle('playing', tcePrevPlaying);
+            controlsView.classList.remove('active');
+            setupView.classList.add('active');
+        }
+
         function applyStickSize() {
             if (tcStick) tcStick.style.setProperty('--stick-size', tcStickSizePx() + 'px');
         }
@@ -15342,6 +15528,16 @@
             tcPad.classList.toggle('on', mode === 'arrows');
             tcStick.classList.toggle('floating', stickMode && floating);
             tcStick.style.display = (stickMode && !floating) ? 'block' : 'none';
+            // Direct report, Batch 558: FLOATING off and POSITION LEFT, yet the stick sat on the right.
+            // The floating stick is placed by writing inline left/top/bottom wherever the thumb lands
+            // (tcStickStart), and nothing ever took them off again - so after one floating run, the
+            // fixed stick kept the last thumb position, and inline styles beat the joy-left/joy-centre
+            // classes AND the CONTROLS HEIGHT lift. A fixed stick is placed only by the CSS.
+            if (!(stickMode && floating)) {
+                tcStick.style.left = '';
+                tcStick.style.top = '';
+                tcStick.style.bottom = '';
+            }
             tcStickZone.style.display = (stickMode && floating) ? 'block' : 'none';
             if (!stickMode) tcStick.classList.remove('active');
             // Batch 510 - draw the arrow glyphs and the ability badge. Done here rather than in the
@@ -15401,10 +15597,12 @@
             // is. `joyPosRow` below already worked this way; these two never got the same treatment.
             // Batch 540 - one class on the Settings view so per-mode wording can be pure CSS.
             const setupViewEl = document.getElementById('setupView');
-            if (setupViewEl) {
-                setupViewEl.classList.toggle('tc-mode-stick', stickMode);
-                setupViewEl.classList.toggle('tc-mode-arrows', !stickMode);
-            }
+            // Batch 558 - and on the CONTROLS screen, where those rows live now.
+            [setupViewEl, controlsView].forEach(v => {
+                if (!v) return;
+                v.classList.toggle('tc-mode-stick', stickMode);
+                v.classList.toggle('tc-mode-arrows', !stickMode);
+            });
             if (floatStickRow) floatStickRow.style.display = stickMode ? '' : 'none';
             if (stickSizeRow) stickSizeRow.style.display = stickMode ? '' : 'none';
             const tcName = tcKind ? tcKind.toUpperCase() : '';
@@ -15423,7 +15621,7 @@
             // layout from the pause menu does, and it is why coming back from Settings showed a
             // compact, wrongly-fitted board. The flag makes the next visible pass re-fit even if
             // nothing else changed by then.
-            if (gameView.classList.contains('active')) { tcFrameDirty = false; refitGameLayout(); }
+            if (gameFrameShown()) { tcFrameDirty = false; refitGameLayout(); }
             else tcFrameDirty = true;
             // Second pass on purpose: sizeGameFrame() can change how wide the bar is (a taller bar
             // leaves the canvas narrower), and the fit above was measured against the OLD width.
@@ -17168,7 +17366,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.26.0';
+        const GAME_VERSION = '3.27.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -18231,6 +18429,16 @@
                 // taller strip.
                 applyTouchControls();
             });
+            // Batch 558 - the CONTROLS editor.
+            document.getElementById('tcEditorBtn').addEventListener('click', openControlsEditor);
+            document.getElementById('tceBackBtn').addEventListener('click', closeControlsEditor);
+            tcePreview.addEventListener('click', () => tceSetFull(true));
+            tceFullCatcher.addEventListener('click', () => tceSetFull(false));
+            // Every control setting already re-runs applyTouchControls(); the caption also depends on
+            // the stick settings, so keep the preview's own text current.
+            [selectTouchMode, selectFloatStick].forEach(el => el.addEventListener('change', () => {
+                if (document.body.classList.contains('tc-preview')) tceLayoutPreview();
+            }));
             try { const v = localStorage.getItem('tcHeight'); if (v === 'low' || v === 'mid' || v === 'high') selectTcHeight.value = v; } catch (e) {}
             bindSeg(tcHeightSeg, selectTcHeight);
             selectTcHeight.addEventListener('change', () => {
