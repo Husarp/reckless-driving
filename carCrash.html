@@ -258,19 +258,36 @@
            the whole play area: no background, no border, no height of its own, and pointer-events off
            so only the controls inside it take touches. gameExtraBottom() returns 0 to match, so the
            canvas takes the height the strip used to occupy. */
-        body.touch #touchControls.tc-joy, body.touch #touchControls.tcl-cross {
+        body.touch #touchControls.tc-joy, body.touch #touchControls.tcl-cross,
+        body.touch #touchControls.tcl-split.tch-up {
             position: absolute; left: 0; right: 0; top: 0; bottom: 0;
             height: auto; margin: 0; padding: 0;
             background: none; border: none;
             pointer-events: none; z-index: 12;
         }
+        /* CONTROLS HEIGHT. Direct report, from players: the controls are "way too low - if you hold
+           the phone with both hands your fingers are way higher". It is portrait-only on a tall 19:9
+           screen, so two thumbs rest on the side edges well up from the bottom.
+           --tc-lift is a PERCENTAGE of the play area, set by applyTouchControls(), and every floating
+           control adds it to its `bottom`. A percentage rather than px on purpose: `bottom: X%`
+           resolves against the containing block's height at layout time, so it follows a resize, a
+           rotation or a change made from the pause menu with no recompute - the stale-while-hidden
+           class of bug this file has hit before (Batch 545).
+           Each lift is clamped so the TOP of that control can never climb into the HUD band
+           (pause, energy bar, score chips): measured on a 375x812 phone that band ends 118px down,
+           which is --safe-top (38) + 80. 92 leaves a 12px margin. The shape of every clamp is
+             max(0px, min(lift, 100% - clearance - <that control's top at LOW>))
+           so on a screen too short to lift, the control simply stays where LOW puts it. */
+        body.touch #touchControls { --tc-lift: 0%; --tc-top-clear: calc(var(--safe-top, 0px) + 92px); }
         body.touch #touchControls.tc-joy .tc-ability {
-            position: absolute; right: 16px; bottom: 22px; margin-left: 0; pointer-events: auto;
+            position: absolute; right: 16px; margin-left: 0; pointer-events: auto;
+            bottom: calc(22px + max(0px, min(var(--tc-lift), calc(100% - var(--tc-top-clear) - 22px - var(--ability-size, 64px)))));
         }
         /* A fixed joystick sits well clear of the bottom edge. Direct report: at the edge, dragging
            DOWN ran the thumb off the screen, so down was the one direction you could not ask for. */
         body.touch #touchControls.tc-joy .tc-stick:not(.floating) {
-            position: absolute; top: auto; bottom: 104px; margin: 0; pointer-events: auto;
+            position: absolute; top: auto; margin: 0; pointer-events: auto;
+            bottom: calc(104px + max(0px, min(var(--tc-lift), calc(100% - var(--tc-top-clear) - 104px - var(--stick-size, 84px)))));
         }
         body.touch #touchControls.tc-joy .tc-stick.joy-left   { left: 22px; }
         body.touch #touchControls.tc-joy .tc-stick.joy-centre { left: 50%; transform: translateX(-50%); }
@@ -296,7 +313,9 @@
            specificity. So picking the joystick left whichever arrow layout was selected on screen and
            live. Both now require `.on`, like every other thing that appears only in arrows mode. */
         body.touch #touchControls.tcl-cross .tc-pad.on {
-            position: absolute; left: 14px; bottom: 18px;
+            position: absolute; left: 14px;
+            /* 3 rows + two 4px gaps is the pad's height, so its top at LOW is 18 + 8 + 3 x btnH. */
+            bottom: calc(18px + max(0px, min(var(--tc-lift), calc(100% - var(--tc-top-clear) - 26px - var(--tc-btn-h, 56px) * 3))));
             display: grid; pointer-events: auto;
             grid-template-columns: repeat(3, var(--tc-btn-w, 52px));
             grid-template-rows: repeat(3, var(--tc-btn-h, 56px));
@@ -312,7 +331,8 @@
         #touchControls.tcl-cross .tc-downright { grid-column: 3; grid-row: 3; }
         #touchControls.tcl-cross .tc-btn   { width: auto; height: auto; flex: none; min-width: 0; }
         body.touch #touchControls.tcl-cross .tc-ability {
-            position: absolute; right: 18px; bottom: 40px; margin-left: 0; pointer-events: auto;
+            position: absolute; right: 18px; margin-left: 0; pointer-events: auto;
+            bottom: calc(40px + max(0px, min(var(--tc-lift), calc(100% - var(--tc-top-clear) - 40px - var(--ability-size, 64px)))));
         }
         /* PAD is one piece, so in the cross its keys lose the borders that face the middle and the
            whole pad takes a single drop shadow - the doc's 2b. Only here: in a BAR layout the keys do
@@ -352,6 +372,27 @@
         #touchControls.tcl-split .tc-ability {
             position: absolute; left: 50%; top: 50%; bottom: auto;
             transform: translate(-50%, -50%); margin-left: 0; z-index: 13;
+        }
+        /* SPLIT above LOW. A bar cannot rise without cutting the road in two, so a lifted SPLIT stops
+           being a bar and floats, like the CROSS and the joystick already do.
+           At LOW it deliberately STAYS a bar, and that is measured, not taste: once a layout floats,
+           the player's car sits in the bottom 8-91px of the screen, so a floating SPLIT at LOW would
+           put both arrow pairs straight on top of the car. At MID the row clears it by ~55px.
+           The pad becomes a full-width band exactly one button tall, so the four keys keep their
+           existing left/right positions and their own centring inside it; the ability button is
+           centred on the same line. Both share ONE clamp (the taller of the two sets the row's top),
+           so under clamping they can never drift apart. */
+        body.touch #touchControls.tcl-split.tch-up {
+            --tc-split-c: calc(max(var(--tc-btn-h, 56px), var(--ability-size, 64px)) / 2 + 16px);
+            --tc-split-lift: max(0px, min(var(--tc-lift), calc(100% - var(--tc-top-clear) - max(var(--tc-btn-h, 56px), var(--ability-size, 64px)) - 16px)));
+        }
+        body.touch #touchControls.tcl-split.tch-up .tc-pad.on {
+            top: auto; height: var(--tc-btn-h, 56px);
+            bottom: calc(var(--tc-split-c) - var(--tc-btn-h, 56px) / 2 + var(--tc-split-lift));
+        }
+        body.touch #touchControls.tcl-split.tch-up .tc-ability {
+            top: auto; transform: translateX(-50%);
+            bottom: calc(var(--tc-split-c) - var(--ability-size, 64px) / 2 + var(--tc-split-lift));
         }
 
         /* Batch 538, direct report: "I don't see any difference between outline, keycap and glass."
@@ -2506,7 +2547,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.23.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.25.0</span></div>
                 </div>
             </div>
         </div>
@@ -2638,6 +2679,26 @@
                         <option value="s">Small</option>
                         <option value="m" selected>Medium</option>
                         <option value="l">Large</option>
+                    </select>
+                </div>
+
+                <!-- Direct request, from player feedback that the controls sit "way too low". Every
+                     layout except ROW, which is the one that lives in the bar under the road - see
+                     applyTouchControls() for why that one has nothing to raise. -->
+                <div class="stg-row touch-only" id="tcHeightRow">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">CONTROLS HEIGHT</div>
+                        <div class="stg-row-hint">Raise the controls to where your thumbs rest. Above LOW they float over the road.</div>
+                    </div>
+                    <div class="stg-seg" id="tcHeightSeg">
+                        <button type="button" data-val="low">LOW</button>
+                        <button type="button" data-val="mid">MID</button>
+                        <button type="button" data-val="high">HIGH</button>
+                    </div>
+                    <select id="tcHeightSetting" style="display:none;">
+                        <option value="low" selected>Low</option>
+                        <option value="mid">Mid</option>
+                        <option value="high">High</option>
                     </select>
                 </div>
 
@@ -3612,8 +3673,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.23.2 &mdash; AUG 21 TO SEP 24, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">553</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.25.0 &mdash; AUG 21 TO SEP 25, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">556</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4037,7 +4098,9 @@
             // sitting in a strip below it, so the canvas gets that height back.
             // Batch 538 - the CROSS is an overlay too, for the same reason the joystick is: it floats
             // over the road, so there is no strip under the canvas to reserve height for.
-            const joy = touchControlsEl && (touchControlsEl.classList.contains('tc-joy') || touchControlsEl.classList.contains('tcl-cross'));
+            const joy = touchControlsEl && (touchControlsEl.classList.contains('tc-joy') || touchControlsEl.classList.contains('tcl-cross')
+                // CONTROLS HEIGHT - a SPLIT raised above LOW floats too, so it has no strip either.
+                || (touchControlsEl.classList.contains('tcl-split') && touchControlsEl.classList.contains('tch-up')));
             if (IS_TOUCH && touchControlsEl && touchControlsEl.classList.contains('on') && !joy) extra += touchUiHeight();
             return extra;
         }
@@ -4058,6 +4121,9 @@
         const floatStickRow = document.getElementById('floatStickRow');
         const tcSizeSeg = document.getElementById('tcSizeSeg');
         const selectTcSize = document.getElementById('tcSizeSetting');
+        const tcHeightSeg = document.getElementById('tcHeightSeg');
+        const selectTcHeight = document.getElementById('tcHeightSetting');
+        const tcHeightRow = document.getElementById('tcHeightRow');
         const arrowLayoutSeg = document.getElementById('arrowLayoutSeg');
         const selectArrowLayout = document.getElementById('arrowLayoutSetting');
         const arrowLayoutRow = document.getElementById('arrowLayoutRow');
@@ -4105,6 +4171,21 @@
         const RENDER_SCALE = 3;              // device pixels per world pixel for everything but cars
         const SPRITE_DEVICE_SCALE = 4;       // device pixels per sprite pixel (RENDER_SCALE * CAR_SCALE)
         let VIEW_W = 0, VIEW_H = 200;        // playfield size in WORLD units (canvas attrs are x3)
+        // How far up the road the player may drive. Direct report, Batch 556: on a phone with more
+        // lanes the car could drive up UNDER the energy bar, where on fewer it stopped below it.
+        // Measured on a 375x812 phone: the bar's bottom edge sits at 9.5% of the playfield's height
+        // at EVERY lane count (24.7 of 260 at 3 lanes, 63 of 663 at 10) - more lanes make a wider
+        // world, the phone scales it down, and the fixed-size HUD covers more world units. The old
+        // limit was a flat 40 units, so from 6 lanes up the bar reached below it.
+        // So the limit is a share of the height too, as the user suggested: 40/312, which is exactly
+        // what 40 is at the default 4 lanes - the default is unchanged to the unit. It never goes
+        // below 40, so fewer lanes keep the room they had. 12.8% also clears the bar on a short
+        // 16:9 phone, where the bar reaches about 12%.
+        // Declared up here with the other layout values because applyLaneLayout() sets it and can
+        // run at load, before the player constants further down exist.
+        const PLAYER_MIN_Y = 40;
+        const PLAYER_MIN_Y_FRAC = 40 / 312;
+        let playerMinY = PLAYER_MIN_Y;
         const CAR_FILL_RATIO = 0.7; // car width as a fraction of lane width
         const PLAYER_WIDTH = Math.round(14 * CAR_SCALE);   // 18
         const PLAYER_HEIGHT = Math.round(24 * CAR_SCALE);  // 31
@@ -4176,6 +4257,7 @@
             // VIEW_W/VIEW_H; only the two attribute assignments know about the multiplier.
             VIEW_W = roadWidthPx + SIDE_MARGIN * 2;
             VIEW_H = fullscreenViewHeight(VIEW_W);
+            playerMinY = Math.max(PLAYER_MIN_Y, Math.round(VIEW_H * PLAYER_MIN_Y_FRAC));
             canvas.width = VIEW_W * RENDER_SCALE;
             canvas.height = VIEW_H * RENDER_SCALE;
             canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
@@ -4188,7 +4270,7 @@
             // The lanes cannot change mid-run, so the X side needs nothing; only the floor moves.
             if (player) {
                 player.maxY = VIEW_H - player.height - 1;
-                player.y = Math.max(PLAYER_MIN_Y, Math.min(player.maxY, player.y));
+                player.y = Math.max(playerMinY, Math.min(player.maxY, player.y));
             }
             ROAD_BORDER_LEFT = SIDE_MARGIN;
             ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
@@ -4608,7 +4690,13 @@
         }
         let displayedScore = 0; // Batch 95 — the HUD's shown score, eases toward `score` each frame instead of snapping
         let scoreRollStep = 0;  // Batch 533 — fixed for the length of a roll, so the roll is linear
-        let gameStartTime = 0;
+        // Batch 556, direct report: survival time kept counting in the pause menu and with the screen
+        // off, and some players logged three-hour runs that way. It was wall-clock time since the run
+        // began (Date.now() - start). Now it is accumulated only on frames the run actually plays,
+        // each frame's share capped - rAF stops while the screen is off, so the first frame back sees
+        // the whole gap, and the cap turns that into a fraction of a second instead of hours.
+        let runActiveMs = 0, runLastFrameTs = 0;
+        const RUN_FRAME_CAP_MS = 100;
         let gamePaused = false;
         let devInvincible = false; // Batch 165 — dev-menu toggle; the car simply can't die while true (see the vehicle-collision crash branches)
         let devStartAtTopSpeed = false; // Batch 237 — dev-menu toggle; launchGame() starts currentSpeed at playerMaxSpeed instead of baseSpeed while true
@@ -4792,7 +4880,37 @@
             }
         }
 
+        /**
+         * Direct decision (Batch 556): "quitting doesn't save the score - no progress on quit or
+         * device/app crash/kill". A run's progress exists only once the run ends in a crash.
+         *
+         * That needed more than removing the save from QUIT. Nearly everything a run earns is written
+         * into allTimeStats as it happens - XP on every pass, achievements, Daily Word letters, spotted
+         * cars - and several of those call saveAllTimeStats() mid-run, which wrote the whole lot to
+         * disk. So a quit, or the app being killed, kept almost all of it anyway.
+         *
+         * So: the state is snapshotted when a run starts and every save is HELD while it is live. A
+         * crash commits it (endRun() calls commitRun() before saveScore()); a quit puts the snapshot
+         * back. A kill needs no handling at all - nothing reached disk after the snapshot.
+         */
+        let runInProgress = false, runSnapshot = null;
+        function beginRunCheckpoint() {
+            if (runInProgress) abandonRun();   // never nest two runs
+            runSnapshot = JSON.stringify(allTimeStats);
+            runInProgress = true;
+        }
+        function abandonRun() {
+            if (!runInProgress) return;
+            allTimeStats = JSON.parse(runSnapshot);
+            runInProgress = false;
+            runSnapshot = null;
+        }
+        function commitRun() {
+            runInProgress = false;
+            runSnapshot = null;
+        }
         function saveAllTimeStats() {
+            if (runInProgress) return;   // held until the run ends - see above
             localStorage.setItem('allTimeStats', JSON.stringify(allTimeStats));
         }
 
@@ -4842,27 +4960,18 @@
         }
 
         // Called once per completed run (from saveScore()) — folds this run's numbers into the persistent all-time totals. `vehicleType` is the type of vehicle that ended the run (null if the run wasn't ended by a collision, which shouldn't currently happen but costs nothing to guard).
-        function recordRunStats(vehicleType, survivedMs, crashed) {
-            // 4 secret achievements about how the run ENDED, so they need it to have actually ended -
-            // direct report: quitting straight back out of a run was handing them over, because a quit
-            // saves the score and therefore comes through here too. Duck out of a run in the first few
-            // seconds and you collected "Over Before It Started" without crashing into anything.
-            //
-            // Only these four are gated. Everything else below describes what the player DID during
-            // the run (biomes seen, close calls, cars jumped), and a quit does not undo any of that.
-            //
-            // Déjà Vu was wrong for a second reason: `lastCrashModel` is never cleared between runs, so
-            // a quit re-counted the PREVIOUS run's crash and could walk the streak to 3 on its own.
-            if (crashed) {
-                if (score === 0) unlockAchievement('didnt_even_try');
-                if (survivedMs < 5000) unlockAchievement('over_before_it_started');
-                if (lastLetterPickupTs && Date.now() - lastLetterPickupTs < 500) unlockAchievement('word_sacrifice');
-                // "Déjà Vu": crash into the same specific MODEL 3 runs in a row (was the coarse vehicleType bucket, too easy — see lastCrashModel in endRun()).
-                if (lastCrashModel) {
-                    allTimeStats.sameDeathTypeStreak = lastCrashModel === allTimeStats.lastDeathType ? (allTimeStats.sameDeathTypeStreak || 0) + 1 : 1;
-                    allTimeStats.lastDeathType = lastCrashModel;
-                    if (allTimeStats.sameDeathTypeStreak >= 3) unlockAchievement('deja_vu');
-                }
+        function recordRunStats(vehicleType, survivedMs) {
+            // 4 secret achievements about how the run ENDED. Batch 550 gated them on a crash because a
+            // quit also came through here; since Batch 556 a quit saves nothing and never reaches this
+            // function, so every call is a crash and the gate went with it.
+            if (score === 0) unlockAchievement('didnt_even_try');
+            if (survivedMs < 5000) unlockAchievement('over_before_it_started');
+            if (lastLetterPickupTs && Date.now() - lastLetterPickupTs < 500) unlockAchievement('word_sacrifice');
+            // "Déjà Vu": crash into the same specific MODEL 3 runs in a row (was the coarse vehicleType bucket, too easy — see lastCrashModel in endRun()).
+            if (lastCrashModel) {
+                allTimeStats.sameDeathTypeStreak = lastCrashModel === allTimeStats.lastDeathType ? (allTimeStats.sameDeathTypeStreak || 0) + 1 : 1;
+                allTimeStats.lastDeathType = lastCrashModel;
+                if (allTimeStats.sameDeathTypeStreak >= 3) unlockAchievement('deja_vu');
             }
             allTimeStats.runsPlayed++;
             if (score > 0) allTimeStats.scoringRunsPlayed++;
@@ -4976,11 +5085,12 @@
 
         function setPaused(val) {
             gamePaused = val;
+            if (!val) runLastFrameTs = performance.now();   // the pause itself must not count
             if (val) {
                 // display-only rounding — `score` itself stays unrounded mid-run (see endRun()), this
                 // is purely so the pause menu doesn't show a fractional number while paused.
                 pauseScoreEl.textContent = Math.round(score);
-                pauseTimeEl.textContent = formatTime(Date.now() - gameStartTime);
+                pauseTimeEl.textContent = formatTime(runActiveMs);
                 pauseDodgedEl.textContent = dodgedCount;
                 pauseJumpsEl.textContent = jumpsUsed;
             }
@@ -5322,7 +5432,6 @@
         const LANE_CHANGE_INDICATOR_MAX = 150;   // frames — ceiling so it's never absurdly long at low speed
 
         // Vertical movement (Batch 33, physics reworked in Batch 45): Up/Down held moves the car between these bounds.
-        const PLAYER_MIN_Y = 40;   // near top: aggressive, close to where traffic spawns — same for every car regardless of height
         // PLAYER_MAX_Y (the bottom bound) is no longer a shared constant as of Batch 90 — it depends on the selected car's actual height, so it's computed per-instance as `this.maxY` in the Player constructor instead.
         const V_MAX_BASE = 1.3 * CAR_SCALE * 0.5; // top vertical speed at base game speed (px/frame)
         const V_MAX_TOP = 2.2 * CAR_SCALE * 0.5;  // top vertical speed at max game speed (px/frame)
@@ -6078,8 +6187,17 @@
             // this brings the visual back in line with the hitbox rather than changing gameplay.
             const scale = 1;
 
-            // Speed thruster — doc section 1, 4-frame loop @ 80ms.
-            sbPlume(gctx, cx, car.h, Math.floor(now / 80) % 4);
+            // The EQUIPPED booster, not the design doc's fixed plume. Direct report, Batch 556: the ROAD
+            // TRAIN offers two boosters in the Garage, but "even if you choose the one with two flames,
+            // in game it still shows the one flame". It showed the same flame whatever was chosen: this
+            // drew sbPlume() - the Shield Bump doc's own single exhaust - and never read the picker.
+            // Audited across all 58 cars, exactly the 8 ram cars had it: MONSTER TRUCK, ROAD TRAIN,
+            // LIMOUSINE, STEAMROLLER, TRACTOR, SCHOOL BUS, FIRE ENGINE, GARBAGE TRUCK. The jump cars
+            // already drew their equipped booster, and the tank, the ship, the bumper car and the cash
+            // specials hide the picker, so nothing is offered there that cannot be shown.
+            // Same call and scale as the jump path, so a ram now matches the Garage preview too.
+            updateFlameFx();
+            drawFlameFxScaled(gctx, cx, car.h, bw / 14, effectiveFlameType(car), flameFxFrame, flameAlts()[flameFxAlt[flameFxFrame]], flameFxMirror);
 
             if (player.sbGuardPhase === 'extend') {
                 // Doc section 2, 5 frames @ 60ms.
@@ -10793,8 +10911,8 @@
                 } else if (this.vVelocity < 0) {
                     this.vVelocity = Math.min(0, this.vVelocity + V_FRICTION);
                 }
-                this.y = Math.max(PLAYER_MIN_Y, Math.min(this.maxY, this.y + this.vVelocity));
-                if (this.y === PLAYER_MIN_Y && this.vVelocity < 0) this.vVelocity = 0;
+                this.y = Math.max(playerMinY, Math.min(this.maxY, this.y + this.vVelocity));
+                if (this.y === playerMinY && this.vVelocity < 0) this.vVelocity = 0;
                 if (this.y === this.maxY && this.vVelocity > 0) this.vVelocity = 0;
 
                 if (this.rechargeDelay > 0) {
@@ -13520,6 +13638,7 @@
             if (!on && typeof tcReleaseAll === 'function') tcReleaseAll();
         }
         function launchGame() {
+            beginRunCheckpoint();   // Batch 556 - first, before this function touches allTimeStats at all
             markLevelAnimStart(); // Batch 259 — snapshot BEFORE this run's XP starts accumulating, so returning to a level badge afterward animates the whole run's gain
             // Early Bird / Night Owl achievements: local device hour at run start, same technique the daily-reset/streak system already uses (new Date() reads real local time).
             const startHour = new Date().getHours();
@@ -13618,7 +13737,8 @@
             legendarySpottedThisRun = new Set();
             lastCloseCallTs = 0;
             laneSwitchTimestamps = [];
-            gameStartTime = Date.now();
+            runActiveMs = 0;
+            runLastFrameTs = performance.now();
             // direct follow-up ("why is the car still accelerating?"): starting currentSpeed at the car's true rating while leaving playerMaxSpeed at the normal floored ramp ceiling meant the run just kept climbing PAST that starting point toward the higher ceiling — "start at top speed" should mean already maxed out, not "start partway and keep going." While the toggle is on, the ramp ceiling for this run IS the car's true top speed too, so there's nothing left to ramp toward.
             if (devStartAtTopSpeed) {
                 playerMaxSpeed = carTrueTopSpeedInternal(getSelectedCar());
@@ -13666,16 +13786,25 @@
             setupView.classList.remove('active');
             gameView.classList.add('active');
             sizeGameFrame();
+            // Found while building CONTROLS HEIGHT, and older than it: the touch controls' width fit
+            // never ran at the start of a run. applyTouchControls() is called further up this
+            // function, while gameView is still hidden - so the bar measures 0 wide, applyTcSize()
+            // skips its solve, and every run began with the REQUESTED sizes unsolved. Measured at SPLIT
+            // / M on a 375px phone: the ability button overlapped the inner arrows by 129px, where the
+            // fit (once visible) gives 50 + 73px buttons that clear each other. It only ever corrected
+            // itself if a touch setting was changed mid-run, which is why it hid for so long.
+            // Re-applied now that the view has a real width; a no-op on desktop.
+            applyTouchControls();
             gameoverBtns.style.display = 'none'; // Hide gameover buttons during game
             gameHud.style.display = 'flex';
         }
 
         // Transition: Game Screen back to Menu Screen
         function exitToMenu() {
-            // quitting mid-run (pause → QUIT) now saves the score and coins earned so far, per direct user request ("when quitting your score saves as of right now and you get your coins"). `gameActive` is still true here specifically for that case — a run that already ended (crash → endRun() → the Game Over screen's own MENU button, which also calls this function) has already set it false and already called saveScore() once, so this only fires for a genuine voluntary quit, and never double-saves the same run.
-            if (gameActive) {
-                saveScore(null, false); // no vehicle killed the player — they quit
-            }
+            // Batch 556, direct decision reversing the earlier "quitting saves your score": a quit keeps
+            // NOTHING from the run. `gameActive` is still true only for a genuine quit - a run that
+            // ended in a crash has already committed, so this is a no-op from the Game Over screen.
+            if (gameActive) abandonRun();
             gameActive = false;
             stopMusic();
             stopAllSirens();
@@ -13825,22 +13954,15 @@
             document.getElementById('missionsClaimBadge').classList.toggle('show', ready);
         }
 
-        // `crashed` says the run ended in a crash rather than a voluntary quit. Both paths land here -
-        // quitting saves the score too - so it is the only thing that can tell the two apart.
-        function saveScore(vehicleType, crashed) {
+        function saveScore(vehicleType) {
             // Batch 465, direct bug report: a saved run read "14,094.509". `score` accumulates raw
             // fractional values all run (points x multiplier, deliberately unrounded so mid-run rounding
-            // cannot drift the total) and endRun() was the ONLY place that rounded it. Quitting from the
-            // pause menu calls saveScore() directly without going through endRun(), so that path stored
-            // the raw float straight into the run history and the leaderboard.
-            //
-            // Rounded here instead of patching exitToMenu(): saveScore() is the single funnel every path
-            // already goes through, so no future exit route can miss it. endRun() still rounds first,
-            // because things it touches downstream (the crash snapshot, the result panel) read `score`
-            // before this is ever called.
+            // cannot drift the total). The path that skipped endRun()'s rounding was the pause-menu
+            // quit, which no longer saves at all (Batch 556) - but rounding here, in the one funnel a
+            // saved run goes through, means no future route can store a raw float either.
             score = Math.round(score);
-            const survivedMs = Math.max(0, Date.now() - gameStartTime);
-            const finalCoins = recordRunStats(vehicleType, survivedMs, crashed);
+            const survivedMs = Math.max(0, Math.round(runActiveMs));
+            const finalCoins = recordRunStats(vehicleType, survivedMs);
             const timeSurvived = Math.floor(survivedMs / 1000);
             const now = new Date();
             const entry = {
@@ -14346,15 +14468,19 @@
         }
 
         function renderStatsCollection() {
-            const rarityDefs = ['common', 'rare', 'epic', 'legendary'].map(tier => {
+            // Batch 556, direct request: a COLLECTION is what you own, not what you have seen - it
+            // counted `discoveredCars` (spotted on the road). And SPECIAL was missing entirely: the seven
+            // box-only vehicles have carried rarity 'special' since Batch 452, but this list still
+            // stopped at LEGENDARY, so they were in neither a row nor the total.
+            const rarityDefs = ['common', 'rare', 'epic', 'legendary', 'special'].map(tier => {
                 const carsInTier = GARAGE_CARS.filter(c => c.rarity === tier);
-                const have = carsInTier.filter(c => allTimeStats.discoveredCars.includes(c.key)).length;
+                const have = carsInTier.filter(c => allTimeStats.ownedCars.includes(c.key)).length;
                 return { name: RARITY_INFO[tier].label, c: RARITY_INFO[tier].color, have, total: carsInTier.length };
             });
             const colFound = rarityDefs.reduce((a, r) => a + r.have, 1); // +1 = Stock, always owned
             const colTotal = rarityDefs.reduce((a, r) => a + r.total, 1);
             document.getElementById('stzColSummary').innerHTML =
-                `${colFound} / ${colTotal} cars spotted · <b>${Math.round((colFound / colTotal) * 100)}%</b>`;
+                `${colFound} / ${colTotal} cars owned · <b>${Math.round((colFound / colTotal) * 100)}%</b>`;
             document.getElementById('stzRarities').innerHTML = rarityDefs.map(r => {
                 const pips = Array.from({ length: r.total }, (_, i) => {
                     const filled = i < r.have;
@@ -14896,6 +15022,10 @@
             l: { btnW: 88, btnH: 92, ability: 132 }
         };
         function tcSize() { return TC_SIZES[(selectTcSize && selectTcSize.value) || 'm'] || TC_SIZES.s; }
+        // CONTROLS HEIGHT, as a share of the play area's height (see --tc-lift in the CSS). Measured on
+        // a 375x812 phone with SPLIT at M: the row's centre sits 25% up the screen at MID and 39% up
+        // at HIGH - where two thumbs rest on a tall phone held in both hands. LOW is today, unchanged.
+        const TC_LIFT = { low: '0%', mid: '16%', high: '30%' };
         // What was actually APPLIED, which is not always what was asked for - see applyTcSize().
         // Everything downstream (the badge's render size, the strip's height, the height the canvas
         // gives up) reads this rather than the request, or they disagree the moment one is clamped.
@@ -15140,6 +15270,16 @@
             const arrowsOn = mode === 'arrows';
             ['together', 'split', 'cross'].forEach(v => touchControlsEl.classList.toggle('tcl-' + v, arrowsOn && selectArrowLayout.value === v));
             touchControlsEl.classList.toggle('tcs-steerright', arrowsOn && selectArrowSides.value === 'steerright');
+            // CONTROLS HEIGHT. ROW is the one layout it does not reach: ROW is the bar under the road,
+            // and a bar cannot rise without splitting the road in two. Every other layout floats (or,
+            // for SPLIT, starts floating once lifted), so it can go up.
+            // Set here, before applyTcSize() and the refit below: whether SPLIT reserves a strip
+            // depends on `tch-up`, and gameExtraBottom() reads it.
+            const canLift = stickMode || selectArrowLayout.value !== 'together';
+            const lift = canLift ? (TC_LIFT[selectTcHeight.value] || '0%') : '0%';
+            touchControlsEl.classList.toggle('tch-up', lift !== '0%');
+            touchControlsEl.style.setProperty('--tc-lift', lift);
+            if (tcHeightRow) tcHeightRow.style.display = canLift ? '' : 'none';
             // Re-fit AFTER the layout class is set: which layout is on decides what has to fit.
             applyTcSize();
             if (arrowStyleRow) arrowStyleRow.style.display = (mode === 'arrows') ? '' : 'none';
@@ -15938,12 +16078,13 @@
             gameHud.style.display = 'none';
             hudLeft.style.display = 'none';
 
-            CS.result = saveScore(vehicleType, true);
+            commitRun();   // Batch 556 - the one place a run's progress becomes real
+            CS.result = saveScore(vehicleType);
             CS.snapshot = {
                 score: score,
                 // Batch 107 tried showing the run's AVERAGE multiplier (score ÷ raw base points) here instead of the live crash-time value, reasoning that "MULTIPLIER 1.8x" next to "BASE SCORE 680" implied a multiplication that never actually held (multiplier ramps up with speed all run, see calculateMultiplier(), so the crash-time value is only ever the run's PEAK, not what applied throughout).
                 maxMultiplier: multiplier,
-                elapsed: Date.now() - gameStartTime,
+                elapsed: runActiveMs,
                 closeCalls: closeCallsThisRun,
                 closeCallPts: closeCallPointsThisRun,
                 // ability-usage row. Snapshotting `config.ability` alongside the count (not just reading the live config later) so the label stays correct even if config changes before this run's result screen actually renders.
@@ -16013,6 +16154,9 @@
             ctx.clearRect(0, 0, VIEW_W, VIEW_H);
 
             if (gameActive) {
+                const frameTs = performance.now();
+                runActiveMs += Math.min(frameTs - runLastFrameTs, RUN_FRAME_CAP_MS);
+                runLastFrameTs = frameTs;
                 // Keep road art in perfect, crisp scrolling sync
                 roadOffset = (roadOffset + currentSpeed) % ROAD_OFFSET_WRAP;
                 biomesVisitedThisRun.add(biomeAt(-roadOffset)); // Batch 320 — Daily Missions "pass through X biomes"
@@ -16756,7 +16900,8 @@
             if (gameActive && score > PAUSE_QUIT_CONFIRM_SCORE) {
                 showConfirm(exitToMenu, {
                     title: 'QUIT THIS RUN?',
-                    text: 'You are on ' + Math.floor(score).toLocaleString('en-US') + ' points. Quitting does not save a score.',
+                    // Batch 556 - true again, and now the whole of it: a quit keeps nothing from the run.
+                    text: 'You are on ' + Math.floor(score).toLocaleString('en-US') + ' points. Quitting ends the run without saving anything from it - no score, coins or XP.',
                     okLabel: 'QUIT',
                     danger: true
                 });
@@ -16912,7 +17057,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.23.2';
+        const GAME_VERSION = '3.25.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -17972,6 +18117,12 @@
                 applyTcSize();
                 // Redraws the badge and the arrows at the new size and re-fits the frame around the
                 // taller strip.
+                applyTouchControls();
+            });
+            try { const v = localStorage.getItem('tcHeight'); if (v === 'low' || v === 'mid' || v === 'high') selectTcHeight.value = v; } catch (e) {}
+            bindSeg(tcHeightSeg, selectTcHeight);
+            selectTcHeight.addEventListener('change', () => {
+                try { localStorage.setItem('tcHeight', selectTcHeight.value); } catch (e) {}
                 applyTouchControls();
             });
             try { const v = localStorage.getItem('arrowSides'); if (v === 'steerleft' || v === 'steerright') selectArrowSides.value = v; } catch (e) {}

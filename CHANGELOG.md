@@ -6,6 +6,210 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.25.0 — 2026-09-25 21:30: Batch 556 — a quit keeps nothing, time only counts while you play
+
+A long list, answered in one batch. Everything below is verified; the parts that were asked as
+questions are held in PLAN.md rather than guessed at.
+
+### Quitting keeps nothing from the run — and neither does the app being killed
+
+Direct decision, reversing the earlier "quitting saves your score": *"quitting doesn't save the score
+— no progress on quit or device/app crash/kill"*. A run's progress now exists only once the run ends
+in a crash.
+
+Removing the save from QUIT was not enough on its own. Nearly everything a run earns is written into
+`allTimeStats` the moment it happens — XP on every pass, achievements, Daily Word letters, spotted
+cars — and several of those call `saveAllTimeStats()` mid-run, which wrote the lot to disk. So a quit,
+or the app being killed, kept almost all of it anyway.
+
+The fix is a checkpoint. `launchGame()` snapshots the state first thing; every save is **held** while
+the run is live; `endRun()` commits it just before `saveScore()`; a quit puts the snapshot back. An
+app kill needs no handling at all — nothing reached disk after the snapshot. Verified four ways:
+
+| case | result |
+|---|---|
+| mid-run (+9,999 XP, an achievement unlocked) | in memory only — disk byte-identical to before the run |
+| QUIT | memory restored exactly to the pre-run state, no leaderboard entry |
+| crash | XP on disk, leaderboard +1, as before |
+| app killed mid-run (page reloaded) | the run's XP and LUCKY START absent from disk |
+
+The QUIT confirm now says what actually happens: *"Quitting ends the run without saving anything from
+it — no score, coins or XP."* Batch 550's `crashed` flag on `saveScore()`/`recordRunStats()` went with
+it: a quit never reaches either function any more, so every call is a crash and the gate was dead.
+
+### Survival time only counts while you are actually playing
+
+Direct report: survival time kept counting in the pause menu and with the screen off — some players
+logged three-hour runs. It was wall-clock time since the run began (`Date.now() - gameStartTime`).
+
+Now `runActiveMs` accumulates only on frames the run actually plays, and each frame's share is capped
+at 100ms. The screen going off stops `requestAnimationFrame`, so the first frame back sees the whole
+gap; the cap turns that into a tenth of a second. Resuming from pause resets the frame clock, so the
+pause itself adds nothing. Measured: a 60-second screen-off gap now adds 0.1s, 1.5s in the pause menu
+adds 0s, and the saved run, the results screen and the pause readout all use the same number.
+
+### The car can no longer drive up under the energy bar on wide roads
+
+Direct report: with more lanes the car could drive up behind the energy bar; with fewer it stopped
+below it. Measured on a 375x812 phone, the bar's bottom edge sits at a **constant 9.5%** of the
+playfield height at every lane count — more lanes make a wider world, the phone scales it down, and the
+fixed-size HUD covers more world units — while the car's limit was a flat 40 units.
+
+So the limit is now a share of the height too, as suggested: 40/312, exactly what 40 is at the default
+4 lanes, never lower than 40. Fewer lanes keep the room they had.
+
+| lanes | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|
+| energy bar ends at | 24.7 | 29.7 | 35.2 | 40.8 | 46.3 | 51.9 | 57.4 | 63.0 |
+| car stops at (was 40) | 40 | 40 | 47 | 55 | 62 | 70 | 77 | 85 |
+
+### Ram cars now show the booster you picked
+
+Direct report: the ROAD TRAIN offers two boosters, but "even if you choose the one with two flames, in
+game it still shows the one flame". It showed the same flame whatever was chosen: the ram effect drew
+`sbPlume()` — the Shield Bump design doc's own single exhaust — and never read the picker. It now draws
+the equipped booster with the same call the jump cars use, so a ram matches the Garage preview.
+
+Audited across all 58 cars: exactly the 8 ram cars had it — MONSTER TRUCK, ROAD TRAIN, LIMOUSINE,
+STEAMROLLER, TRACTOR, SCHOOL BUS, FIRE ENGINE, GARBAGE TRUCK. The 43 jump cars already drew their
+equipped booster; the tank, the ship, the bumper car and the four cash specials hide the picker, so
+nothing is offered anywhere that cannot be shown. Confirmed on screen: two UNDERGLOW flames at the
+road train's tail mid-ram.
+
+### Stats: the collection counts what you own, and SPECIAL is in it
+
+Direct request. The COLLECTION row counted cars *spotted* on the road; it now counts cars **owned**.
+And SPECIAL was missing entirely — the seven box-only vehicles have carried rarity `special` since
+Batch 452, but the list stopped at LEGENDARY, so they were in neither a row nor the total. Now five
+rows, `x / 58 cars owned`.
+
+### Android: signed with a real release key
+
+Direct instruction, *"I know it will reset progress"*. Every APK until now was signed with this
+machine's debug key. From this version it is signed with the project's own release key — RSA 4096,
+alias `recklessdriving`, valid until 2054, owner `Husarp`.
+
+The key and its password live in `%USERPROFILE%\.keystores\`, **outside the repository**, because the
+repository is public; the password was generated randomly and handed to `keytool` through an
+environment variable, so it has never been on a command line or in a log. `build.gradle` reads the
+properties file from there, `build.ps1 -Android` now runs `assembleRelease`, and it refuses to build if
+the key is missing rather than falling back to an unsigned or debug APK. `.gitignore` gained `*.jks`,
+`*.keystore`, `*.p12` and `*signing.properties` as a backstop. Verified with Gradle's `signingReport`:
+the release variant opens the keystore and its SHA-256 matches the generated key.
+
+**The consequence, as expected:** Android installs an update only over an app signed with the same key,
+so this version cannot install over an existing copy — not by hand, and not through the in-game
+updater. Uninstall first, which deletes the progress on that phone.
+
+### Repository housekeeping
+
+- **Eight unused files removed** — five old cone icons, the old `recklessdriving.ico`, `carsprite.ico`
+  and the 1920x1080 launch image. Re-checked against every build file and the game before deleting;
+  only the two assets the build uses remain in `assets/`.
+- **`docs/` and `AGENTS.md` are no longer published** (direct decision). Untracked and ignored, still on
+  disk. The README's file table stopped listing them — and stopped listing a `tools/upload_server.py`
+  that does not exist, and started listing `make_app_art.py`, which does.
+- **Licence:** the all-rights-reserved `LICENSE` was already in place (commit 2ce5219); its list of
+  embedded fonts was missing **Jersey 10**, the crash-title font, and now has it — in the README too.
+- **Design files purged from the git history.** See the Batch 556 note in PLAN.md for what was removed
+  and what a rewrite can and cannot take back from a public repository.
+
+### Held for a decision (in PLAN.md)
+
+Resetting survival times already recorded, a total-playtime stat, auto-fitting the LEGENDARY label,
+and the save-transfer feature — each asked as a question, so answered in chat and not guessed at.
+
+---
+
+## 3.24.1 — 2026-09-25 09:15: Batch 555 — one app ID on both platforms
+
+Direct instruction: use `com.husarp.[name]` as the app ID.
+
+Android already did — `applicationId`, `namespace`, the Capacitor `appId` and the Java package are all
+`com.husarp.recklessdriving`. The one outlier was Windows: the AppUserModelID the game declares at
+start-up (Batch 547, so the taskbar groups the window under its own icon) was `Husarp.RecklessDriving`.
+It is now `com.husarp.recklessdriving`, the same identity as the Android build.
+
+The installer needed nothing. Its shortcuts are made with `WScript.Shell`, which cannot stamp an app ID
+onto a shortcut at all, so the process's own declaration is the only place Windows gets one from.
+
+One-time side effect worth knowing: a taskbar pin made by right-clicking the *running* window records
+the old ID, so after this update that pin and the running game show as two buttons once. Re-pinning
+fixes it. Start Menu and desktop shortcuts are unaffected.
+
+Deliberately **not** renamed: the install folder, the save folder and the uninstall registry key, all
+still `RecklessDriving`. They are folder names, not app IDs — and renaming the save folder would have
+started every existing player from an empty save on their next update.
+
+---
+
+## 3.24.0 — 2026-09-24 07:10: Batch 554 — CONTROLS HEIGHT, and a fit that finally runs at the start
+
+### The controls can sit where your thumbs are
+
+Player feedback, relayed directly: the controls are "way too low — if you hold the phone with both
+hands your fingers are way higher". The testers were on SPLIT.
+
+It makes sense physically: the game is portrait-only and the target phone is a tall 19:9 screen, so
+two thumbs rest on the side edges well up from the bottom, while the controls lived in roughly the
+bottom 10%.
+
+A new **CONTROLS HEIGHT** setting — LOW / MID / HIGH — in Settings, beside CONTROLS SIZE. It reaches
+every layout except ROW, on direct instruction: ROW is the one layout that lives in the bar under the
+road, and a bar cannot rise without cutting the road in two.
+
+**How it lifts.** `--tc-lift` is a *percentage* of the play area (0% / 16% / 30%), and every floating
+control adds it to its own `bottom`. A percentage, not px, on purpose: `bottom: X%` resolves against
+the containing block at layout time, so it follows a resize, a rotation or a change made from the
+pause menu with no recompute at all — the stale-while-hidden class of bug this file has hit before.
+
+**It can never climb into the HUD.** Every lift is clamped so that control's top stays below the
+pause/energy/score band, measured on a 375x812 phone as ending 118px down (`--safe-top` 38 + 80); the
+clamp keeps 12px clear of that. On a screen too short to lift, a control simply stays where LOW puts
+it. Checked on a squat 375x480: CROSS and the joystick at HIGH stop at exactly 130px instead of
+climbing to 76px.
+
+**SPLIT floats when lifted — but not at LOW, and that is measured.** Once a layout floats, the
+player's car sits in the bottom 8–91px of the screen. A floating SPLIT at LOW would put both arrow
+pairs straight on top of it. So LOW keeps SPLIT's bar exactly as it was; MID and HIGH turn it into a
+floating row, and the road gets its full height back (262 → 312 world units). At MID the row clears
+the car by 55px. Pairs and ability button share one clamp, so they can never drift apart.
+
+Measured centres on a 375x812 phone, px up from the bottom:
+
+| layout | LOW | MID | HIGH |
+|---|---|---|---|
+| SPLIT row | 53 (bar) | 191 | 305 |
+| CROSS pad / ability | 139 / 94 | 269 / 224 | 383 / 338 |
+| fixed joystick / ability | 160 / 66 | 290 / 196 | 404 / 310 |
+| ROW | unchanged — row hidden in Settings | | |
+
+A lifted SPLIT still takes touches on its keys and ignores the road above them — the pad becomes a
+full-width band exactly one key tall, so the keys keep their existing positions and touch handling.
+The floating joystick is unaffected (it appears under the thumb); its ability button still lifts.
+
+Default is LOW, so nobody's controls move until they choose. If the testers settle on MID or HIGH,
+changing the default is one line.
+
+### Every run started with the controls unfitted
+
+Found while testing the above, and older than it. `launchGame()` calls `applyTouchControls()` while
+`gameView` is still hidden, so the bar measures 0 wide and `applyTcSize()` skips its solve — every
+run began with the **requested** sizes, never the fitted ones. It only corrected itself if a touch
+setting was changed mid-run, which is why it hid for so long.
+
+Measured at SPLIT / M on a 375px phone: the ability button overlapped the two inner arrows by
+**129px**, where the fit gives 50 + 73px buttons that clear each other. `launchGame()` now re-applies
+the controls once the view is visible. After the fix, SPLIT (bar and raised) and ROW at M and L start
+with zero overlap.
+
+### Not built
+
+The drag-to-place layout editor is parked in PLAN.md as "later, if players ask". The height setting
+answers the actual complaint for a fraction of the cost and risk.
+
+---
+
 ## 3.23.2 — 2026-09-24 05:20: Batch 553 — the DAILY GIFT tab gets its two-tone icon
 
 Direct instruction: change the gift tab icon to **G8** from the user's own "Gift Icon Options.dc.html"

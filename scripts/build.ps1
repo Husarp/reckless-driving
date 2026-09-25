@@ -85,13 +85,23 @@ if ($Android) {
     if (-not $env:ANDROID_HOME) { $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk" }
     $env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
 
+    # Batch 556 - RELEASE builds, signed with the project's own key rather than this machine's debug
+    # key. The key lives outside the repository (see mobile\android\app\build.gradle); without it
+    # Gradle would still produce an APK, just an unsigned one, so check up front and say why.
+    $signing = "$env:USERPROFILE\.keystores\recklessdriving-signing.properties"
+    if (-not (Test-Path $signing)) {
+        throw "No release key: $signing is missing. The APK must be signed with the project's own key - see README, 'Android release key'."
+    }
+
     Push-Location "$Root\mobile\android"
-    & .\gradlew.bat assembleDebug --no-daemon
+    & .\gradlew.bat assembleRelease --no-daemon
     $gradleExit = $LASTEXITCODE
     Pop-Location
     if ($gradleExit) { throw "Building the APK failed" }
 
-    Copy-Item "$Root\mobile\android\app\build\outputs\apk\debug\app-debug.apk" "$Build\RecklessDriving.apk" -Force
+    $releaseApk = "$Root\mobile\android\app\build\outputs\apk\release\app-release.apk"
+    if (-not (Test-Path $releaseApk)) { throw "Gradle produced no SIGNED release APK ($releaseApk)" }
+    Copy-Item $releaseApk "$Build\RecklessDriving.apk" -Force
 
     # The Android equivalent of the exe self-test: open the finished APK and read the version out of
     # the game it actually contains. This exact failure has happened - a missed copy step shipped an

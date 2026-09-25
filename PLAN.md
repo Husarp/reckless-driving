@@ -5,19 +5,40 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 ## Open
 
-### Waiting on a decision
+### Waiting on a decision (asked 2026-09-25, Batch 556 — not started)
 
-- [ ] **Compact Scores row: the meta line still wraps inside the row.** The row itself is one line and
-  the `i` works, but at 264px "5L / 1m 32s / 1.00x -> 3.40x" needs about 150px and has roughly 98.
-  Something has to give at that width. Cheapest candidates, neither done because neither was asked
-  for: drop the car NAME in compact mode (the sprite beside it already identifies the car), or show
-  only the multiplier's peak instead of the start-to-peak range. Asked in chat.
-- [ ] **Licensing the repo.** Asked in chat; answered there. Not acted on.
-- [ ] **Free placement for the touch controls (drag-and-drop editor).** User's own idea: pick a
-  position manually for the fixed joystick, the arrows and/or the ability button, anywhere on the
-  gameplay screen, with an edit mode and save/cancel. Feasibility answered in chat (the honest
-  answer is that the drag part is easy and the INTERACTION with the existing layout/fit machinery is
-  the expensive part). Not started, and not to be started until the shape is agreed.
+- [ ] **Reset the survival times already recorded?** Batch 556 stopped pause and screen-off time from
+  counting, but runs saved before it keep their inflated times (some ~3 hours). Note: every ANDROID
+  player starts from an empty save anyway, because the release key forces a reinstall - so a reset
+  only matters on Windows. Scope to confirm: the run list's `timeSurvived`, the per-car best
+  survival, and any survival-based achievement progress.
+- [ ] **Total playtime in Stats.** User's own idea: count app time, but stop counting after 5 minutes
+  without input (AFK). Open: count ALL screens (menus, Garage, pause), or only gameplay? And where it
+  sits in Stats.
+- [ ] **LEGENDARY label cut off on the phone** (Stats collection). Not reproducible in the browser at
+  375px - the 7px Silkscreen fits there - so it is a font-rendering difference on the device. User
+  suggested auto-shrinking the font when it does not fit; recommended in chat, awaiting a yes.
+- [ ] **Save transfer between devices.** User's design: a device ID that survives reinstalls, an
+  export bound to the TARGET device's ID so one file cannot be shared around, confirmations and a
+  "do not close the app" warning, in a new "Other" section of Settings. Answered in chat with the
+  honest limits (no client-side scheme is uncrackable; Android's ID is stable per signing key, which
+  the new release key now makes possible). Several design questions open - see chat of 2026-09-25.
+- [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
+  settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
+
+### Decided and done (Batch 556)
+
+- [x] ~~QUIT dialog vs behaviour~~ — user chose: a quit saves nothing; message now matches.
+- [x] ~~Licensing~~ — all rights reserved (commit 2ce5219); Jersey 10 added to its font list.
+- [x] ~~Compact Scores meta line~~ — user: the cars still fit, no change needed.
+- [x] ~~Unused files / docs + AGENTS.md / design files in history~~ — all removed.
+
+### Parked
+
+- [ ] **Drag-to-place layout editor.** Designed with the user on 2026-09-24 (presets as read-only
+  templates, dragging turns a layout into CUSTOM, a HUD-free frame, overlap blocked), then set aside:
+  the player complaint turned out to be one axis - height - and CONTROLS HEIGHT answers it for a
+  fraction of the cost. Revisit only if players ask for placement specifically.
 
 ### Carried over
 

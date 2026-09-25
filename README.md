@@ -93,8 +93,10 @@ still shows up.
 The Android side needs `REQUEST_INSTALL_PACKAGES` and the system's "install unknown apps" permission
 for the game; if it is not granted, the first UPDATE tap sends you to that settings screen.
 
-**Updates only install over a build signed with the same key.** The APK is debug-signed, so every
-build must come from the same machine - see the Android build section.
+**Updates only install over a build signed with the same key.** Since 3.25.0 the APK is signed with
+the project's own release key (see *Android release key* below). Installs from before 3.25.0 were
+debug-signed and cannot update to it in place: uninstall the old app first - which deletes the
+progress saved on that phone - then install the new APK.
 
 ## Building the Windows app
 
@@ -122,7 +124,7 @@ Run `npm install` in `mobile\` once, then build both the installer and the APK w
 ```
 
 It ends by stating what it produced, e.g. `BUILT 3.5.1 - RecklessDrivingSetup.exe, RecklessDriving.apk`.
-Both land in `build\`; the APK is also left at `mobile\android\app\build\outputs\apk\debug\app-debug.apk`.
+Both land in `build\`; the APK is also left at `mobile\android\app\build\outputs\apk\release\app-release.apk`.
 Without `-Android` only the installer is built, and any APK left in `build\` by an earlier run is deleted
 so it cannot be mistaken for part of the current build.
 
@@ -132,7 +134,7 @@ To build the APK on its own:
 cd mobile
 npm run sync
 cd android
-.\gradlew.bat assembleDebug
+.\gradlew.bat assembleRelease
 ```
 
 The copy step repeats the Windows build's font guard: it refuses to run if `carCrash.html` still
@@ -150,9 +152,23 @@ $env:ANDROID_HOME = "C:\Users\adam\AppData\Local\Android\Sdk"
 `mobile\android\local.properties` holds the SDK path and is gitignored, being machine-specific — Gradle
 regenerates it, or write `sdk.dir=<path>` by hand.
 
-The APK is **debug-signed**, so it installs by sideloading (allow "install unknown apps" on the phone).
-That is all a personal build needs. Publishing to the Play Store would require a release keystore, which
-is deliberately not kept in this repo.
+### Android release key
+
+The APK is signed with the project's own release key, and it installs by sideloading (allow "install
+unknown apps" on the phone). The key is **never** in this repository - the repository is public. It
+lives in the build machine's user profile:
+
+| File | What it is |
+|---|---|
+| `%USERPROFILE%\.keystores\recklessdriving-release.jks` | The keystore (RSA 4096, alias `recklessdriving`, valid until 2054) |
+| `%USERPROFILE%\.keystores\recklessdriving-signing.properties` | Its path and password, read by `mobile\android\app\build.gradle` |
+
+`build.ps1 -Android` stops with an error if the properties file is missing, rather than producing an
+unsigned or debug-signed APK.
+
+**Back both files up somewhere safe.** Android only installs an update over an app signed with the same
+key, so if this key is lost, no installed copy can ever be updated again - every player would have to
+uninstall, and lose their progress, a second time.
 
 ## Development (Coder workspace — note: the app build above runs on Windows, not in the workspace)
 
@@ -182,14 +198,11 @@ can be rolled back.
 | `installer/` | `game.spec` (PyInstaller) and `setup.py` (the install/update/uninstall window) |
 | `scripts/build.ps1` | Builds `build\RecklessDrivingSetup.exe` |
 | `mobile/` | Capacitor wrapper that packages the game as an Android APK |
-| `tools/` | `embed_fonts.py` (inline the fonts), `make_icon.py` (icon from the game's own sprite) |
-| `assets/` | `recklessdriving.ico` — the app icon |
+| `tools/` | `embed_fonts.py` (inline the fonts), `make_app_art.py` (Android icons and launch screen), `make_icon.py` (icon from the game's own sprite) |
+| `assets/` | `gt-impact.ico` — the app icon; `loading-impact-transparent.png` — the launch-screen art |
 | `PLAN.md` | Development roadmap and feature backlog |
-| `docs/` | Design proposals and code-verified reference notes |
 | `CHANGELOG.md` | Version history with dates and descriptions |
 | `README.md` | This file |
-| `AGENTS.md` | Standing rules for AI agents working on this project |
-| `tools/upload_server.py` | Drag-and-drop file uploader (port 8090) |
 
 ## Planned features
 
@@ -219,5 +232,5 @@ built — see `CHANGELOG.md`. Road pickups were tried and deliberately removed.)
 
 **All rights reserved** — © 2026 Husarp. The code is public to read, and the releases are free to
 download and play, but the game may not be copied, changed, shared, sold or built upon without
-written permission. The embedded fonts (Silkscreen, VT323, DotGothic16) keep their own licence, the
+written permission. The embedded fonts (Silkscreen, VT323, DotGothic16, Jersey 10) keep their own licence, the
 SIL Open Font License. Full terms in [LICENSE](LICENSE).

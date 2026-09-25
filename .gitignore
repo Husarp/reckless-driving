@@ -46,9 +46,21 @@ _archive/
 *.mp4
 *.mov
 
-# The icons the build actually uses are assets/cone-*.png and carsprite.ico. This folder is the
-# working copy they were exported from - the same five files again.
+# Local working copy of the old traffic-cone icon art. Nothing in the build uses it any more - the
+# app icon is assets/gt-impact.ico (Batch 547), and the exported cone files left the repo in Batch 556.
 cone ico files/
+
+# Signing keys never go in a public repository. The Android release key lives in
+# %USERPROFILE%\.keystores\, outside this folder entirely; these patterns are only a backstop in
+# case one is ever copied in here by mistake.
+*.jks
+*.keystore
+*.p12
+*signing.properties
+
+# Kept on disk, not published (direct decision, Batch 556): the design brief and the agent rules.
+docs/
+AGENTS.md
 
 # Editors and operating systems leaving things behind
 .vscode/

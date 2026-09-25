@@ -95,9 +95,14 @@ def set_taskbar_identity() -> None:
     with its own pinned shortcut.
 
     Declaring one explicitly removes the "usually". It has to happen before any window is created.
+
+    The ID is the same reverse-domain one the Android build uses as its applicationId, by direct
+    instruction, so the app has one identity on both platforms. It was "Husarp.RecklessDriving" until
+    Batch 555; a taskbar pin made from a running window under the old ID shows as a separate button
+    once, and re-pinning fixes it.
     """
     try:
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Husarp.RecklessDriving")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("com.husarp.recklessdriving")
     except Exception:
         pass                                    # cosmetic; never fail the launch over it
 

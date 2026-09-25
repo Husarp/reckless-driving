@@ -17,6 +17,16 @@ try {
 def versionParts = (gameVersionName.tokenize('.') + ['0', '0', '0'])[0..2].collect { it.toInteger() }
 def gameVersionCode = versionParts[0] * 10000 + versionParts[1] * 100 + versionParts[2]
 
+// Release signing, Batch 556 (3.25.0) - the first version signed with a real release key instead of
+// Android's per-machine debug key. The key and its password live OUTSIDE this repository, which is
+// public: %USERPROFILE%\.keystores\recklessdriving-signing.properties names the .jks beside it.
+// Nothing secret is committed, and nothing here needs editing on another machine except that file.
+// No file, no signing config: assembleRelease then produces an UNSIGNED apk, and scripts\build.ps1
+// refuses to ship it - so a missing key can never quietly fall back to a debug build.
+def signingProps = new Properties()
+def signingFile = new File(System.getProperty("user.home"), ".keystores/recklessdriving-signing.properties")
+if (signingFile.exists()) signingFile.withInputStream { signingProps.load(it) }
+
 android {
     namespace "com.husarp.recklessdriving"
     compileSdk rootProject.ext.compileSdkVersion
@@ -33,8 +43,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (signingFile.exists()) {
+                storeFile file(signingProps['storeFile'])
+                storePassword signingProps['storePassword']
+                keyAlias signingProps['keyAlias']
+                keyPassword signingProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (signingFile.exists()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
