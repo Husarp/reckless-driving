@@ -111,8 +111,17 @@ updater. Uninstall first, which deletes the progress on that phone.
   that does not exist, and started listing `make_app_art.py`, which does.
 - **Licence:** the all-rights-reserved `LICENSE` was already in place (commit 2ce5219); its list of
   embedded fonts was missing **Jersey 10**, the crash-title font, and now has it — in the README too.
-- **Design files purged from the git history.** See the Batch 556 note in PLAN.md for what was removed
-  and what a rewrite can and cannot take back from a public repository.
+- **The git history was rewritten** (direct decision, scope chosen item by item). An audit of every
+  path ever committed found far more than design files. Purged from every commit: all `*.dc.html`, the
+  `_archive/` folder (design exports and mockups), `old/`, `backup/` (20 old copies of the game),
+  `cone ico files/`, `docs/` and `AGENTS.md`. The user's real name, left in one old entry as the name
+  of a Coder workspace, is replaced in every version of every file; and every commit is now authored
+  as `Husarp` with the GitHub noreply address — 38 had used `adam@localhost` and one a personal
+  address. Scanned first for leaked secrets (tokens, keys, private keys, passwords): none, ever.
+  97 commits became 59: the 38 that only ever touched purged files had nothing left in them. Checked
+  by content hash against a full pre-rewrite backup — the current files are identical except for that
+  one word. A rewrite cannot recall copies already made: GitHub may keep old commits reachable by
+  direct link until it cleans up, and any existing clone or fork keeps them.
 
 ### Held for a decision (in PLAN.md)
 
