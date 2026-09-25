@@ -48,6 +48,8 @@ steer with.
 | Control Type | PC / Mobile | PC: keyboard only. Mobile: on-screen controls |
 | Multi-Lane Hold | On / Off | Off = one lane per press or tap; On = hold to glide across several. On Mobile it lives on the Controls screen |
 | Controls (Mobile) | EDIT → its own screen | Every touch option - arrows or joystick, size, height, style, layout, joystick position - with a live preview of your screen. Tap the preview to see it full size |
+| Lane Change Speed (Mobile) | 1-5 | How fast the car crosses lanes while a direction or a diagonal is held. 3 is the original |
+| Tap Road For Ability (Mobile) | On / Off | No ability button: touch the road - hold to keep jumping, tap to ram. Not with the floating joystick |
 | Volumes | Master, plus music / siren / explosion / SFX | — |
 | Skip Crash Animation | On / Off | Straight to the summary |
 | Fullscreen | On / Off | Hides the phone's navigation bar while you play |

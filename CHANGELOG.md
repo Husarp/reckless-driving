@@ -6,6 +6,49 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.28.0 — 2026-09-26 01:30: Batch 559 — LANE CHANGE SPEED, and TAP ROAD FOR ABILITY
+
+Two new settings on the CONTROLS screen, both direct requests.
+
+### LANE CHANGE SPEED
+
+How fast the car crosses lanes while a direction is **held**: 1 to 5, with **3 exactly the game as it
+was**. It multiplies the glide that MULTI-LANE HOLD uses — so it covers the on-screen arrows, the
+joystick (which steers through the same path) and the CROSS diagonals held with MULTI-LANE HOLD on —
+and with MULTI-LANE HOLD off it sets how often a held diagonal steps a lane (600 ms at 3).
+
+| level | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| glide speed | x0.6 | x0.8 | x1 | x1.25 | x1.5 |
+| diagonal step (MULTI-LANE HOLD off) | 1000 ms | 750 ms | 600 ms | 480 ms | 400 ms |
+
+Measured with MULTI-LANE HOLD on: a held arrow covered 14.1 / 23.5 / 35.2 px over 10 frames at levels
+1 / 3 / 5. The row appears only where there is continuous lane changing to tune — MULTI-LANE HOLD on,
+or the CROSS layout. It applies only on a touch screen in MOBILE mode: on PC, MULTI-LANE HOLD stays the
+one steering option, so the keyboard is unaffected.
+
+### TAP ROAD FOR ABILITY
+
+Turns the ability button off and makes the road the control: touch it to use your ability. The press
+starts it and lifting ends it, so a **jump lasts as long as your finger stays down** and a **ram needs
+only a tap**. The arrows and the joystick are their own elements, so steering with one thumb never
+triggers it, and one finger owns it at a time, so a second tap cannot cut a held jump short.
+
+It is **never on with the floating joystick**, as specified: that mode summons the stick wherever a
+thumb lands on the road, so the road cannot also mean "use the ability". With floating on, the row hides
+and the button returns; your choice is kept for when floating is off again. The ABILITY BUTTON style row
+hides too while there is no button to style.
+
+With the button hidden, the bottom bar no longer holds itself open at the button's height — the road
+gets it back (109 → 102 px at M here, where the arrows set the height). The same now applies to cars
+with no ability at all.
+
+Verified: press → jumping and held, release → landing; a quick tap on the ROAD TRAIN → ramming, still
+ramming after the finger lifts; floating joystick → setting stands down, a road touch does nothing,
+floating off → back on.
+
+---
+
 ## 3.27.0 — 2026-09-26 00:40: Batch 558 — a CONTROLS screen with a live preview, and four fixes
 
 ### The touch controls get their own screen, with a preview of your screen

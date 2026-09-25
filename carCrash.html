@@ -2573,7 +2573,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.27.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.0</span></div>
                 </div>
             </div>
         </div>
@@ -2677,7 +2677,7 @@
                     </select>
                 </div>
 
-                <div class="stg-row touch-only">
+                <div class="stg-row touch-only" id="abilityStyleRow">
                     <div class="stg-row-label">
                         <div class="stg-row-title">ABILITY BUTTON</div>
                         <div class="stg-row-hint">The ability badge itself, or a plain labelled button.</div>
@@ -2690,6 +2690,23 @@
                     <select id="abilityStyleSetting" style="display:none;">
                         <option value="badge" selected>Badge</option>
                         <option value="plain">Plain</option>
+                    </select>
+                </div>
+
+                <!-- Batch 559, direct request: no ability button - touch the road instead. Hidden with
+                     the floating joystick, which already owns every touch on the road. -->
+                <div class="stg-row touch-only" id="tapAbilityRow">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">TAP ROAD FOR ABILITY</div>
+                        <div class="stg-row-hint">Hides the ability button: touch the road instead - hold to keep jumping, tap to ram. Not with the floating joystick.</div>
+                    </div>
+                    <div class="stg-toggle" id="tapAbilityToggle">
+                        <span class="stg-toggle-label" id="tapAbilityToggleLabel">OFF</span>
+                        <div class="stg-toggle-track" id="tapAbilityToggleTrack"><div class="stg-toggle-knob"></div></div>
+                    </div>
+                    <select id="tapAbilitySetting" style="display:none;">
+                        <option value="yes">On</option>
+                        <option value="no" selected>Off</option>
                     </select>
                 </div>
 
@@ -2862,6 +2879,30 @@
                     <select id="multiLaneHoldSetting" style="display:none;">
                         <option value="yes">On</option>
                         <option value="no" selected>Off (one lane per press)</option>
+                    </select>
+                </div>
+
+                <!-- Batch 559, direct request: how fast the car crosses lanes while a direction is HELD.
+                     Lives on the CONTROLS screen only (moved there with MULTI-LANE HOLD, see
+                     tcePlaceMultiLane) - on PC, MULTI-LANE HOLD stays the only control option. -->
+                <div class="stg-row touch-only" id="laneSpeedRow">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">LANE CHANGE SPEED</div>
+                        <div class="stg-row-hint">How fast the car crosses lanes while you hold a direction or a diagonal. 3 is the original.</div>
+                    </div>
+                    <div class="stg-seg" id="laneSpeedSeg">
+                        <button type="button" data-val="1">1</button>
+                        <button type="button" data-val="2">2</button>
+                        <button type="button" data-val="3">3</button>
+                        <button type="button" data-val="4">4</button>
+                        <button type="button" data-val="5">5</button>
+                    </div>
+                    <select id="laneSpeedSetting" style="display:none;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
                     </select>
                 </div>
     
@@ -3710,8 +3751,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.27.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">558</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.28.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">559</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4165,7 +4206,11 @@
             // Batch 541 - the Batch 538 exception for SPLIT is gone with the reason for it: its ability
             // button is no longer floating above the bar, it stands in it, so the bar has to be tall
             // enough for it again like every other layout.
-            return Math.max(96, tcApplied.ability + 16, tcApplied.btnH + 16) + 6;
+            // Batch 559 - a hidden ability button (TAP ROAD FOR ABILITY, or a car with no ability) no
+            // longer holds the bar open at its own height; the road gets that height back.
+            const abilityEl = document.getElementById('tcAbility');
+            const abilityH = abilityEl && abilityEl.classList.contains('hidden') ? 0 : tcApplied.ability + 16;
+            return Math.max(96, abilityH, tcApplied.btnH + 16) + 6;
         }
         function gameExtraBottom() {
             let extra = config.steeringButtonEnabled && !IS_TOUCH ? STEERING_TRACK_HEIGHT : 0;
@@ -4199,6 +4244,28 @@
         const tcHeightSeg = document.getElementById('tcHeightSeg');
         const selectTcHeight = document.getElementById('tcHeightSetting');
         const tcHeightRow = document.getElementById('tcHeightRow');
+        // Batch 559
+        const tapAbilityRow = document.getElementById('tapAbilityRow');
+        const selectTapAbility = document.getElementById('tapAbilitySetting');
+        const abilityStyleRow = document.getElementById('abilityStyleRow');
+        const laneSpeedRow = document.getElementById('laneSpeedRow');
+        const selectLaneSpeed = document.getElementById('laneSpeedSetting');
+        let tcTapAbilityOn = false;   // TAP ROAD FOR ABILITY, as actually in force (never with a floating stick)
+        // LANE CHANGE SPEED. 3 is the game as it was. Only on a touch screen in MOBILE mode - the setting
+        // lives on the CONTROLS screen, and on PC nothing but MULTI-LANE HOLD is meant to change steering.
+        const LANE_SPEED_FACTOR = { 1: 0.6, 2: 0.8, 3: 1, 4: 1.25, 5: 1.5 };
+        function laneSpeedFactor() {
+            if (!IS_TOUCH || selectDeviceMode.value !== 'mobile') return 1;
+            return LANE_SPEED_FACTOR[selectLaneSpeed.value] || 1;
+        }
+        // Shown only where there is continuous lane changing to tune: MULTI-LANE HOLD, or the CROSS,
+        // whose diagonals repeat on their own.
+        function syncLaneSpeedRow() {
+            if (!laneSpeedRow) return;
+            const multi = selectMultiLaneHold.value === 'yes';
+            const cross = selectTouchMode.value === 'arrows' && selectArrowLayout.value === 'cross';
+            laneSpeedRow.style.display = (multi || cross) ? '' : 'none';
+        }
         const arrowLayoutSeg = document.getElementById('arrowLayoutSeg');
         const selectArrowLayout = document.getElementById('arrowLayoutSetting');
         const arrowLayoutRow = document.getElementById('arrowLayoutRow');
@@ -11030,7 +11097,8 @@
 
                 // Movement speed scales with game speed: slow/deliberate at base speed, quicker at max speed.
                 const speedRatio = Math.max(0, Math.min(1, (currentSpeed - baseSpeed) / (playerMaxSpeed - baseSpeed)));
-                const glideSpeed = HORIZONTAL_GLIDE_SPEED_BASE + speedRatio * (HORIZONTAL_GLIDE_SPEED_MAX - HORIZONTAL_GLIDE_SPEED_BASE);
+                // Batch 559 - x LANE CHANGE SPEED (1 on PC, and at the default setting).
+                const glideSpeed = (HORIZONTAL_GLIDE_SPEED_BASE + speedRatio * (HORIZONTAL_GLIDE_SPEED_MAX - HORIZONTAL_GLIDE_SPEED_BASE)) * laneSpeedFactor();
 
                 // Horizontal steering (Batch 44 — lane-snap; Batch 48 — fully smooth hold): holding a direction glides continuously at `glideSpeed` starting the instant it's pressed — no discrete "snap to the next lane" step first (Batch 45 had one, gated behind an arrival check; user found that initial snap felt like a jump before the smooth part kicked in).
                 const steerLerp = 0.12 + speedRatio * 0.18; // 0.12 at base speed -> 0.30 at max speed
@@ -15032,6 +15100,28 @@
             e.preventDefault(); abilityBarRelease();
         }, { passive: false });
 
+        // Batch 559 - TAP ROAD FOR ABILITY. A touch on the road does what the ability button does: the
+        // press uses the ability and the release ends it - so a jump lasts as long as the finger stays
+        // down, and a ram, being a single activation, just needs a tap. The controls themselves are
+        // other elements, so a thumb on the arrows or the stick never lands here; one finger owns the
+        // ability at a time, so a second tap cannot cut a held jump short.
+        let tapAbilityTouchId = null;
+        canvas.addEventListener('touchstart', (e) => {
+            if (!tcTapAbilityOn || !gameActive || gamePaused || CS.active) return;
+            e.preventDefault();
+            if (tapAbilityTouchId !== null) return;
+            tapAbilityTouchId = e.changedTouches[0].identifier;
+            abilityBarPress();
+        }, { passive: false });
+        function tapAbilityEnd(e) {
+            if (tapAbilityTouchId === null) return;
+            for (const t of e.changedTouches) {
+                if (t.identifier === tapAbilityTouchId) { tapAbilityTouchId = null; abilityBarRelease(); }
+            }
+        }
+        canvas.addEventListener('touchend', tapAbilityEnd);
+        canvas.addEventListener('touchcancel', tapAbilityEnd);
+
 
         // ---------- Batch 478: on-screen touch controls ----------
         // Direct decision: the drag-to-steer line is GONE on touch. It was a 1:1 finger-follow that put
@@ -15139,7 +15229,7 @@
                 const heading = Math.round((player.targetX + player.width / 2 - ROAD_BORDER_LEFT - lw / 2) / lw);
                 const next = Math.max(0, Math.min(config.lanes - 1, heading + tcDiagDir));
                 player.targetX = laneCenterX(next);
-            }, TC_DIAG_REPEAT_MS);
+            }, Math.round(TC_DIAG_REPEAT_MS / laneSpeedFactor()));   // Batch 559 - LANE CHANGE SPEED
         }
         /**
          * Batch 545, direct report: "between those arrows is a tiny gap, and if your finger goes
@@ -15342,6 +15432,7 @@
         function tcePlaceMultiLane() {
             if (selectDeviceMode.value === 'mobile' && IS_TOUCH) tceList.appendChild(multiLaneRow);
             else multiLaneHome.after(multiLaneRow);
+            if (laneSpeedRow) tceList.appendChild(laneSpeedRow);   // Batch 559 - always the CONTROLS screen, after MULTI-LANE HOLD
         }
         let tceFull = false, tcePrevPlaying = false;
         // Sizes the box to the screen's own shape and scales the real game screen into it. The box is a
@@ -15611,7 +15702,15 @@
             tcAbility.innerHTML = (tcKind ? abilityBadgeSvg(tcKind, abSize, abSize - 4) : '')
                 + (wantName && tcName ? '<span class="tc-ability-name">' + tcName + '</span>' : '');
             // No ability, no button - the ability-free specials would otherwise show a dead control.
-            tcAbility.classList.toggle('hidden', config.ability === 'none' || !tcKind);
+            // Batch 559 - TAP ROAD FOR ABILITY takes the button away. Never with a floating stick: that
+            // mode summons the stick wherever a thumb lands on the road, so the road cannot also mean
+            // "use the ability" - the row hides and the button comes back.
+            const floatingStick = stickMode && floating;
+            tcTapAbilityOn = selectTapAbility.value === 'yes' && !floatingStick;
+            if (tapAbilityRow) tapAbilityRow.style.display = floatingStick ? 'none' : '';
+            if (abilityStyleRow) abilityStyleRow.style.display = tcTapAbilityOn ? 'none' : '';
+            syncLaneSpeedRow();
+            tcAbility.classList.toggle('hidden', config.ability === 'none' || !tcKind || tcTapAbilityOn);
             tcReleaseAll();
             // The strip changes how much height the canvas can have, so re-fit the frame whenever it
             // appears or disappears - otherwise turning controls on pushes the canvas off the bottom.
@@ -17366,7 +17465,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.27.0';
+        const GAME_VERSION = '3.28.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -18469,6 +18568,20 @@
             // pause screen and made every launch-time read like this one stale for the rest of the run.
             selectMultiLaneHold.addEventListener('change', () => {
                 config.multiLaneHold = selectMultiLaneHold.value === 'yes';
+                syncLaneSpeedRow();   // Batch 559
+            });
+            // Batch 559 - TAP ROAD FOR ABILITY and LANE CHANGE SPEED, persisted like the others.
+            try { const v = localStorage.getItem('tapAbility'); if (v === 'yes' || v === 'no') selectTapAbility.value = v; } catch (e) {}
+            bindToggle(document.getElementById('tapAbilityToggle'), document.getElementById('tapAbilityToggleLabel'),
+                       document.getElementById('tapAbilityToggleTrack'), selectTapAbility, 'yes', 'no');
+            selectTapAbility.addEventListener('change', () => {
+                try { localStorage.setItem('tapAbility', selectTapAbility.value); } catch (e) {}
+                applyTouchControls();
+            });
+            try { const v = localStorage.getItem('laneSpeed'); if (LANE_SPEED_FACTOR[v]) selectLaneSpeed.value = v; } catch (e) {}
+            bindSeg(document.getElementById('laneSpeedSeg'), selectLaneSpeed);
+            selectLaneSpeed.addEventListener('change', () => {
+                try { localStorage.setItem('laneSpeed', selectLaneSpeed.value); } catch (e) {}
             });
             selectStickSize.addEventListener('change', () => {
                 try { localStorage.setItem('stickSize', selectStickSize.value); } catch (e) {}

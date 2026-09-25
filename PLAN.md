@@ -18,6 +18,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
   settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
 
+- [ ] **MULTI-LANE HOLD is never saved.** Found in passing (Batch 559): it resets to OFF on every app
+  start, the same kind of issue the lane count had. Not changed - ask whether it should be remembered.
+
+### Done in Batch 559
+
+- [x] ~~LANE CHANGE SPEED setting~~ — 1-5, glide x0.6-x1.5 and the diagonal step with it.
+- [x] ~~Tap the road for the ability~~ — TAP ROAD FOR ABILITY, never with the floating joystick.
+
 ### Done in Batch 558
 
 - [x] ~~Controls editor with a live preview~~ — CONTROLS screen, real game screen scaled into a preview.
