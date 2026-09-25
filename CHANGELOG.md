@@ -6,6 +6,74 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.26.0 — 2026-09-25 23:10: Batch 557 — old survival times cleared, TIME PLAYED, LEGENDARY fits
+
+Three answers from the Batch 556 questions, all approved: clear the inflated survival times, show both
+play-time figures, and auto-fit the LEGENDARY label.
+
+### The inflated survival times are cleared, once
+
+Batch 556 stopped pause and screen-off time counting as survival, but runs saved before it kept their
+inflated times — some around three hours. A one-time reset clears them, keyed on a flag so it can never
+run twice:
+
+| cleared | why |
+|---|---|
+| every saved run's time | shows "—" on the leaderboard from now on |
+| each car's best survival | the Garage hover card |
+| LONGEST SURVIVAL | the Stats figure |
+| TIME DRIVING (was "TOTAL PLAY TIME") | the sum of run lengths — just as inflated |
+
+**Scores are untouched, and so are achievements already earned** — by instruction. That second part
+needed care: STAYING ALIVE is a tiered achievement worked out live from the longest survival, so
+zeroing that alone would have silently taken earned tiers away. `aliveMinutesKept` holds what it had
+reached. AVG RUN used to divide the time total by every run ever played; it now divides by
+`timedRuns`, which restarts with the total — otherwise a fresh total over the all-time run count would
+have made every average nonsense.
+
+Verified on a planted "three-hour" save: every time cleared, the 18,432 score and all 40 runs kept,
+STAYING ALIVE still at 180 minutes. After one honest 1m 23s run and a reload, the new time survived
+(the reset had not run again), and AVG RUN read 1m 23s, not 83s over 41 runs.
+
+For Android players this changes nothing in practice — the release key means a clean install anyway.
+
+### TIME PLAYED and TIME DRIVING
+
+Direct request, both figures, in Stats → TOTALS.
+
+- **TIME DRIVING** is the row that used to say TOTAL PLAY TIME. It has only ever been the sum of run
+  lengths, so it now says what it is — and since Batch 556 it only counts time actually driving.
+- **TIME PLAYED** is new: time in the app on any screen, the pause menu included, that stops counting
+  after **5 minutes without input** (touch, mouse, keyboard). A live run always counts, input or not —
+  a thumb can hold the accelerator without producing a single event, and that is still playing. It
+  only counts while the screen is on, each frame's share is capped so a screen-off gap cannot leak
+  in, and it is saved every 15 seconds of play and whenever the app goes to the background.
+
+It has its own save key, deliberately outside the run checkpoint: that is rolled back on a quit
+(Batch 556), and time spent in a run you then quit is still time you played. Both progress resets —
+the dev menu's and the `?resetprogress=1` link — clear it too.
+
+TOTALS now holds five figures in a 2x2 grid, so the odd one takes the full width rather than leaving a
+hole. The time formatter learned hours (`2h 14m`); anything under an hour reads exactly as before.
+
+Verified case by case: counts with recent input, stops after 5 minutes idle on the menu and in the
+pause menu, keeps counting in a live run with no input, stops while the screen is off, and a 60-second
+gap in one frame adds only 0.25s. (This browser pane reports itself hidden, so the visible cases were
+tested with visibility stubbed — the guard itself is what hid them.)
+
+### LEGENDARY fits its column
+
+Direct report, suggestion approved: the label was cut off on the phone. It is not cut in a desktop
+browser at the same width, so it is how the device renders the font, and a fixed width picked here
+would only be a guess about someone else's screen. It is now measured where it is drawn: the 0.5px
+letter-spacing goes first — 4.5px across the word and often the whole overflow — and only then does the
+size come down, in small steps, never below 5px. Tested by narrowing the column to 44px: LEGENDARY
+dropped its spacing and settled at 6.5px, and no other label changed. At normal width nothing is
+touched. It runs after the Stats screen is shown, because it used to render while hidden, and a
+hidden element measures 0.
+
+---
+
 ## 3.25.0 — 2026-09-25 21:30: Batch 556 — a quit keeps nothing, time only counts while you play
 
 A long list, answered in one batch. Everything below is verified; the parts that were asked as

@@ -2128,6 +2128,9 @@
         .stz-tab.active { background: var(--c-card); color: var(--c-mint); border-color: var(--c-mint); border-bottom-color: var(--c-card); }
         .stz-panel { background: var(--c-card); border: 2px solid var(--c-mint); padding: 12px 12px 10px; }
         .stz-panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; }
+        /* Batch 557 - TOTALS has five figures; an odd one out takes the full width rather than leaving
+           a hole beside it. */
+        .stz-panel-grid > .stz-cell:last-child:nth-child(odd) { grid-column: 1 / -1; }
         .stz-cell { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
         .stz-cell-val { font-family: 'VT323', monospace; font-size: 24px; line-height: 1; }
         .stz-cell-key { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: var(--c-text-dimmer); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2547,7 +2550,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.25.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.26.0</span></div>
                 </div>
             </div>
         </div>
@@ -3673,8 +3676,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.25.0 &mdash; AUG 21 TO SEP 25, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">556</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.26.0 &mdash; AUG 21 TO SEP 25, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">557</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4593,6 +4596,7 @@
             localStorage.removeItem('runHistory');
             localStorage.removeItem('selectedCarKey');
             localStorage.removeItem('playerColor');
+            localStorage.removeItem('timePlayedMs');   // Batch 557
             const url = new URL(location.href);
             url.searchParams.delete('resetprogress');
             history.replaceState(null, '', url);
@@ -4697,6 +4701,40 @@
         // the whole gap, and the cap turns that into a fraction of a second instead of hours.
         let runActiveMs = 0, runLastFrameTs = 0;
         const RUN_FRAME_CAP_MS = 100;
+
+        // TIME PLAYED (Batch 557, direct request): time in the app on any screen, pause menu included,
+        // that stops counting after 5 minutes with no input - "if you don't touch anything for five
+        // minutes it stops counting". A live run always counts, input or not: a thumb can hold the
+        // accelerator without generating a single event, and that is still playing.
+        // Only while the page is visible, and each frame's share capped, for the same reason as
+        // runActiveMs above - the first frame after the screen comes back on sees the whole gap.
+        // Its own save key, deliberately NOT in allTimeStats: that is held during a run and rolled
+        // back on a quit (Batch 556), and the time you actually spent in a run you then quit is still
+        // time you played. Saved every 15 s of play and whenever the page is hidden.
+        const AFK_AFTER_MS = 5 * 60 * 1000;
+        const PLAY_FRAME_CAP_MS = 250;
+        let timePlayedMs = 0;
+        try { timePlayedMs = Math.max(0, Number(localStorage.getItem('timePlayedMs')) || 0); } catch (e) {}
+        let lastInputTs = performance.now(), playLastFrameTs = performance.now(), playUnsavedMs = 0;
+        ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
+            window.addEventListener(ev, () => { lastInputTs = performance.now(); }, { capture: true, passive: true }));
+        function saveTimePlayed() {
+            playUnsavedMs = 0;
+            try { localStorage.setItem('timePlayedMs', String(Math.round(timePlayedMs))); } catch (e) {}
+        }
+        function tickTimePlayed() {
+            const now = performance.now();
+            const dt = Math.min(now - playLastFrameTs, PLAY_FRAME_CAP_MS);
+            playLastFrameTs = now;
+            const liveRun = gameActive && !gamePaused;
+            if (document.visibilityState !== 'visible') return;
+            if (!liveRun && now - lastInputTs > AFK_AFTER_MS) return;
+            timePlayedMs += dt;
+            playUnsavedMs += dt;
+            if (playUnsavedMs >= 15000) saveTimePlayed();
+        }
+        document.addEventListener('visibilitychange', () => { if (document.hidden) saveTimePlayed(); });
+        window.addEventListener('pagehide', saveTimePlayed);
         let gamePaused = false;
         let devInvincible = false; // Batch 165 — dev-menu toggle; the car simply can't die while true (see the vehicle-collision crash branches)
         let devStartAtTopSpeed = false; // Batch 237 — dev-menu toggle; launchGame() starts currentSpeed at playerMaxSpeed instead of baseSpeed while true
@@ -4735,6 +4773,8 @@
             totalBarsUsed: 0,         // Daily Mission "use X energy bars" — jump/Tank-shot activations, ram excluded
             totalLaneSwitches: 0,
             totalGameTimeMs: 0,
+            timedRuns: 0,             // Batch 557 - runs counted in totalGameTimeMs since the survival reset; AVG RUN divides by this
+            aliveMinutesKept: 0,      // Batch 557 - STAYING ALIVE progress kept through the survival reset
             totalPickups: 0,          // stays 0 until road pickups (PLAN.md Batch 36) exist
             deathsByType: {},         // { normal: n, truck: n, reckless: n, ambulance: n, ... }
             recentScores: [],         // last 50 run scores, newest first — for "avg last 50"
@@ -4989,6 +5029,7 @@
             allTimeStats.totalRamKills += ramKillsThisRun;   // Batch 331 — "Road Rage"
             allTimeStats.totalLaneSwitches += laneSwitchesThisRun;
             allTimeStats.totalGameTimeMs += survivedMs;
+            allTimeStats.timedRuns = (allTimeStats.timedRuns || 0) + 1;
             if (vehicleType) {
                 allTimeStats.deathsByType[vehicleType] = (allTimeStats.deathsByType[vehicleType] || 0) + 1;
             }
@@ -5079,7 +5120,11 @@
         // result-screen SURVIVED specifically, per direct feedback ("survived 0:05... instead display only 5 seconds, or 1m and 5 seconds... no need for unnecessary zeros").
         function formatTimeCompact(ms) {
             const totalSec = Math.max(0, Math.floor(ms / 1000));
-            const m = Math.floor(totalSec / 60), s = totalSec % 60;
+            const h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = totalSec % 60;
+            // Batch 557 - hours, for TIME PLAYED, which would otherwise read "180m 0s". From an hour up
+            // the seconds are noise and drop out; below an hour this is exactly the format the result
+            // screen asked for ("1m 12s", "5s").
+            if (h > 0) return h + 'h ' + m + 'm';
             return m > 0 ? (m + 'm ' + s + 's') : (s + 's');
         }
 
@@ -7917,6 +7962,41 @@
             if (dirty) { saveAllTimeStats(); saveRunHistory(); }
         })();
 
+        /**
+         * Batch 557, direct decision: clear the survival times recorded before Batch 556 fixed the
+         * pause and screen-off bug. Some runs had logged ~3 hours that way. Scores are kept.
+         *
+         * Cleared: every saved run's time (it shows "-" from now on), each car's best survival,
+         * LONGEST SURVIVAL, and TIME DRIVING (the sum of run lengths - just as inflated). AVG RUN
+         * divides that sum by `timedRuns`, which starts again from 0 with it; dividing a fresh total
+         * by the all-time run count would have made every average meaningless.
+         *
+         * Kept, by instruction: achievements already earned. STAYING ALIVE is a tiered achievement
+         * worked out live from longestSurvivalMs, so zeroing that alone would have silently taken
+         * earned tiers away - `aliveMinutesKept` holds what it had reached.
+         *
+         * The flag is deliberately NOT in the defaults: a default of true would be merged into every
+         * existing save too, and the reset would never run where it is needed.
+         */
+        (function resetInflatedSurvivalOnce() {
+            if (allTimeStats.survivalResetDone) return;
+            allTimeStats.aliveMinutesKept = Math.max(allTimeStats.aliveMinutesKept || 0,
+                Math.floor((allTimeStats.longestSurvivalMs || 0) / 60000));
+            allTimeStats.longestSurvivalMs = 0;
+            allTimeStats.totalGameTimeMs = 0;
+            allTimeStats.timedRuns = 0;
+            Object.values(allTimeStats.carStats || {}).forEach(cs => { if (cs) cs.bestSurvivalMs = 0; });
+            try {
+                const hs = JSON.parse(localStorage.getItem('highscores') || '[]');
+                if (hs.length) {
+                    hs.forEach(h => { if (h) h.timeSurvived = null; });
+                    localStorage.setItem('highscores', JSON.stringify(hs));
+                }
+            } catch (e) {}
+            allTimeStats.survivalResetDone = true;
+            saveAllTimeStats();
+        })();
+
         (function pruneDeletedCars() {
             const real = new Set(GARAGE_CARS.map(c => c.key));
             const kept = (allTimeStats.ownedCars || []).filter(k => real.has(k));
@@ -9831,7 +9911,7 @@
                 // tierReset (direct request, Batch 392): true for achievements built from repeated in-run actions piling up (score/coins/overtakes/etc.) — each tier's progress bar starts fresh from 0 at the tier boundary instead of showing the raw lifetime total, since "gained this run" wouldn't otherwise line up with a single tier's own span. Left false/omitted for a best-ever PEAK value (survival time, streak, level, chain-kill record, top speed, multiplier — there's no "reset" to speak of, it's just a record) or a plain collection tally (owned cars/colors, cars driven) where the user explicitly said resetting "doesn't make sense."
                 { id: 'score', icon: 'score', name: 'SCORE CHASER', desc: "Bank enough total score.", v: allTimeStats.totalScore, unit: 'SCORE', tiers: [['bronze', 1000], ['silver', 10000], ['gold', 50000], ['diamond', 250000], ['amethyst', 1000000]], tierReset: true },
                 { id: 'pass', icon: 'pass', name: 'OVERTAKER', desc: 'Overtake enough cars cleanly, without a scratch.', v: allTimeStats.totalDodged, unit: 'OVERTAKES', tiers: [['bronze', 100], ['silver', 1000], ['gold', 5000], ['diamond', 25000], ['amethyst', 100000]], tierReset: true },
-                { id: 'alive', icon: 'alive', name: 'STAYING ALIVE', desc: 'Survive this many minutes in a single run.', v: Math.floor(allTimeStats.longestSurvivalMs / 60000), unit: 'MINUTES', tiers: [['bronze', 2], ['silver', 5], ['gold', 10], ['diamond', 15]] },
+                { id: 'alive', icon: 'alive', name: 'STAYING ALIVE', desc: 'Survive this many minutes in a single run.', v: Math.max(allTimeStats.aliveMinutesKept || 0, Math.floor(allTimeStats.longestSurvivalMs / 60000)), unit: 'MINUTES', tiers: [['bronze', 2], ['silver', 5], ['gold', 10], ['diamond', 15]] },
                 { id: 'collector', icon: 'collector', name: 'COLLECTOR', desc: 'Own this many cars in your Garage.', v: allTimeStats.ownedCars.length, unit: 'CARS', tiers: collectorTiers() },
                 { id: 'closecalls', icon: 'closecalls', name: 'TOO CLOSE TO COMFORT', desc: 'Get enough close calls.', v: allTimeStats.totalCloseCalls, unit: 'CLOSE CALLS', tiers: [['bronze', 25], ['silver', 100], ['gold', 250], ['diamond', 500]], tierReset: true },
                 { id: 'streak', icon: 'streak', name: 'DAILY GRIND', desc: 'Consecutive days played.', v: allTimeStats.bestStreak, unit: 'DAYS', tiers: [['bronze', 3], ['silver', 7], ['gold', 14], ['diamond', 21], ['amethyst', 30]] },
@@ -14362,7 +14442,10 @@
             const avg = d.scoringRunsPlayed ? Math.round(d.totalScore / d.scoringRunsPlayed) : 0;
             const scored50 = d.recentScores.filter(s => s > 0);
             const avg50 = scored50.length ? Math.round(scored50.reduce((a, b) => a + b, 0) / scored50.length) : 0;
-            const avgRunMs = d.runsPlayed ? d.totalGameTimeMs / d.runsPlayed : 0;
+            const avgRunMs = d.timedRuns ? d.totalGameTimeMs / d.timedRuns : 0;
+            // "-" rather than "0s" for a time with nothing behind it yet - after the Batch 557 reset
+            // every existing player would otherwise see a row of zeroes until their next run.
+            const timeOrDash = ms => ms > 0 ? formatTimeCompact(ms) : '—';
             const todayKey = dayKey(new Date());
             const runsToday = runHistory.filter(r => dayKey(new Date(r.ts)) === todayKey).length;
             const daysPlayed = new Set(runHistory.map(r => dayKey(new Date(r.ts)))).size;
@@ -14384,8 +14467,8 @@
                     ['AVG (LAST 50)', n(avg50), 'var(--c-mint)']
                 ]},
                 { title: 'SURVIVAL', rows: [
-                    ['LONGEST SURVIVAL', formatTimeCompact(d.longestSurvivalMs), 'var(--c-mint)'],
-                    ['AVG RUN', formatTimeCompact(avgRunMs), 'var(--c-text)'],
+                    ['LONGEST SURVIVAL', timeOrDash(d.longestSurvivalMs), 'var(--c-mint)'],
+                    ['AVG RUN', timeOrDash(avgRunMs), 'var(--c-text)'],
                     ['CLOSE CALLS', n(d.totalCloseCalls), 'var(--c-red)'],
                     ['BEST CLOSE CALLS (RUN)', d.bestCloseCallsRun, 'var(--c-red)']
                 ]},
@@ -14393,7 +14476,11 @@
                     ['RUNS PLAYED', n(d.runsPlayed), 'var(--c-text)'],
                     ['VEHICLES DODGED', n(d.totalDodged), 'var(--c-text)'],
                     ['TOTAL COINS', n(d.totalCoins), 'var(--c-amber)'],
-                    ['TOTAL PLAY TIME', formatTimeCompact(d.totalGameTimeMs), 'var(--c-text)']
+                    // Batch 557, direct request: both times. This row was "TOTAL PLAY TIME", but it has
+                    // only ever been the sum of run lengths - time driving - so it says so now, and TIME
+                    // PLAYED (every screen, minus AFK) sits below it across the full width.
+                    ['TIME DRIVING', timeOrDash(d.totalGameTimeMs), 'var(--c-text)'],
+                    ['TIME PLAYED', timeOrDash(timePlayedMs), 'var(--c-mint)']
                 ]},
                 // Batch 504, direct report: "the habit tab is kinda empty". It had two rows against
                 // four in every other tab. These four all come from data already being kept, so nothing
@@ -14495,6 +14582,28 @@
             }).join('');
         }
 
+        // Direct report: LEGENDARY was cut off in the COLLECTION rows on the phone. It is not cut in a
+        // desktop browser at the same 375px width - the 7px Silkscreen fits the 56px column there - so
+        // it is how the device renders the font, and a fixed width chosen here would only be a guess
+        // about someone else's screen. So it is measured where it is drawn, as the user suggested.
+        // Letter-spacing goes first: it is 0.5px a letter, which is 4.5px across LEGENDARY and often
+        // the whole overflow, and dropping it keeps the pixel font at its size. Only if that is not
+        // enough does the size come down, in small steps, never below 5px.
+        // Runs after the view is shown: a hidden element measures 0 and would never shrink.
+        function fitStatsRarityNames() {
+            document.querySelectorAll('#stzRarities .stz-rarity-name').forEach(el => {
+                el.style.letterSpacing = '';
+                el.style.fontSize = '';
+                if (!el.clientWidth || el.scrollWidth <= el.clientWidth) return;
+                el.style.letterSpacing = '0px';
+                let size = parseFloat(getComputedStyle(el).fontSize);
+                while (el.scrollWidth > el.clientWidth && size > 5) {
+                    size = Math.round((size - 0.25) * 100) / 100;
+                    el.style.fontSize = size + 'px';
+                }
+            });
+        }
+
         function showStats() {
             paintLevelBadge(statsLevelRing, statsLevelNum, statsLevelXpText, statsLevelRankText);
             // Fresh state every time the screen opens — matches the mockup's own component (re-mounted, not persisted, each visit).
@@ -14507,6 +14616,7 @@
             menuView.classList.remove('active');
             statsView.classList.add('active');
             statsView.querySelector('.stats-scroll').scrollTop = 0;
+            fitStatsRarityNames();   // Batch 557 - now it has a width to measure
         }
 
         // Filter state for the leaderboard (lane-count only — mode/ability aren't real variables anymore, both are fixed, so filtering by them wouldn't do anything)
@@ -14631,7 +14741,7 @@
                             `<span class="lb-score-label">SCORE</span></div>` +
                             `<div class="lb-meta"><span class="lb-lanes">${entry.lanes}<span class="lb-meta-l">L</span></span>` +
                             // matches the result screen's compact format (formatTimeCompact: "6s" / "1m 12s") instead of the leaderboard's old M:SS, per direct request.
-                            `<span class="lb-meta-sep">/</span><span class="lb-time">${formatTimeCompact(entry.timeSurvived * 1000)}</span>` +
+                            `<span class="lb-meta-sep">/</span><span class="lb-time">${entry.timeSurvived == null ? '—' : formatTimeCompact(entry.timeSurvived * 1000)}</span>` +
                             `<span class="lb-meta-sep">/</span><span class="lb-mult">${multHtml}</span></div>` +
                         `</div>` +
                         (carLabel ? `<span class="lb-car">${carLabel}</span>` : '') +
@@ -16105,6 +16215,7 @@
         }
 
         function loop() {
+            tickTimePlayed();   // Batch 557 - first, before any branch below returns early
             // Batch 472 — all drawing below is in world units; this maps them onto the 3x backing store.
             // Smoothing off: every buffer blit (road tiles, verge strips, wrecks) lands on integer device
             // pixels under this transform, so nearest-neighbour is exact and can never invent a colour.
@@ -17057,7 +17168,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.25.0';
+        const GAME_VERSION = '3.26.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -17927,7 +18038,7 @@
             if (missionsView.classList.contains('active')) renderMissionsView();
         });
         devResetAllBtn.addEventListener('click', () => {
-            // Same 5 keys the `?resetprogress=1` one-shot URL escape hatch already clears (Batch 86) — reused here rather than re-listing them a third place.
+            // Same keys the `?resetprogress=1` one-shot URL escape hatch already clears (Batch 86) — keep the two lists identical.
             devMenuOverlay.classList.remove('active');
             showConfirm(() => {
                 localStorage.removeItem('allTimeStats');
@@ -17935,6 +18046,7 @@
                 localStorage.removeItem('runHistory');
                 localStorage.removeItem('selectedCarKey');
                 localStorage.removeItem('playerColor');
+                localStorage.removeItem('timePlayedMs');   // Batch 557
                 location.reload();
             }, {
                 title: 'RESET ALL PROGRESS?',

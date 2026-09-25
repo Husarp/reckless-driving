@@ -7,22 +7,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 ### Waiting on a decision (asked 2026-09-25, Batch 556 — not started)
 
-- [ ] **Reset the survival times already recorded?** Batch 556 stopped pause and screen-off time from
-  counting, but runs saved before it keep their inflated times (some ~3 hours). Note: every ANDROID
-  player starts from an empty save anyway, because the release key forces a reinstall - so a reset
-  only matters on Windows. Scope to confirm: the run list's `timeSurvived`, the per-car best
-  survival, and any survival-based achievement progress.
-- [ ] **Total playtime in Stats.** User's own idea: count app time, but stop counting after 5 minutes
-  without input (AFK). Open: count ALL screens (menus, Garage, pause), or only gameplay? And where it
-  sits in Stats.
-- [ ] **LEGENDARY label cut off on the phone** (Stats collection). Not reproducible in the browser at
-  375px - the 7px Silkscreen fits there - so it is a font-rendering difference on the device. User
-  suggested auto-shrinking the font when it does not fit; recommended in chat, awaiting a yes.
-- [ ] **Save transfer between devices.** User's design: a device ID that survives reinstalls, an
-  export bound to the TARGET device's ID so one file cannot be shared around, confirmations and a
-  "do not close the app" warning, in a new "Other" section of Settings. Answered in chat with the
-  honest limits (no client-side scheme is uncrackable; Android's ID is stable per signing key, which
-  the new release key now makes possible). Several design questions open - see chat of 2026-09-25.
+- [x] ~~Reset old survival times~~ — done, Batch 557 (scores and earned achievements kept).
+- [x] ~~Total playtime in Stats~~ — done, Batch 557 (TIME PLAYED + TIME DRIVING in TOTALS).
+- [x] ~~LEGENDARY label cut off~~ — done, Batch 557 (measured auto-fit).
+- [ ] **Save transfer between devices.** Decided 2026-09-25: a MOVE (export wipes the source device),
+  works between Windows and Android, on both platforms. Transport still open - the user said "maybe
+  both" (a file AND a copy-paste code); recommendation and full flow sent in chat, awaiting a go.
+  Needs native code on both shells (a stable device ID: Android `ANDROID_ID`, stable per signing
+  key - which the new release key makes possible; Windows `MachineGuid`), so it ships with a build.
 - [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
   settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
 
