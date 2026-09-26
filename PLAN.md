@@ -10,16 +10,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [x] ~~Reset old survival times~~ — done, Batch 557 (scores and earned achievements kept).
 - [x] ~~Total playtime in Stats~~ — done, Batch 557 (TIME PLAYED + TIME DRIVING in TOTALS).
 - [x] ~~LEGENDARY label cut off~~ — done, Batch 557 (measured auto-fit).
-- [ ] **Save transfer between devices.** Decided 2026-09-25: a MOVE (export wipes the source device),
-  works between Windows and Android, on both platforms. Transport still open - the user said "maybe
-  both" (a file AND a copy-paste code); recommendation and full flow sent in chat, awaiting a go.
-  Needs native code on both shells (a stable device ID: Android `ANDROID_ID`, stable per signing
-  key - which the new release key makes possible; Windows `MachineGuid`), so it ships with a build.
+- [x] ~~Save transfer between devices~~ — done, Batch 564 (file only, option A). Still to do: try it
+  for real once built - the Android plugin and the packaged Windows dialog have not run yet.
 - [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
   settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
 
-- [ ] **MULTI-LANE HOLD is never saved.** Found in passing (Batch 559): it resets to OFF on every app
-  start, the same kind of issue the lane count had. Not changed - ask whether it should be remembered.
+### Done in Batch 563
+
+- [x] ~~MULTI-LANE HOLD is never saved~~ — saved now, and so are SKIP CRASH ANIMATION and DIFFICULTY.
 
 ### Done in Batch 559
 

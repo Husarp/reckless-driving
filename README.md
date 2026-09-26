@@ -58,13 +58,14 @@ steer with.
 | Abbreviate Money | On / Off | Shows 50K / 10.8M instead of the full number |
 | Speed-Scaled Music | On / Off | Tempo rises as you speed up |
 | Check For Updates | On / Off | See [Updating](#updating) |
+| Transfer Save (OTHER) | OPEN | Move your progress to another device - see [Moving your save](#moving-your-save-to-another-device) |
 
-Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu (the lane count is remembered)
+Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu (both are remembered, like every setting)
 (they drive the score multiplier: 3 lanes x1.30 down to 10 x1.00), and paint is in the Garage.
 
 Speed always accelerates and semi trucks are always on — no longer configurable. The ability you get is
 decided by your CAR, not a setting: **Jump** (43 cars), **Shield Bump** ram (8 heavy cars), or the
-**Tank**'s ranged shot. Difficulty multiplies score too (SAFE x1.00, RECKLESS x1.15, SUICIDAL x1.40),
+**Tank**'s ranged shot. Difficulty multiplies score too (SAFE x0.75, RECKLESS x1.00, SUICIDAL x1.25),
 and every km/h above 50 adds +1%.
 
 ### Jump ability
@@ -73,6 +74,20 @@ Hold to fly and become immune to traffic (and ambulances) while airborne; releas
 least 3 of the bar's 9 cells (~34%) to take off, then drains for as long as it's held (about 3 seconds from
 full). Energy does **not** regenerate passively — it is earned back by passing cars (+1 cell, trucks +2,
 a grounded ambulance +5) and by close calls (+4).
+
+## Moving your save to another device
+
+Settings → **OTHER** → TRANSFER SAVE. Windows and Android apps only (a browser has no fixed device ID).
+
+1. On the **new** device, open it and note **THIS DEVICE'S ID** (e.g. `GMRT-7ZE2-VJFY`).
+2. On the **old** device, type that ID twice and press **EXPORT**, then choose where to save the file.
+   This is a **move**: once the file is saved and checked, the old device starts over.
+3. Get the file to the new device (USB, cloud drive, a messenger attachment) and press **IMPORT FILE**
+   there. It shows what the file holds and asks before replacing everything.
+
+The file opens only on the device it was made for, only once, and not if it has been changed.
+Progress moves; settings stay on each device. If the file is lost before it is imported, that
+progress is gone - keep it until the import is done.
 
 ## Updating
 

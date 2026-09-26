@@ -224,6 +224,9 @@ class UpdateApi:
     to: save an exe and run it. The installer already recognises an existing install and switches
     its own button to Update, so there is nothing to pass it, and nothing asks for admin because
     the install is per-user.
+
+    Batch 564 added the two TRANSFER SAVE calls (the device ID and saving the file) here too, as
+    pywebview exposes a single api object.
     """
 
     def open_page(self, url: str) -> str:
@@ -268,6 +271,45 @@ class UpdateApi:
         # return to the page first - otherwise the game sees a dead bridge instead of "ok".
         threading.Timer(0.5, _quit).start()
         return "ok"
+
+    def transfer_device_id(self) -> str:
+        """Batch 564 - this PC's fixed ID for TRANSFER SAVE: Windows' own MachineGuid.
+
+        A save file is sealed to the device that will import it, so the ID must not change when
+        the game is reinstalled or updated - MachineGuid is set once when Windows is installed.
+        Read from the 64-bit registry view explicitly, so a 32-bit build could never see another
+        value. The game hashes it before showing it; the raw GUID never reaches the screen.
+        """
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography",
+                                0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
+                return "windows:" + str(winreg.QueryValueEx(key, "MachineGuid")[0])
+        except Exception as e:
+            return f"failed: {e}"
+
+    def transfer_save_file(self, name: str, text: str) -> dict:
+        """Batch 564 - save an exported save file wherever the player chooses, then read it back.
+
+        Exporting wipes this device, and the game does that only once the file has proved itself,
+        so this returns what is actually on disk rather than trusting the write: the page compares
+        it byte for byte and opens it again before anything is removed.
+        """
+        try:
+            chosen = webview.windows[0].create_file_dialog(
+                webview.FileDialog.SAVE, directory=str(Path.home() / "Downloads"), save_filename=name,
+                file_types=("Reckless Driving save (*.rdsave)", "All files (*.*)"))
+            if not chosen:
+                return {"status": "cancelled"}
+            return write_and_read_back(Path(chosen if isinstance(chosen, str) else chosen[0]), text)
+        except Exception as e:
+            return {"status": "failed", "error": str(e)}
+
+
+def write_and_read_back(path: Path, text: str) -> dict:
+    """Bytes, not write_text(): text mode on Windows would turn every \\n into \\r\\n."""
+    path.write_bytes(text.encode("utf-8"))
+    return {"status": "ok", "name": str(path), "readBack": path.read_bytes().decode("utf-8")}
 
 
 def _quit() -> None:

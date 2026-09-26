@@ -572,6 +572,21 @@
         /* per-setting multiplier readouts (lanes, difficulty), same amber tone as the header's own overall MULTIPLIER so they visually read as "part of that number" rather than a separate unrelated stat. */
         .stg-row-control { display: flex; align-items: center; gap: 10px; }
         .stg-row-mult { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; color: var(--c-amber); white-space: nowrap; }
+        /* Batch 564 - the OTHER section heading (TRANSFER SAVE), and the TRANSFER SAVE screen. */
+        .stg-section-title { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 2px; color: var(--c-text-dimmer); padding: 22px 0 4px; border-bottom: 2px solid var(--c-panel-border); }
+        .tr-block { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-bottom: 1px dashed var(--c-panel-border); }
+        .tr-block:last-child { border-bottom: none; }
+        .tr-id { font-family: 'VT323', monospace; font-size: 30px; line-height: 1; color: var(--c-mint); letter-spacing: 3px; text-align: center; padding: 8px 0 2px; user-select: text; -webkit-user-select: text; }
+        .tr-input {
+            width: 100%; box-sizing: border-box; padding: 8px 10px; background: var(--c-night);
+            border: 2px solid var(--c-panel-border); color: var(--c-text); outline: none; border-radius: 0;
+            font-family: 'VT323', monospace; font-size: 22px; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .tr-input::placeholder { color: var(--c-text-faint); letter-spacing: 1px; }
+        .tr-input:focus { border-color: var(--c-card-border); }
+        .tr-input.bad { border-color: var(--c-red); }
+        .tr-status { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; color: var(--c-amber); text-align: center; min-height: 12px; }
+        #transferView.tr-unavailable .tr-needs-id { display: none; }
 
         .stg-stepper { display: flex; align-items: center; flex: none; }
         .stg-stepper button {
@@ -2578,7 +2593,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.3</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.29.0</span></div>
                 </div>
             </div>
         </div>
@@ -3081,6 +3096,16 @@
                              always here and never depends on the check succeeding. -->
                         <button class="btn" id="openGithubBtn" style="flex:none;width:auto;padding:7px 12px;font-size:9px;">GITHUB</button>
                     </div>
+                </div>
+
+                <!-- Batch 564, direct request: "an OTHER section in the settings" holding the save transfer. -->
+                <div class="stg-section-title">OTHER</div>
+                <div class="stg-row">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">TRANSFER SAVE</div>
+                        <div class="stg-row-hint">Move your progress to another phone or PC.</div>
+                    </div>
+                    <button type="button" class="btn" id="transferBtn" style="width:auto;flex:none;padding:9px 18px;">OPEN</button>
                 </div>
     
 
@@ -3756,8 +3781,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.28.3 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">562</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.29.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">564</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -3789,6 +3814,37 @@
         </div>
     </div>
     <div id="tceFullCatcher"><span>TAP ANYWHERE TO GO BACK</span></div>
+
+    <!-- Batch 564: TRANSFER SAVE. Its own screen, like CONTROLS, opened from Settings -> OTHER. -->
+    <div id="transferView" class="view">
+        <div class="settings-panel stg-panel">
+            <div class="stg-header"><div class="stg-title">TRANSFER SAVE</div></div>
+            <div class="stg-scroll">
+                <div class="tr-block">
+                    <div class="stg-row-title">THIS DEVICE'S ID</div>
+                    <div class="tr-id" id="trMyId">&hellip;</div>
+                    <div class="stg-row-hint" id="trMyHint">To move a save HERE, type this ID on the old device.</div>
+                </div>
+                <div class="tr-block tr-needs-id">
+                    <div class="stg-row-title">SEND YOUR SAVE AWAY</div>
+                    <div class="stg-row-hint">Your level, coins, cars, scores and stats go into a file that only the new device can open, and this device starts over. Settings stay here.</div>
+                    <input type="text" class="tr-input" id="trIdA" placeholder="NEW DEVICE'S ID" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                    <input type="text" class="tr-input" id="trIdB" placeholder="TYPE IT AGAIN" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                    <button type="button" class="btn btn-danger" id="trExportBtn">EXPORT</button>
+                </div>
+                <div class="tr-block tr-needs-id">
+                    <div class="stg-row-title">BRING A SAVE HERE</div>
+                    <div class="stg-row-hint">Pick a file that was made for this device. It replaces all progress here.</div>
+                    <button type="button" class="btn" id="trImportBtn">IMPORT FILE</button>
+                    <input type="file" id="trFile" style="display:none;">
+                </div>
+                <div class="tr-status" id="trStatus"></div>
+            </div>
+            <div class="stg-footer">
+                <button class="btn btn-nav" id="trBackBtn">BACK</button>
+            </div>
+        </div>
+    </div>
 
     <!-- VIEW 3: GAME SCREEN -->
     <div id="gameView" class="view">
@@ -4288,6 +4344,11 @@
         const selectJoyPos = document.getElementById('joyPosSetting');
         const joyPosRow = document.getElementById('joyPosRow');
         const selectDifficulty = document.getElementById('difficultySetting');
+        // Batch 563 - remembered, like the lane count beside it on the menu (Batch 558): it was never saved.
+        try {
+            const savedDiff = localStorage.getItem('difficulty');
+            if ([...selectDifficulty.options].some(o => o.value === savedDiff)) selectDifficulty.value = savedDiff;
+        } catch (e) {}
         const fpsCounterToggle = document.getElementById('fpsCounterToggle');
         const fpsCounterToggleLabel = document.getElementById('fpsCounterToggleLabel');
         const fpsCounterToggleTrack = document.getElementById('fpsCounterToggleTrack');
@@ -4869,7 +4930,12 @@
         let lastInputTs = performance.now(), playLastFrameTs = performance.now(), playUnsavedMs = 0;
         ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
             window.addEventListener(ev, () => { lastInputTs = performance.now(); }, { capture: true, passive: true }));
+        // Batch 564 - set the moment TRANSFER SAVE has wiped or replaced this device's progress. From
+        // then until the reload nothing may write the old in-memory state back: the reload's own
+        // `pagehide` would otherwise put this device's TIME PLAYED straight back after the wipe.
+        let transferLock = false;
         function saveTimePlayed() {
+            if (transferLock) return;
             playUnsavedMs = 0;
             try { localStorage.setItem('timePlayedMs', String(Math.round(timePlayedMs))); } catch (e) {}
         }
@@ -5101,7 +5167,7 @@
             runSnapshot = null;
         }
         function saveAllTimeStats() {
-            if (runInProgress) return;   // held until the run ends - see above
+            if (runInProgress || transferLock) return;   // held until the run ends - see above; transferLock: Batch 564
             localStorage.setItem('allTimeStats', JSON.stringify(allTimeStats));
         }
 
@@ -14104,7 +14170,11 @@
                     const mult = (1 + (DIFFICULTY_MULT_BONUS[opt.value] || 0)).toFixed(2);
                     b.innerHTML = '<span class="mm-diff-label">' + opt.text.toUpperCase() + '</span>'
                                 + '<span class="mm-diff-mult">×' + mult + '</span>';
-                    b.addEventListener('click', () => { selectDifficulty.value = opt.value; calculateMultiplier(); mmSyncSetup(); });
+                    b.addEventListener('click', () => {
+                        selectDifficulty.value = opt.value;
+                        try { localStorage.setItem('difficulty', opt.value); } catch (_) {}   // Batch 563
+                        calculateMultiplier(); mmSyncSetup();
+                    });
                     diffs.appendChild(b);
                 });
             }
@@ -14990,6 +15060,11 @@
                 if (controlsView.classList.contains('active')) {   // Batch 558
                     e.preventDefault();
                     if (tceFull) tceSetFull(false); else closeControlsEditor();
+                    return;
+                }
+                if (transferView.classList.contains('active')) {   // Batch 564 - not while a save is being written
+                    e.preventDefault();
+                    if (!trBackBtn.disabled) closeTransfer();
                     return;
                 }
                 if (setupView.classList.contains('active')) {
@@ -17514,7 +17589,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.28.3';
+        const GAME_VERSION = '3.29.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -18512,8 +18587,18 @@
         selectControlType.addEventListener('change', refreshSteeringInputRowVisibility);
         refreshSteeringInputRowVisibility();
         selectDifficulty.addEventListener('change', calculateMultiplier); // Batch 127 — live MULTIPLIER preview, same pattern as lanes/night mode
+        // Batch 563, direct instruction ("of course it is a setting"): MULTI-LANE HOLD and SKIP CRASH
+        // ANIMATION were never saved and reset on every start. Loaded before binding, so each toggle
+        // draws the saved state; saved on every change below.
+        try {
+            const ml = localStorage.getItem('multiLaneHold'); if (ml === 'yes' || ml === 'no') selectMultiLaneHold.value = ml;
+            const sc = localStorage.getItem('skipCrash'); if (sc === 'yes' || sc === 'no') selectSkipCrash.value = sc;
+        } catch (e) {}
+        config.multiLaneHold = selectMultiLaneHold.value === 'yes';
         bindToggle(multiLaneToggle, multiLaneToggleLabel, multiLaneToggleTrack, selectMultiLaneHold, 'yes', 'no');
         bindToggle(skipCrashToggle, skipCrashToggleLabel, skipCrashToggleTrack, selectSkipCrash, 'yes', 'no');
+        selectMultiLaneHold.addEventListener('change', () => { try { localStorage.setItem('multiLaneHold', selectMultiLaneHold.value); } catch (e) {} });
+        selectSkipCrash.addEventListener('change', () => { try { localStorage.setItem('skipCrash', selectSkipCrash.value); } catch (e) {} });
         // Batch 474 — SCORE POPUPS toggle, persisted under its own key like sound/garageSort are. On by
         // default: the tutorial's HOW YOU SCORE scene shows the floating points, so the real game should
         // match what the tutorial promises unless the player opts out.
@@ -18715,6 +18800,263 @@
         }
 
         let updateInfo = null;   // { version, apkUrl, exeUrl } once a NEWER release has been found
+
+        // ---------- Batch 564: TRANSFER SAVE ----------
+        // Direct request: move a save to another device, hard to edit, and impossible to hand one file
+        // to everybody. The agreed design:
+        //   * every device has a fixed ID that survives reinstalling the game - Android's ANDROID_ID
+        //     (fixed per signing key, user and phone) or Windows' MachineGuid, read by the host app -
+        //     shown as a short code with a check character, e.g. K7QF-2M9X-HT4P;
+        //   * EXPORT takes the NEW device's ID (typed twice) and seals the progress into a file only
+        //     that device can open. It is a MOVE: this device is wiped - but only after the file has
+        //     been written, read back byte for byte and opened again, so a failed save loses nothing;
+        //   * IMPORT checks the file is untouched, meant for this device, not from a newer game and not
+        //     used here before, shows what is in it, and replaces this device's progress.
+        // Only PROGRESS moves (TRANSFER_KEYS - the same keys the dev menu's RESET ALL clears, plus the
+        // equipped booster). Settings stay per device. A file and not a copy-paste code, by decision:
+        // a long-time player's save is ~73,000 characters of text, which messengers cut - and a cut
+        // code would have been the only copy of a save that was already wiped.
+        // Honest limit: the key has to live inside the game, so this stops casual editing and sharing,
+        // not a determined attacker (who could edit the live save directly anyway).
+        const TRANSFER_KEYS = ['allTimeStats', 'highscores', 'runHistory', 'selectedCarKey', 'playerColor', 'timePlayedMs', 'flameType'];
+        // Never change TRANSFER_SECRET or the ID hashing below: every file already made would stop opening.
+        const TRANSFER_SECRET = 'reckless-driving/save-transfer/1/1e629ce9e5aa9bd5a901328102ef6efb';
+        const TRANSFER_FILE_TAG = 'Reckless Driving save';
+        const ID_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';   // Crockford base 32: no I, L, O or U to misread
+        const transferView = document.getElementById('transferView');
+        const trMyId = document.getElementById('trMyId');
+        const trMyHint = document.getElementById('trMyHint');
+        const trIdA = document.getElementById('trIdA');
+        const trIdB = document.getElementById('trIdB');
+        const trExportBtn = document.getElementById('trExportBtn');
+        const trImportBtn = document.getElementById('trImportBtn');
+        const trFile = document.getElementById('trFile');
+        const trStatus = document.getElementById('trStatus');
+        const trBackBtn = document.getElementById('trBackBtn');
+        let myDeviceId = null;   // the canonical 12 characters, once the host app has answered
+
+        // Odd weights are invertible mod 32, so a single wrong character ALWAYS changes the check -
+        // the one mistake that matters here, since a save sealed to a mistyped ID opens nowhere.
+        function idCheckChar(body) {
+            let sum = 0;
+            for (let i = 0; i < body.length; i++) sum += (2 * i + 1) * ID_ALPHABET.indexOf(body[i]);
+            return ID_ALPHABET[sum % 32];
+        }
+        function formatDeviceId(id) { return id.slice(0, 4) + '-' + id.slice(4, 8) + '-' + id.slice(8); }
+        // Forgiving about how it is typed: case, spaces and dashes don't matter, and O / I / L read as 0 / 1.
+        function parseDeviceId(text) {
+            const id = String(text || '').toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+            if (id.length !== 12 || [...id].some(c => !ID_ALPHABET.includes(c))) return null;
+            return idCheckChar(id.slice(0, 11)) === id[11] ? id : null;
+        }
+        async function sha256Bytes(text) {
+            return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
+        }
+        function bytesToB64(bytes) {
+            let bin = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+            return btoa(bin);
+        }
+        function b64ToBytes(b64) {
+            const bin = atob(b64), out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+
+        async function readDeviceId() {
+            if (myDeviceId) return myDeviceId;
+            const platform = updatePlatform();
+            let raw = null;
+            if (platform === 'windows' && window.pywebview.api.transfer_device_id) raw = await window.pywebview.api.transfer_device_id();
+            else if (platform === 'android' && window.Capacitor.Plugins.SaveTransfer) raw = (await window.Capacitor.Plugins.SaveTransfer.deviceId()).id;
+            if (!raw || String(raw).startsWith('failed')) return null;
+            // Hashed, so the raw hardware ID never shows; 55 bits of it, plus the check character.
+            const hash = await sha256Bytes('reckless-driving/device/' + raw);
+            let bits = '';
+            hash.slice(0, 7).forEach(b => { bits += b.toString(2).padStart(8, '0'); });
+            let body = '';
+            for (let i = 0; i < 11; i++) body += ID_ALPHABET[parseInt(bits.substr(i * 5, 5), 2)];
+            return (myDeviceId = body + idCheckChar(body));
+        }
+
+        async function transferKey(id) {
+            return crypto.subtle.importKey('raw', await sha256Bytes(TRANSFER_SECRET + '/' + id), 'AES-GCM', false, ['encrypt', 'decrypt']);
+        }
+        // AES-GCM: encrypted AND tamper-evident - changing one byte of the file makes it refuse to open.
+        async function sealSave(toId, payload) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const sealed = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: iv, additionalData: new TextEncoder().encode(TRANSFER_FILE_TAG + '/' + toId) },
+                await transferKey(toId), new TextEncoder().encode(JSON.stringify(payload)));
+            return JSON.stringify({ file: TRANSFER_FILE_TAG, format: 1, to: formatDeviceId(toId), iv: bytesToB64(iv), data: bytesToB64(new Uint8Array(sealed)) });
+        }
+        // Resolves to { payload } or { error: what to tell the player }.
+        async function openSave(text, id) {
+            let file = null;
+            try { file = JSON.parse(text); } catch (e) {}
+            if (!file || file.file !== TRANSFER_FILE_TAG) return { error: "This isn't a Reckless Driving save file." };
+            if (file.format !== 1) return { error: 'This file comes from a newer version of the game. Update the game on this device, then import it.' };
+            const to = parseDeviceId(file.to);
+            if (to !== id) return { error: 'This file was made for device ' + (to ? formatDeviceId(to) : '?') + ', and this device is ' + formatDeviceId(id) + '. Only that device can open it.' };
+            try {
+                const plain = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: b64ToBytes(file.iv), additionalData: new TextEncoder().encode(TRANSFER_FILE_TAG + '/' + id) },
+                    await transferKey(id), b64ToBytes(file.data));
+                const payload = JSON.parse(new TextDecoder().decode(plain));
+                if (!payload || !payload.keys || typeof payload.keys !== 'object') throw new Error('wrong shape');
+                return { payload: payload };
+            } catch (e) {
+                return { error: 'This file is damaged or has been changed, so it cannot be used.' };
+            }
+        }
+
+        function progressSnapshot() {
+            const keys = {};
+            TRANSFER_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) keys[k] = v; });
+            return keys;
+        }
+        function readImportedList() {
+            try { const v = JSON.parse(localStorage.getItem('importedSaves') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+        }
+        // Each host writes the file where the player chooses and returns what is ACTUALLY on disk:
+        // { status: 'ok' | 'cancelled' | 'failed', name, readBack, error }.
+        async function nativeSaveFile(name, text) {
+            const platform = updatePlatform();
+            if (platform === 'windows') return await window.pywebview.api.transfer_save_file(name, text);
+            if (platform === 'android') return await window.Capacitor.Plugins.SaveTransfer.saveFile({ name: name, text: text });
+            throw new Error('no app to save the file with');
+        }
+        function transferAlert(title, text, good) {
+            showConfirm(null, { title: title, text: text, okLabel: 'OK', danger: false, tone: good ? 'good' : undefined });
+        }
+        function transferBusy(msg) {
+            trStatus.textContent = msg || '';
+            [trExportBtn, trImportBtn, trBackBtn].forEach(b => { b.disabled = !!msg; });
+        }
+
+        function startExport() {
+            const a = parseDeviceId(trIdA.value), b = parseDeviceId(trIdB.value);
+            trIdA.classList.toggle('bad', !a);
+            trIdB.classList.toggle('bad', !b || b !== a);
+            if (!a || !b) return transferAlert('CHECK THE ID', "That isn't a valid device ID - a letter or number is probably off. Copy it again from the new device: Settings, OTHER, TRANSFER SAVE.");
+            if (a !== b) return transferAlert("IDS DON'T MATCH", "The two boxes don't match. Type the new device's ID the same way in both.");
+            if (a === myDeviceId) return transferAlert('THAT IS THIS DEVICE', "That is this device's own ID. Type the ID shown on the device you are moving to.");
+            showConfirm(() => runExport(a), {
+                title: 'MOVE YOUR SAVE?',
+                text: 'Everything on this device - level, coins, cars, scores and stats - goes into a file that only device ' + formatDeviceId(a) + " can open, and this device starts over. Don't close the app until it says DONE.",
+                okLabel: 'EXPORT', danger: true
+            });
+        }
+        async function runExport(toId) {
+            transferBusy("SAVING - DON'T CLOSE THE APP");
+            try {
+                saveAllTimeStats();
+                saveTimePlayed();   // time still only in memory goes in too
+                const keys = progressSnapshot();
+                const nonce = bytesToB64(crypto.getRandomValues(new Uint8Array(12)));
+                const text = await sealSave(toId, { game: GAME_VERSION, from: myDeviceId, at: Date.now(), nonce: nonce, keys: keys });
+                const name = 'RecklessDriving-' + formatDeviceId(toId) + '.rdsave';
+                const res = await nativeSaveFile(name, text);
+                if (!res || res.status === 'cancelled') {
+                    transferBusy('');
+                    return transferAlert('NOTHING CHANGED', 'No file was saved, so this device keeps all its progress.');
+                }
+                if (res.status !== 'ok') throw new Error(res.error || 'the file could not be written');
+                // The wipe below cannot be undone, so the file has to prove itself first: what came
+                // back from disk must be exactly what was written, and must open again for the target.
+                const check = res.readBack === text ? await openSave(res.readBack, toId) : { error: 'it read back differently' };
+                if (check.error || JSON.stringify(check.payload.keys) !== JSON.stringify(keys)) throw new Error('the saved file did not read back correctly');
+                transferLock = true;
+                TRANSFER_KEYS.forEach(k => localStorage.removeItem(k));
+                localStorage.setItem('transferNotice', JSON.stringify({ kind: 'exported', to: toId, file: res.name || name }));
+                location.reload();
+            } catch (e) {
+                transferBusy('');
+                transferAlert('EXPORT FAILED', 'Nothing was removed from this device. (' + ((e && e.message) || e) + ')');
+            }
+        }
+
+        async function onImportFile() {
+            const f = trFile.files && trFile.files[0];
+            trFile.value = '';
+            if (!f) return;
+            if (f.size > 20000000) return transferAlert("CAN'T IMPORT", "This isn't a Reckless Driving save file.");
+            const res = await openSave(await f.text(), myDeviceId);
+            if (res.error) return transferAlert("CAN'T IMPORT", res.error);
+            const pl = res.payload;
+            if (versionIsNewer(pl.game, GAME_VERSION)) {
+                return transferAlert('UPDATE FIRST', 'This save comes from version ' + pl.game + ', newer than this one (' + GAME_VERSION + '). Update the game on this device, then import it.');
+            }
+            // Each file works once: re-importing an old file would be a way to roll progress back.
+            if (readImportedList().includes(pl.nonce)) return transferAlert('ALREADY USED', 'This file has already been imported on this device. Each file works once.');
+            let st = {}, best = 0;
+            try { st = JSON.parse(pl.keys.allTimeStats || '{}') || {}; } catch (e) {}
+            try { best = Math.max(0, ...JSON.parse(pl.keys.highscores || '[]').map(h => Number(h && h.score) || 0)); } catch (e) {}
+            const n = v => Math.floor(Number(v) || 0).toLocaleString('en-US');
+            showConfirm(() => applyImport(pl), {
+                title: 'REPLACE YOUR SAVE?',
+                text: 'The file holds level ' + n(st.playerLevel || 1) + ', ' + n(st.totalCoins) + ' coins, ' + ((st.ownedCars || ['stock']).length) + ' cars and a best score of ' + n(best)
+                    + ". It replaces ALL progress on this device. Don't close the app until it restarts.",
+                okLabel: 'IMPORT', danger: true
+            });
+        }
+        function applyImport(pl) {
+            const before = progressSnapshot();
+            transferLock = true;
+            try {
+                TRANSFER_KEYS.forEach(k => localStorage.removeItem(k));
+                TRANSFER_KEYS.forEach(k => { if (typeof pl.keys[k] === 'string') localStorage.setItem(k, pl.keys[k]); });
+                localStorage.setItem('importedSaves', JSON.stringify(readImportedList().concat(pl.nonce)));
+                localStorage.setItem('transferNotice', JSON.stringify({ kind: 'imported' }));
+            } catch (e) {
+                // Put this device back exactly as it was, rather than leave half of two saves.
+                TRANSFER_KEYS.forEach(k => { try { localStorage.removeItem(k); if (k in before) localStorage.setItem(k, before[k]); } catch (e2) {} });
+                transferLock = false;
+                return transferAlert('IMPORT FAILED', 'This device was left as it was. (' + ((e && e.message) || e) + ')');
+            }
+            location.reload();
+        }
+
+        async function openTransfer() {
+            // Mid-run the save is held at the run's start (Batch 556) - moving it then would be moving a lie.
+            if (setupFromPause) return transferAlert('FINISH THE RUN FIRST', "A save can't move in the middle of a run. Quit or finish it, then come back here.");
+            setupView.classList.remove('active');
+            transferView.classList.add('active');
+            transferView.querySelector('.stg-scroll').scrollTop = 0;
+            trIdA.value = trIdB.value = '';
+            trIdA.classList.remove('bad');
+            trIdB.classList.remove('bad');
+            transferBusy('');
+            trMyId.textContent = '\u2026';
+            let id = null;
+            try { id = await readDeviceId(); } catch (e) {}
+            trMyId.textContent = id ? formatDeviceId(id) : 'NOT AVAILABLE';
+            trMyHint.textContent = id ? 'To move a save HERE, type this ID on the old device.'
+                : 'Moving a save needs the Windows or Android app - a web browser has no fixed device ID.';
+            transferView.classList.toggle('tr-unavailable', !id);
+        }
+        function closeTransfer() {
+            transferView.classList.remove('active');
+            setupView.classList.add('active');
+        }
+        document.getElementById('transferBtn').addEventListener('click', openTransfer);
+        trBackBtn.addEventListener('click', closeTransfer);
+        trExportBtn.addEventListener('click', startExport);
+        trImportBtn.addEventListener('click', () => trFile.click());
+        trFile.addEventListener('change', onImportFile);
+
+        // What happened, told after the reload that follows every transfer.
+        (function showTransferNotice() {
+            let note = null;
+            try { note = JSON.parse(localStorage.getItem('transferNotice')); localStorage.removeItem('transferNotice'); } catch (e) {}
+            if (!note) return;
+            if (note.kind === 'exported') {
+                transferAlert('DONE', 'Your save is in ' + note.file + ', which only device ' + formatDeviceId(note.to)
+                    + ' can open. Copy the file to that device and open Settings, OTHER, TRANSFER SAVE, IMPORT FILE there. This device has started over.', true);
+            } else {
+                transferAlert('SAVE MOVED IN', 'Your progress from the other device is here.', true);
+            }
+        })();
 
         async function fetchLatestRelease() {
             const res = await fetch(UPDATE_API, { headers: { 'Accept': 'application/vnd.github+json' } });

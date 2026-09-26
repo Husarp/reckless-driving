@@ -16,6 +16,7 @@ public class MainActivity extends BridgeActivity {
         // Must run before super.onCreate: the bridge is built there, and a plugin registered
         // afterwards is invisible to the web layer.
         registerPlugin(AppUpdatePlugin.class);
+        registerPlugin(SaveTransferPlugin.class);   // Batch 564 - TRANSFER SAVE
         super.onCreate(savedInstanceState);
         goImmersive();
     }

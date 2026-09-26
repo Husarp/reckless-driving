@@ -6,6 +6,72 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.29.0 — 2026-09-26 04:45: Batch 564 — TRANSFER SAVE: move your progress to another device
+
+Direct request: a way to move a save to another phone or PC that is hard to edit and cannot be
+shared around - "the data will only work on that ID". Transport chosen by the user: **a file only**
+(option A). A copy-paste code was rejected because a long-time player's save measures ~73,000
+characters of text, which messengers cut, and a cut code would be the only copy of a wiped save.
+
+**Where:** Settings → a new **OTHER** section → TRANSFER SAVE → OPEN.
+
+**How it works**
+- Every device shows its own **ID**, e.g. `GMRT-7ZE2-VJFY`. It is fixed for that device and survives
+  reinstalling the game: Android's `ANDROID_ID` (fixed per signing key, user and phone) and Windows'
+  `MachineGuid`, read by the host app and hashed, so the raw hardware ID is never shown. The last
+  character is a check character: one wrong character is always caught, so a save can never be sealed
+  to a mistyped ID. Typing is forgiving - case, spaces and dashes don't matter, O/I/L read as 0/1.
+- **EXPORT** (old device): type the new device's ID twice, confirm the warning, choose where to save
+  the file (a save dialog on both platforms - Downloads, a USB stick, Google Drive...). It is a
+  **move**: this device is wiped, but only after the file has been written, read back byte for byte
+  and opened again. A cancelled or failed save changes nothing.
+- **IMPORT FILE** (new device): pick the file. It is refused if it isn't a save file, was made for a
+  different device, has been changed in any way, comes from a newer game version, or has already been
+  imported here (each file works once, so an old file cannot roll progress back). Otherwise it shows
+  what the file holds - level, coins, cars, best score - and asks before replacing everything.
+- What moves: all progress (level, XP, coins, cars, paints, boosters, achievements, scores, run
+  history, stats, TIME PLAYED). Settings stay per device.
+- The file is encrypted and tamper-evident (AES-GCM, keyed to the target device). Honest limit, as
+  agreed: the key has to live inside the game, so this stops casual editing and sharing, not a
+  determined attacker - who could edit the live save directly anyway.
+- The plain browser version has no fixed device ID, so it shows NOT AVAILABLE and explains why.
+- Not from the pause menu: mid-run the save is held at the run's start (Batch 556).
+
+**Native parts:** Windows - `transfer_device_id` and `transfer_save_file` in `app/main.py`.
+Android - a new `SaveTransferPlugin` (device ID, and Android's own save screen, no permission
+needed). Importing uses the page's own file picker on both.
+
+**Verified** in the browser with a stand-in for the Windows app playing two devices: export → file
+encrypted (no readable values), device wiped to level 1 while settings stayed, DONE message; import
+on the wrong device, a one-character-tampered file, a non-save file and a newer-version file all
+refused with their own message; import on the right device → level 12, 34,567 coins, 3 cars,
+booster and TIME PLAYED all back; the same file a second time → ALREADY USED; a cancelled save and a
+save that read back wrong → nothing removed. The Windows device-ID read and the write/read-back were
+run directly. **Not yet run on a real phone or in the packaged Windows app** - that needs a build.
+
+---
+
+## 3.28.4 — 2026-09-26 03:35: Batch 563 — every setting is remembered between app starts
+
+Direct instruction about MULTI-LANE HOLD: "of course it is a setting". An audit of every setting found
+three that were never saved and reset on each start:
+
+- **MULTI-LANE HOLD** - always came back OFF.
+- **SKIP CRASH ANIMATION** - always came back OFF.
+- **DIFFICULTY** (the SAFE / RECKLESS / SUICIDAL tiles under START RUN) - always came back RECKLESS,
+  while the lane count right next to it has been remembered since Batch 558.
+
+All three are now saved when changed and restored at start-up, before their controls draw, so the
+toggles and the difficulty tile show the saved state straight away. Everything else was already saved.
+
+Verified: flipped both toggles and picked SAFE, reloaded - both toggles ON, SAFE highlighted, and the
+steering really in multi-lane mode.
+
+README: the difficulty multipliers it listed (x1.00 / x1.15 / x1.40) were out of date; corrected to
+what the game uses and shows (x0.75 / x1.00 / x1.25).
+
+---
+
 ## 3.28.3 — 2026-09-26 03:20: Batch 562 — a gentler LANE CHANGE SPEED, and the energy bar in the preview
 
 - **LANE CHANGE SPEED** - direct feedback: the Batch 561 range (up to x2) was "way too much". 1 stays the
