@@ -6,6 +6,53 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.28.2 — 2026-09-26 02:40: Batch 561 — faster lane speeds, PC really hides the controls, a road in the preview
+
+### LANE CHANGE SPEED starts at the original speed
+
+Direct feedback: "1 is way too low, no one will use it - the timing of 3 should be the lowest". The
+whole scale moved up two steps: **1 is now the original speed**, and 2-5 go faster in the same steps.
+
+| level | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| glide speed | x1 | x1.25 | x1.5 | x1.75 | x2 |
+| held-diagonal step (MULTI-LANE HOLD off) | 600 ms | 480 ms | 400 ms | 343 ms | 300 ms |
+
+The default stays the original (now level 1), so nothing changes unless you choose it. The setting is
+saved under a new key: a number saved under the old scale would otherwise have been read two steps
+faster, so it starts once from the default.
+
+### CONTROL TYPE = PC now actually hides the touch controls
+
+Direct report: set some mobile controls, switched to PC, and "the buttons didn't disappear from the
+screen". They never could: since Batch 532, when the old TOUCH CONTROLS "OFF" went, the controls were
+switched on unconditionally, so PC only ever changed which Settings rows showed - though its own hint
+says "PC hides the on-screen controls". It does now, and the bar hands its height back to the road with
+it. Verified by switching to PC from the pause menu mid-run: the controls went, and the reserved bar
+went from 109 px to 0.
+
+### The preview shows a road
+
+Direct request: "show a road and some cars, but they don't need to move". Outside a run the preview now
+paints one still frame of the real road for your lane count, four parked cars and your own car where it
+starts - drawn with the same functions the game and the menu use. It is repainted whenever a setting
+re-lays the screen out, because that clears the canvas. From the pause menu it still shows the actual
+paused run.
+
+### Run-start achievements popped up over the run
+
+Found while testing this batch, and caused by Batch 549's own announcement: the four achievements that
+unlock the moment a run starts - EARLY BIRD, NIGHT OWL, ROUND THE CLOCK, DRIPPED OUT - fire inside
+`launchGame()` before the game screen is shown, so the "is a results screen coming?" test said no and
+the alert opened over a run that was already driving. On a phone you could crash behind it. And the list
+the results screen reads was emptied further down the same function, so they were missing there too.
+Now the alert stays quiet for as long as a run is in progress, and that list is emptied before those
+unlocks. Verified at 2 a.m. local time: NIGHT OWL unlocked at the start of a run with no dialog, and was
+listed on the results screen and saved after the crash; an achievement earned on the menu still gets its
+alert.
+
+---
+
 ## 3.28.1 — 2026-09-26 09:10: Batch 560 — good news arrives in green
 
 Direct request: the ACHIEVEMENT UNLOCKED alert had a red frame and a red title - "red is associated

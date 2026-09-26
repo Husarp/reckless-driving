@@ -2578,7 +2578,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.2</span></div>
                 </div>
             </div>
         </div>
@@ -2893,7 +2893,7 @@
                 <div class="stg-row touch-only" id="laneSpeedRow">
                     <div class="stg-row-label">
                         <div class="stg-row-title">LANE CHANGE SPEED</div>
-                        <div class="stg-row-hint">How fast the car crosses lanes while you hold a direction or a diagonal. 3 is the original.</div>
+                        <div class="stg-row-hint">How fast the car crosses lanes while you hold a direction or a diagonal. 1 is the original speed.</div>
                     </div>
                     <div class="stg-seg" id="laneSpeedSeg">
                         <button type="button" data-val="1">1</button>
@@ -2903,9 +2903,9 @@
                         <button type="button" data-val="5">5</button>
                     </div>
                     <select id="laneSpeedSetting" style="display:none;">
-                        <option value="1">1</option>
+                        <option value="1" selected>1</option>
                         <option value="2">2</option>
-                        <option value="3" selected>3</option>
+                        <option value="3">3</option>
                         <option value="4">4</option>
                         <option value="5">5</option>
                     </select>
@@ -3756,8 +3756,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.28.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">560</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.28.2 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">561</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4258,7 +4258,10 @@
         let tcTapAbilityOn = false;   // TAP ROAD FOR ABILITY, as actually in force (never with a floating stick)
         // LANE CHANGE SPEED. 3 is the game as it was. Only on a touch screen in MOBILE mode - the setting
         // lives on the CONTROLS screen, and on PC nothing but MULTI-LANE HOLD is meant to change steering.
-        const LANE_SPEED_FACTOR = { 1: 0.6, 2: 0.8, 3: 1, 4: 1.25, 5: 1.5 };
+        // Batch 561, direct feedback: "1 is way too low, no one will use it - the timing of 3 should be
+        // the lowest". The whole scale moved up two steps: the original speed is now 1, and the top
+        // continues the same +0.25 steps. Default stays the original, so nothing changes unless chosen.
+        const LANE_SPEED_FACTOR = { 1: 1, 2: 1.25, 3: 1.5, 4: 1.75, 5: 2 };
         function laneSpeedFactor() {
             if (!IS_TOUCH || selectDeviceMode.value !== 'mobile') return 1;
             return LANE_SPEED_FACTOR[selectLaneSpeed.value] || 1;
@@ -5122,7 +5125,11 @@
          * up?". Anywhere else, say so.
          */
         function announceAchievementIfUnseen(id) {
-            if (gameView.classList.contains('active')) return;   // the summary will list it
+            // The summary will list it. `runInProgress` as well as the active view: the run-start
+            // achievements (EARLY BIRD, NIGHT OWL, ROUND THE CLOCK, DRIPPED OUT) unlock inside
+            // launchGame() BEFORE the game view is shown, so the view test alone popped this dialog
+            // over a run that was already driving (Batch 561) - and a quit then rolled it back.
+            if (gameView.classList.contains('active') || runInProgress) return;
             // The full roster is achData() PLUS ACH_SECRETS() - the two are only ever concatenated at
             // the point of rendering. Batch 549 searched achData() alone and so found nothing for any
             // SECRET, which is exactly the category that unlocks outside a run: FULL CIRCLE and
@@ -13865,6 +13872,9 @@
         }
         function launchGame() {
             beginRunCheckpoint();   // Batch 556 - first, before this function touches allTimeStats at all
+            // Batch 561 - emptied HERE, before the run-start achievements just below, not further down
+            // with the other per-run counters: there it wiped them off the results screen's list.
+            newlyUnlockedThisRun = [];
             markLevelAnimStart(); // Batch 259 — snapshot BEFORE this run's XP starts accumulating, so returning to a level badge afterward animates the whole run's gain
             // Early Bird / Night Owl achievements: local device hour at run start, same technique the daily-reset/streak system already uses (new Date() reads real local time).
             const startHour = new Date().getHours();
@@ -13943,7 +13953,6 @@
             distanceThisRunKm = 0;
             ramKillsThisRun = 0;
             spawnedVehicleCount = 0;
-            newlyUnlockedThisRun = [];
             closeCallsThisRun = 0;
             closeCallPointsThisRun = 0;
             displayedScore = 0;
@@ -15455,6 +15464,32 @@
                 ? 'FLOATING JOYSTICK: APPEARS WHERE YOUR THUMB LANDS'
                 : 'TAP THE PREVIEW TO SEE IT FULL SIZE';
         }
+        // Batch 561, direct request: "in the preview show a road and some cars, but they don't need to
+        // move". Outside a run the game canvas is empty, so this paints one still frame of the real road
+        // for the chosen lane count, a few parked cars, and the player's car where it starts. Drawn with
+        // the same functions the game and the menu use. Mid-run it is never called - the preview shows
+        // the actual paused run instead.
+        const TCE_PARKED = [   // [lane as a share of the road, height as a share of the screen, colour]
+            [0.0, 0.30, '#3d7bd6'], [1.0, 0.18, '#f5b32a'], [0.25, 0.55, '#e01b24'], [0.75, 0.42, '#9aa4b5']
+        ];
+        function drawPreviewScene() {
+            if (gameActive || !VIEW_W) return;
+            ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+            ctx.imageSmoothingEnabled = false;
+            const lanes = parseInt(selectLanes.value, 10) || 4;
+            drawRoadScene(ctx, VIEW_W, VIEW_H, ROAD_BORDER_LEFT, ROAD_BORDER_RIGHT, ROAD_WIDTH, lanes, 0);
+            const lw = Math.floor(ROAD_WIDTH / lanes);
+            const laneX = n => ROAD_BORDER_LEFT + n * lw + (lw - PLAYER_WIDTH) / 2;
+            const car = (x, y, color) => drawScaledVehicle(ctx, Math.round(x), Math.round(y), PLAYER_WIDTH, PLAYER_HEIGHT,
+                g => drawPixelCar(g, 0, 0, color, false, 0));
+            const playerLane = Math.floor(lanes / 2);
+            TCE_PARKED.forEach(([share, h, color]) => {
+                const lane = Math.round(share * (lanes - 1));
+                if (lane !== playerLane) car(laneX(lane), VIEW_H * h, color);
+            });
+            car(laneX(playerLane), VIEW_H - PLAYER_HEIGHT - 12, resolvePlayerColor());
+        }
+
         function tceSetFull(on) {
             tceFull = on;
             document.body.classList.toggle('tc-preview-full', on);
@@ -15471,11 +15506,7 @@
             touchControlsEl.classList.add('playing');
             // Outside a run the game screen may never have been laid out, or may still hold the last
             // run's final frame: lay it out for the chosen lanes and show a clean, empty road.
-            if (!gameActive) {
-                applyLaneLayout(parseInt(selectLanes.value, 10) || 4);
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
+            if (!gameActive) applyLaneLayout(parseInt(selectLanes.value, 10) || 4);
             applyTouchControls();
             // Placed without the zoom: the animation is for the tap-to-enlarge. On opening it would
             // play the whole screen shrinking into the box, a full-screen flash every time.
@@ -15613,8 +15644,13 @@
             const mode = selectTouchMode.value;
             const stickMode = mode === 'stick';
             const floating = selectFloatStick.value === 'yes';
-            // Batch 532 - OFF is gone, so the controls are always on; only WHICH ones is a choice.
-            touchControlsEl.classList.add('on');
+            // Batch 532 - OFF is gone, so the controls are always on in MOBILE; only WHICH ones is a choice.
+            // Batch 561, direct report: "I switched to PC controls - the buttons didn't disappear from
+            // the screen". They never could: since Batch 532 this line set `on` unconditionally, so
+            // CONTROL TYPE = PC only ever changed which Settings rows showed, never the controls - though
+            // the row's own hint promises "PC hides the on-screen controls". It does now, and the bar's
+            // height goes back to the road with it (gameExtraBottom() reads this same class).
+            touchControlsEl.classList.toggle('on', selectDeviceMode.value === 'mobile');
             // Batch 521 - joystick mode is an overlay, not a strip (see .tc-joy).
             touchControlsEl.classList.toggle('tc-joy', stickMode);
             tcStick.classList.toggle('joy-left', stickMode && !floating && selectJoyPos.value === 'left');
@@ -15732,6 +15768,8 @@
             // Safe to repeat because applyTcSize() always recomputes from the requested size rather
             // than from whatever is currently rendered, so it cannot ratchet downwards.
             applyTcSize();
+            // Batch 561 - a refit can resize the canvas, which wipes it; repaint the preview's still road.
+            if (document.body.classList.contains('tc-preview') && !gameActive) drawPreviewScene();
         }
 
         // Target X for the player's car to be centered in a given lane index — shared by snapToNearestLane() below and the steering-buttons control.
@@ -17470,7 +17508,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.28.1';
+        const GAME_VERSION = '3.28.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -18584,10 +18622,12 @@
                 try { localStorage.setItem('tapAbility', selectTapAbility.value); } catch (e) {}
                 applyTouchControls();
             });
-            try { const v = localStorage.getItem('laneSpeed'); if (LANE_SPEED_FACTOR[v]) selectLaneSpeed.value = v; } catch (e) {}
+            // 'laneSpeed2' since Batch 561: the old key's numbers meant a slower scale, and reading them
+            // under the new one would quietly speed everyone up by two steps.
+            try { const v = localStorage.getItem('laneSpeed2'); if (LANE_SPEED_FACTOR[v]) selectLaneSpeed.value = v; } catch (e) {}
             bindSeg(document.getElementById('laneSpeedSeg'), selectLaneSpeed);
             selectLaneSpeed.addEventListener('change', () => {
-                try { localStorage.setItem('laneSpeed', selectLaneSpeed.value); } catch (e) {}
+                try { localStorage.setItem('laneSpeed2', selectLaneSpeed.value); } catch (e) {}
             });
             selectStickSize.addEventListener('change', () => {
                 try { localStorage.setItem('stickSize', selectStickSize.value); } catch (e) {}
