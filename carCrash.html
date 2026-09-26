@@ -2296,6 +2296,11 @@
             text-align: center;
         }
         .confirm-title { font-family: 'Silkscreen', monospace; font-size: 14px; color: var(--c-red); text-shadow: 2px 2px 0 #000; margin-bottom: 10px; }
+        /* Batch 560, direct request: good news should not arrive in red - "red is associated with bad".
+           Opt-in per dialog (showConfirm's `tone: 'good'`), so real warnings such as QUIT THIS RUN? keep
+           their red. */
+        #confirmBox.confirm-good { border-color: var(--c-mint); }
+        #confirmBox.confirm-good .confirm-title { color: var(--c-mint); }
         .confirm-cost-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; }
         .confirm-cost-row #confirmCoinIcon { width: 18px; height: 18px; }
         .confirm-cost-row span { font-family: 'Silkscreen', monospace; font-size: 15px; color: var(--c-amber); }
@@ -2573,7 +2578,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.1</span></div>
                 </div>
             </div>
         </div>
@@ -3751,8 +3756,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.28.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">559</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.28.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">560</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -5130,7 +5135,7 @@
             // one bug it hid. A generic line is a bad message; no message is an invisible fault.
             const text = a ? a.name + ' — ' + a.desc : 'You unlocked a secret. Check AWARDS.';
             try {
-                showConfirm(null, { title: 'ACHIEVEMENT UNLOCKED', text: text, okLabel: 'NICE', danger: false });
+                showConfirm(null, { title: 'ACHIEVEMENT UNLOCKED', text: text, okLabel: 'NICE', danger: false, tone: 'good' });
             } catch (e) { /* a notification must never break the thing that earned it */ }
         }
         // "MILLIONAIRE" one-time achievement: current BALANCE ≥ 10,000,000 at once (not lifetime-earned — that's Businessman's job).
@@ -17465,7 +17470,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.28.0';
+        const GAME_VERSION = '3.28.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
@@ -18160,6 +18165,7 @@
                 costRow.style.display = 'none';
             }
             confirmOkBtn.textContent = opts.okLabel || 'OK';
+            document.getElementById('confirmBox').classList.toggle('confirm-good', opts.tone === 'good');   // Batch 560
             confirmOkBtn.classList.toggle('btn-danger', opts.danger !== false);
             // `okDisabled` for the "can't afford this" case (Garage): still shows the BUY label so the player can see what the action WOULD be, but greyed out and inert — per direct feedback ("the BUY button should be unavailable"). `onConfirm` itself is discarded when disabled too, as defense-in-depth against the disabled button somehow still firing a click.
             confirmOkBtn.disabled = !!opts.okDisabled;

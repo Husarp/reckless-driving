@@ -6,4 +6,4 @@ scripts/build.ps1 checks this against the game's own GAME_VERSION and refuses to
 mismatch - so the two can't drift, which is the failure this project has hit repeatedly with
 hand-copied numbers (see CHANGELOG Batch 405).
 """
-VERSION = "3.28.0"
+VERSION = "3.28.1"

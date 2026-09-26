@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.28.1 — 2026-09-26 09:10: Batch 560 — good news arrives in green
+
+Direct request: the ACHIEVEMENT UNLOCKED alert had a red frame and a red title - "red is associated
+with bad". It now has a green (mint) frame and title.
+
+Every dialog in the game is the same element, and most of the rest are genuine warnings (QUIT THIS RUN?,
+RESET ALL PROGRESS?), where red is right. So the green is opt-in: `showConfirm()` takes a `tone: 'good'`,
+only the achievement alert passes it, and every call sets or clears it. Verified: the alert shows mint
+(#2ee6b0) on both; a QUIT warning opened straight after is red again.
+
+---
+
 ## 3.28.0 — 2026-09-26 01:30: Batch 559 — LANE CHANGE SPEED, and TAP ROAD FOR ABILITY
 
 Two new settings on the CONTROLS screen, both direct requests.
