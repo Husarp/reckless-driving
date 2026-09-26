@@ -6,6 +6,27 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.30.1 — 2026-09-26 22:18: Batch 567 — the ability button's badge grows with CONTROLS SIZE on phones
+
+Found in Batch 566 and fixed on a direct yes. The badge is drawn at a whole number of screen pixels
+per badge pixel, and the search for that number stopped at 16 - far below the button on any phone.
+So on a phone, CONTROLS SIZE S, M and L all drew the **same** badge, and the bigger buttons asked for in
+Batches 529 and 538 never showed there. The search is now bounded by the button's own size only.
+
+Measured in the game, badge size for S / M / L:
+
+| screen | before | after |
+|---|---|---|
+| plain monitor (1x) | 78 / 104 / 130 | 78 / 104 / 130 |
+| 2.25x phone | 81 / 92 / 92 | 81 / 104 / 127 |
+| OnePlus 6 (2.625x) | 79 / 79 / 79 | 79 / 104 / 129 |
+| 3x phone | 69 / 69 / 69 | 78 / 104 / 130 |
+
+Every badge stays inside its button (84 / 108 / 132) and stays pixel-exact. The Garage tiles' small
+badges use the same function with a 28px limit, which stops well before the old cap - unchanged.
+
+---
+
 ## 3.30.0 — 2026-09-26 22:12: Batch 566 — a launch screen for Windows, and the code's comments brought up to date
 
 Two items from PLAN.md, by direct request ("do 3 and 4").

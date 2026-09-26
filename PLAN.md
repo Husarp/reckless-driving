@@ -21,10 +21,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   confirmed it (a letter under the car at take-off was never collected). Asked the user which car and
   when exactly - possibly the pickup the moment the car lands, which counts as on the road.
 
-- [ ] **The ability badge ignores CONTROLS SIZE on phones.** Found in Batch 566:
-  abilityBadgeCssPx() stops at 16 screen pixels per badge pixel, so S / M / L all draw the badge at
-  79px on a OnePlus 6 (69px on a denser phone); only a plain monitor gets 78 / 104 / 130. One-number
-  fix (raise the 16). Asked the user.
+- [x] ~~The ability badge ignores CONTROLS SIZE on phones~~ — fixed, Batch 567 (79 / 104 / 129 on a OnePlus 6).
 
 ### Done in Batch 565
 
