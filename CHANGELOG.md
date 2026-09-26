@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.28.3 — 2026-09-26 03:20: Batch 562 — a gentler LANE CHANGE SPEED, and the energy bar in the preview
+
+- **LANE CHANGE SPEED** - direct feedback: the Batch 561 range (up to x2) was "way too much". 1 stays the
+  original speed; the top goes back to x1.5, the first scale's top, which drew no complaint - only its
+  bottom was too slow. Glide x1 / x1.125 / x1.25 / x1.375 / x1.5; held-diagonal step 600 / 533 / 480 /
+  436 / 400 ms. A saved level now means a slightly slower speed than before, never a faster one.
+- **The energy bar was blank in the CONTROLS preview** - direct report. It is only drawn during a run, so
+  the preview now draws it once, part-charged, with the same function the game uses. Mid-run it still
+  shows the real bar of the paused run. Verified: the bar is painted and sits inside the preview.
+
+---
+
 ## 3.28.2 — 2026-09-26 02:40: Batch 561 — faster lane speeds, PC really hides the controls, a road in the preview
 
 ### LANE CHANGE SPEED starts at the original speed

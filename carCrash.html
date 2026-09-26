@@ -2578,7 +2578,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.28.3</span></div>
                 </div>
             </div>
         </div>
@@ -3756,8 +3756,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.28.2 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">561</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.28.3 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">562</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4261,7 +4261,10 @@
         // Batch 561, direct feedback: "1 is way too low, no one will use it - the timing of 3 should be
         // the lowest". The whole scale moved up two steps: the original speed is now 1, and the top
         // continues the same +0.25 steps. Default stays the original, so nothing changes unless chosen.
-        const LANE_SPEED_FACTOR = { 1: 1, 2: 1.25, 3: 1.5, 4: 1.75, 5: 2 };
+        // Batch 562, direct feedback: that range was then "way too much" - x2 at the top. The first
+        // scale's top, x1.5, drew no complaint (only its bottom was too slow), so it is the top again:
+        // the original speed to x1.5 in even steps.
+        const LANE_SPEED_FACTOR = { 1: 1, 2: 1.125, 3: 1.25, 4: 1.375, 5: 1.5 };
         function laneSpeedFactor() {
             if (!IS_TOUCH || selectDeviceMode.value !== 'mobile') return 1;
             return LANE_SPEED_FACTOR[selectLaneSpeed.value] || 1;
@@ -15488,6 +15491,9 @@
                 if (lane !== playerLane) car(laneX(lane), VIEW_H * h, color);
             });
             car(laneX(playerLane), VIEW_H - PLAYER_HEIGHT - 12, resolvePlayerColor());
+            // Batch 562, direct report: the energy bar was blank in the preview - it is only drawn during
+            // a run. Shown part-charged, the way it looks most of the time while playing.
+            drawAbilityBar(abilityCtx, 60, 0, 'charge');
         }
 
         function tceSetFull(on) {
@@ -17508,7 +17514,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.28.2';
+        const GAME_VERSION = '3.28.3';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in
