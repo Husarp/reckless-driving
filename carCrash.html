@@ -2593,7 +2593,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.29.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.29.1</span></div>
                 </div>
             </div>
         </div>
@@ -3781,8 +3781,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.29.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">564</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.29.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">565</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -5652,18 +5652,16 @@
         const maxSpeed = 4.5 * CAR_SCALE;
         // real per-vehicle top speed, direct request ("you gave cars limits for how fast they can go... but they stop at 200km, you must fix that").
         let playerMaxSpeed = maxSpeed;
+        // Batch 565, direct report: "the default car goes 200 even though it says 170 - the speed limit is
+        // broken, check the other cars". It was: this floored EVERY car to at least 200 km/h (Batch 167's
+        // backward-compat floor, so no car got slower than the old shared cap), while the Garage, the
+        // tutorial and the REACH KM/H mission all use the car's own rating. Every car rated under 200 ran
+        // faster than its card said. The floor is gone: a car now tops out exactly at its rating.
         function carMaxSpeedInternal(car) {
-            const kmh = Math.max(200, estimateTopSpeedKmh(car));
+            const kmh = estimateTopSpeedKmh(car);
             const ratio = (kmh - 50) / 150; // same 50-200 reference scale speedToKmh() below uses
             return baseSpeed + ratio * (maxSpeed - baseSpeed);
         }
-        // direct bug report: "the default car doesn't go 200km" — the dev menu's START AT TOP SPEED toggle was using carMaxSpeedInternal()/playerMaxSpeed, which floors every car to AT LEAST the 200 km/h ramp ceiling (Batch 167's deliberate backward-compat floor, so no car's real gameplay ramp regresses below the old universal cap) — that's the RUN's ramp ceiling, not the car's own real rated top speed.
-        function carTrueTopSpeedInternal(car) {
-            const kmh = estimateTopSpeedKmh(car);
-            const ratio = (kmh - 50) / 150;
-            return baseSpeed + ratio * (maxSpeed - baseSpeed);
-        }
-
         // Cosmetic-only conversion to a "KM/H" readout for the HUD (Batch 53) — currentSpeed is an internal simulation unit with no inherent real-world scale, so this is just a linear map picked to land in a plausible 50-200 km/h range across the game's actual speed range, not a physically meaningful unit.
         function speedToKmh(spd) {
             const ratio = Math.max(0, (spd - baseSpeed) / (maxSpeed - baseSpeed));
@@ -5729,11 +5727,15 @@
         // stretch of traffic. Direct spec was only "some seconds".
         const LAUNCH_RECHARGE_MS = 5000;
         // Ram's activation threshold made to match Jump's exactly (see Shield Bump block below).
-        const ABILITY_MIN_ENERGY = Math.ceil(3 * ENERGY_PER_CELL); // % energy required to START either ability — "at least three full red cells"
+        // Batch 565, direct request: "remove the minimum three - the only thing you need is at least one
+        // energy", knowing one cell makes a very short jump. Was Math.ceil(3 * ENERGY_PER_CELL), "at least
+        // three full red cells". Not rounded up any more: energy settles on whole cells, and ceil(11.11)
+        // = 12 would have made a single full cell fall just short. Every gate compares with a 1e-6 slack.
+        const ABILITY_MIN_ENERGY = ENERGY_PER_CELL; // % energy required to START jump or ram — one full cell
         // Batch 440 - direct request: jumping uses 30% less energy. This is the ms to drain a FULL
         // bar held continuously, so less energy per ms means a LONGER number: 3200 / 0.7 = 4571.
-        // A full bar now buys ~4.6s of flight instead of ~3.2s. Take-off still needs 3 cells
-        // (ABILITY_MIN_ENERGY) - that is a threshold, not a cost, and was not part of the ask.
+        // A full bar now buys ~4.6s of flight instead of ~3.2s. Take-off needs ABILITY_MIN_ENERGY -
+        // a threshold, not a cost (one cell since Batch 565, three before).
         const JUMP_FULL_DRAIN_MS = 4571;
         const JUMP_DRAIN_PER_FRAME = (100 / JUMP_FULL_DRAIN_MS) * 16.66;
         const MAX_FLIGHT_HEIGHT = 14;       // px
@@ -11307,7 +11309,7 @@
                     // "partly charged". Without this the bar would advertise ready while a hit still killed you.
                     const readyThreshold = config.ability === 'launch' ? 100
                         : config.ability !== 'ram' ? ABILITY_MIN_ENERGY
-                        : selectedCarKey === 'tank' ? TANK_SHOT_COST : 2 * ENERGY_PER_CELL;
+                        : selectedCarKey === 'tank' ? TANK_SHOT_COST : ABILITY_MIN_ENERGY;   // ram: was 2 cells until Batch 565
                     // same epsilon as useAbility()'s real gate, so the "ready" glow state can never disagree with whether a shot will actually be accepted.
                     const ready = this.energy + 1e-6 >= readyThreshold && this.abilityState === 'idle';
                     let pct, state;
@@ -11431,7 +11433,7 @@
                 if (this.abilityState !== 'idle') return;
                 if (config.ability === 'jump') {
                     // Needs at least ABILITY_MIN_ENERGY to take off; once airborne it can drain all the way to 0 (the floor only gates activation, not use)
-                    if (this.energy >= ABILITY_MIN_ENERGY) {
+                    if (this.energy + 1e-6 >= ABILITY_MIN_ENERGY) {
                         this.abilityState = 'jumping';
                         this.jumpHeld = true;
                         jumpsUsed++;
@@ -11471,7 +11473,9 @@
                     }
                 } else if (config.ability === 'ram') {
                     // Shield Bump — Batch 252: drains continuously in real time (RAM_DRAIN_PER_FRAME, Player.update()) exactly like Jump does.
-                    if (this.energy + 1e-6 >= 2 * ENERGY_PER_CELL) {
+                    // Batch 565 - one cell (was two). The one-cell fee then leaves 0, so the ram runs its
+                    // RAM_MIN_ACTIVE_MS minimum and ends: short, but usable, as asked.
+                    if (this.energy + 1e-6 >= ABILITY_MIN_ENERGY) {
                         this.ramFeeAnimEnergy = this.energy; // Batch 271 — snapshot BEFORE the fee, so the bar can tween down to the real post-fee value instead of snapping
                         this.ramFeeAnimMs = 0;
                         this.energy -= ENERGY_PER_CELL;
@@ -14045,7 +14049,7 @@
             runLastFrameTs = performance.now();
             // direct follow-up ("why is the car still accelerating?"): starting currentSpeed at the car's true rating while leaving playerMaxSpeed at the normal floored ramp ceiling meant the run just kept climbing PAST that starting point toward the higher ceiling — "start at top speed" should mean already maxed out, not "start partway and keep going." While the toggle is on, the ramp ceiling for this run IS the car's true top speed too, so there's nothing left to ramp toward.
             if (devStartAtTopSpeed) {
-                playerMaxSpeed = carTrueTopSpeedInternal(getSelectedCar());
+                playerMaxSpeed = carMaxSpeedInternal(getSelectedCar());   // Batch 565 - same function now that it has no floor
                 currentSpeed = playerMaxSpeed;
             } else {
                 playerMaxSpeed = carMaxSpeedInternal(getSelectedCar()); // Batch 167 — real per-vehicle top speed
@@ -16519,6 +16523,12 @@
             gameOverHud.style.display = 'flex';
             gameOverBackdrop.style.display = 'block';
             gameoverBtns.style.display = 'flex';
+            // Batch 565, direct report: scroll the achievements to the bottom, leave, and the NEXT
+            // results screen opened already scrolled to the bottom. The browser keeps a hidden box's
+            // scroll position and puts it back when the box is shown again, so it is reset here, after
+            // the box is visible (a hidden one ignores scrollTop).
+            goAchBox.scrollTop = 0;
+            gameOverHud.scrollTop = 0;
             fitGoTitle();
 
             // direct report: "you click to skip animation and click again very fast, it can start the
@@ -17589,7 +17599,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.29.0';
+        const GAME_VERSION = '3.29.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // Batch 400/403 — the screen is one continuous document: every section always rendered, in

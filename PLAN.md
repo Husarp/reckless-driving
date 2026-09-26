@@ -15,6 +15,17 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
   settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
 
+- [ ] **Letters picked up in the air?** Reported 2026-09-26: "you must be on the road to collect a
+  letter, not jumping". The game already refuses a pickup while jumping (since Batch 431), and a test
+  confirmed it (a letter under the car at take-off was never collected). Asked the user which car and
+  when exactly - possibly the pickup the moment the car lands, which counts as on the road.
+
+### Done in Batch 565
+
+- [x] ~~Results list remembers its scroll position~~ — always opens at the top.
+- [x] ~~Ability needs 3 cells~~ — one cell is enough for jump and ram.
+- [x] ~~Stock goes 200 instead of 170~~ — the 200 km/h floor removed; all 58 cars stop at their rating.
+
 ### Done in Batch 563
 
 - [x] ~~MULTI-LANE HOLD is never saved~~ — saved now, and so are SKIP CRASH ANIMATION and DIFFICULTY.

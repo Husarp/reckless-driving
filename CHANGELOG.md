@@ -6,6 +6,40 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.29.1 — 2026-09-26 13:20: Batch 565 — true top speeds, one cell is enough, results list starts at the top
+
+Three direct reports.
+
+### Every car now stops at its own top speed
+
+"The default car goes 200 even though it says 170 - check the other cars too." Confirmed, and it was
+**37 of the 58 cars**: the run's speed ceiling floored every car to at least 200 km/h (a Batch 167
+choice, so no car got slower than the old shared cap), while the Garage card, the tutorial's TOP SPEED
+chip and the REACH KM/H mission all use the car's own rating. The floor is gone. Checked every car: the
+speed a run allows now equals the rated speed for all 58 (110-250 km/h). Stock driven to its ceiling in
+a real run: peaks at 170, and the HUD reads 170 KM/H.
+
+What it changes: a car rated under 200 is now genuinely slower, so it also earns less of the speed
+bonus (+1% per km/h above 50) - exactly what the tutorial's TOP SPEED chip already showed. Nothing
+becomes impossible: REACH KM/H already caps its goal at your fastest car's rating. The dev menu's START
+AT TOP SPEED used its own copy of the conversion to dodge the floor; it uses the one function now.
+
+### One energy cell is enough
+
+"Remove the minimum - you only need at least one energy." Jump needed 3 cells and Shield Bump 2; both
+need **one** now, and the bar's ready glow matches. One cell buys about half a second of jump; a ram's
+one-cell fee leaves the bar empty, so it runs its 1-second minimum and ends (measured: 61 frames).
+Unchanged, as they are costs rather than minimums: the Tank's 3-cell shot and the Bumper Car's full-bar
+launch.
+
+### The results list always starts at the top
+
+Scroll the achievements to the bottom, leave, and the next results screen opened already scrolled
+down. The browser keeps a hidden box's scroll position and restores it; the list (and the panel) is
+reset to the top every time the results show. Verified: scrolled to 487 px, next crash opened at 0.
+
+---
+
 ## 3.29.0 — 2026-09-26 04:45: Batch 564 — TRANSFER SAVE: move your progress to another device
 
 Direct request: a way to move a save to another phone or PC that is hard to edit and cannot be

@@ -71,7 +71,7 @@ and every km/h above 50 adds +1%.
 ### Jump ability
 
 Hold to fly and become immune to traffic (and ambulances) while airborne; release to land early. Needs at
-least 3 of the bar's 9 cells (~34%) to take off, then drains for as long as it's held (about 3 seconds from
+least 1 of the bar's 9 cells to take off (a single cell is a short hop), then drains for as long as it's held (about 3 seconds from
 full). Energy does **not** regenerate passively — it is earned back by passing cars (+1 cell, trucks +2,
 a grounded ambulance +5) and by close calls (+4).
 
