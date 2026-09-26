@@ -10,8 +10,9 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [x] ~~Reset old survival times~~ — done, Batch 557 (scores and earned achievements kept).
 - [x] ~~Total playtime in Stats~~ — done, Batch 557 (TIME PLAYED + TIME DRIVING in TOTALS).
 - [x] ~~LEGENDARY label cut off~~ — done, Batch 557 (measured auto-fit).
-- [x] ~~Save transfer between devices~~ — done, Batch 564 (file only, option A). Still to do: try it
-  for real once built - the Android plugin and the packaged Windows dialog have not run yet.
+- [x] ~~Save transfer between devices~~ — done, Batch 564 (file only, option A). Android device ID
+  and IMPORT proven on a real phone (Pixel 7 restore, 2026-09-26). Not yet run for real: EXPORT on
+  Android (the system save screen) and anything in the packaged Windows app.
 - [ ] **CONTROLS HEIGHT default.** Shipped at LOW (Batch 554). User: "ok" - once the SPLIT testers
   settle on MID or HIGH, make that the default (the `selected` option on #tcHeightSetting).
 
@@ -19,6 +20,11 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   letter, not jumping". The game already refuses a pickup while jumping (since Batch 431), and a test
   confirmed it (a letter under the car at take-off was never collected). Asked the user which car and
   when exactly - possibly the pickup the moment the car lands, which counts as on the road.
+
+- [ ] **The ability badge ignores CONTROLS SIZE on phones.** Found in Batch 566:
+  abilityBadgeCssPx() stops at 16 screen pixels per badge pixel, so S / M / L all draw the badge at
+  79px on a OnePlus 6 (69px on a denser phone); only a plain monitor gets 78 / 104 / 130. One-number
+  fix (raise the 16). Asked the user.
 
 ### Done in Batch 565
 
@@ -59,11 +65,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 - [x] ~~Points for being near an NPC crash~~ — done, Batch 551 (25, same or adjacent lane).
 - [x] ~~Scores tab compaction~~ — done, Batch 551 (`i` icon, measured 560px threshold).
-- [ ] **Comment cleanup, remaining.** 14 multi-attempt narrative blocks still to compress (~230
-  lines). Rule that has held so far: keep every measurement and every "why not the obvious thing",
-  drop only the batch-by-batch retelling. Several of the biggest blocks turned out to be almost
-  entirely load-bearing engineering, so the real yield is well under the raw line count.
-- [ ] **No Windows launch screen.** Android got one in Batch 548; the desktop build still has none.
+- [x] ~~Comment cleanup, remaining~~ — done, Batch 566 (18 blocks, 144 lines; five stale ones corrected).
+- [x] ~~No Windows launch screen~~ — done, Batch 566 (`app/splash.html`, same art as Android).
 - [ ] **Tutorial does not cover the cross/split arrow layouts or the diagonals.** Open question
   whether it should.
 

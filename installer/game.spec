@@ -17,8 +17,9 @@ a = Analysis(
     pathex=[str(ROOT / 'app')],
     binaries=[],
     # The game is one self-contained HTML file with the fonts embedded - this single entry is
-    # the whole game.
-    datas=[(str(ROOT / 'carCrash.html'), '.')],
+    # the whole game. Batch 566: plus the launch screen, which must sit BESIDE it - pywebview serves
+    # the folder of the page the window opens, and the launch screen hands over to carCrash.html.
+    datas=[(str(ROOT / 'carCrash.html'), '.'), (str(ROOT / 'app' / 'splash.html'), '.')],
     hiddenimports=[],
     hookspath=[],
     runtime_hooks=[],
