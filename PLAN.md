@@ -59,6 +59,20 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
+- [ ] **Daily Gift / Daily Word coins are tiny next to Missions** (asked 2026-09-27, waiting on numbers).
+  Missions pay 350,000 coins a day at any level; the Gift a 40% chance of 5,000 + 250/level (x1-1.5), the Word
+  30% of double that - ~14k and ~21k a day at level 93. The Extra Box (3,000 coins, never scaled in Batch 332's
+  x50) rolls from the Word's table, so a Word boost needs the box price looked at too.
+- [ ] **Ramming bonus x2** (asked 2026-09-27): a ram kill pays 1.2x a pass - double the points (2.4x, above a
+  jump-over's 2x) or double the extra (1.4x)? Asked.
+
+### Done in Batch 585
+
+- [x] ~~Ambulance drove through a truck (10 lanes)~~ — never takes a lane a car is signalling into; ambulances
+  crash like other traffic; secret award WHO CALLS THE AMBULANCE?.
+- [x] ~~Old square coin in Gift/Word rewards~~ — the real coin sprite.
+- [x] ~~Garage: sort buttons wrap / boost cards uneven / coins off-centre~~ — fixed.
+
 ### Done in Batch 583
 
 - [x] ~~Follow the shared app rules (from Lexling)~~ — X until the next start, the Windows installer named with

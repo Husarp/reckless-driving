@@ -218,6 +218,14 @@
         .gc-buy { font-family: 'Silkscreen', monospace; font-size: 8px; color: #2b1c00; background: var(--c-amber); border: 2px solid #000; padding: 2px 0; cursor: pointer; }
         /* Boost cards are the same idea, centred, with room for the flame sprite. */
         .gc-boost { align-items: center; text-align: center; padding: 12px 8px 10px; gap: 7px; }
+        /* Batch 585, direct request: the BOOST TYPE cards must be the same height, "no matter what". The name's
+           two-line minimum was 24px - two lines of the desktop 8px font - so with the phone's 11px a one-line
+           UNDERGLOW stayed 9px shorter than CENTER THRUSTER. The minimum is now two lines of whatever size the
+           name is, the cards stretch to the tallest in the row, and the status sits at the bottom so it lines
+           up across them. */
+        .gc-boost .gc-name { min-height: 3em; }
+        .flame-picker { align-items: stretch; }
+        .gc-boost .gc-status { margin-top: auto; }
         /* Batch 524, direct report: "you don't even need to add this glowing aura... you added the
            grey background, which I don't like". They are the same thing - an 18% amber radial over the
            card's near-black reads as a muddy grey square, not as a glow. The design doc has no such
@@ -927,6 +935,12 @@
             margin-bottom: 14px;
         }
         .view-header h3 { border-bottom: none; padding-bottom: 0; margin: 0; }
+        /* Batch 585, direct report (photo): the Garage's coin total sat in the middle of the GAP between "Garage"
+           and the level badge - space-between centres the middle item between its neighbours, and those differ
+           in width - so it was well left of the screen's centre. Equal outer columns put it in the true middle. */
+        .view-header-3 { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; }
+        .view-header-3 > :first-child { justify-self: start; }
+        .view-header-3 > :last-child { justify-self: end; }
         .coin-total { display: flex; align-items: center; gap: 6px; font-family: 'Silkscreen', monospace; font-size: 14px; color: #fff; }
         /* player level badge: ring (colored by tier) + one-line XP readout, matching the design doc's actual RING + XP READOUT panel (ported at its own native 24px/48px display scale, not the cramped 20px chip this used to be squeezed into inside the gameplay HUD). */
         .level-badge { display: flex; align-items: center; gap: 8px; }
@@ -1717,6 +1731,9 @@
         .dg-pop-in { animation: dgPopIn .18s steps(3); }
         .dg-reveal-kicker { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 3px; color: var(--c-text-dimmer); }
         .dg-reveal-amt { font-family: 'VT323', monospace; font-size: 44px; line-height: .9; }
+        /* Batch 585, direct report: the COINS reveal (Daily Gift, Daily Word, Extra Boxes) drew the old square
+           coin; now the game's own coin sprite, at 4x its 16px so every pixel stays whole. */
+        .dg-reveal-coin { width: 64px; height: 64px; margin: 4px 0; image-rendering: pixelated; }
         .dg-reveal-type { font-family: 'Silkscreen', monospace; font-size: 10px; letter-spacing: 2px; color: #9aa3b2; }
         .dg-reveal-breakdown { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: var(--c-text-dimmer); }
         /* duplicate-compensation reveal: the original color/car crossed out with one red line (the ::after bar spans icon+text together, since text-decoration alone won't strike through a block-level swatch/chip), an arrow, then the actual coin payout below at a reduced size (.dg-dupe-comp-amt) so the whole compact stack still fits the card. */
@@ -1824,6 +1841,11 @@
            Scoped to the Garage on the user's own instruction: AWARDS shares this class but has three
            tabs, not five, and has room to spare. */
         #garageSortTabs .ach-tab-btn { padding-left: 7px; padding-right: 7px; }
+        /* Batch 585, direct request: on a narrower screen (or with TEXT SIZE up) OWNED still wrapped to a second
+           line. The row stays on one line now, and fitGarageSortRow() shrinks the buttons just enough when
+           they would not fit - see there. */
+        #garageSortTabs { flex-wrap: nowrap; }
+        #garageSortTabs .ach-tab-btn { flex: none; white-space: nowrap; }
         /* direct request: a settings icon (not text) on the tabs row, right side, opening a small popover to control number-display: abbreviate on/off, decimal digits, and an optional percentage readout above tiered progress bars. */
         .ach-settings-wrap { position: relative; margin-left: auto; }
         /* Batch 413 - direct request: the icon alone, no box and no frame. The 34px hit area is kept
@@ -2725,7 +2747,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.36.0</span></div>
                 </div>
             </div>
         </div>
@@ -3274,7 +3296,7 @@
     <!-- VIEW: GARAGE (Batch 60 groundwork; Batch 64 unlock system; Batch 65 showroom + card-grid redesign per user-provided mockup and follow-up spec) -->
     <div id="garageView" class="view">
         <div class="settings-panel garage-panel">
-            <div class="view-header">
+            <div class="view-header view-header-3">
                 <h3>Garage</h3>
                 <div class="coin-total"><canvas class="coin-icon-lg" id="garageCoinIcon"></canvas><span id="garageCoinTotal">0</span></div>
                 <div class="level-badge">
@@ -3931,8 +3953,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.35.2 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">584</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.36.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">585</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -9592,16 +9614,6 @@
                 <div style="position:absolute;left:19px;top:1px;width:7px;height:6px;background:#ffd700;"></div>
             </div>`;
         }
-        // The "opened gift" icon used by the COINS reveal — the doc's own separate simple shape (a ribboned square, not the full box), not a reuse of giftBoxHTML().
-        function openedGiftIconHTML() {
-            return `<div style="position:relative;width:72px;height:72px;display:flex;align-items:center;justify-content:center;">
-                <div style="width:52px;height:52px;background:#f5b32a;border:4px solid #8a6410;box-sizing:border-box;display:flex;align-items:center;justify-content:center;">
-                    <div style="width:10px;height:26px;background:#8a6410;"></div>
-                </div>
-                <div style="position:absolute;left:2px;top:8px;width:6px;height:6px;background:#c48b16;"></div>
-                <div style="position:absolute;right:4px;bottom:6px;width:5px;height:5px;background:#c48b16;"></div>
-            </div>`;
-        }
         function hexToRgba(hex, alpha) {
             const n = parseInt(hex.slice(1), 16);
             return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${alpha})`;
@@ -9669,7 +9681,7 @@
                     </div>`;
                 }
                 return `<div class="dg-reveal${popClass}">
-                    ${openedGiftIconHTML()}
+                    <canvas class="dg-reveal-coin"></canvas>
                     <div class="dg-reveal-amt" style="color:var(--c-amber)">+${reward.amount.toLocaleString()}</div>
                     <div class="dg-reveal-type">COINS</div>
                     ${actionHtml}
@@ -9718,6 +9730,7 @@
             // duplicate-compensation reveal: coin icon next to the payout, and a (smaller) real car sprite next to the original car's name in the crossed-out preview.
             const dupeCoinIcon = document.getElementById('dgDupeCoinIcon');
             if (dupeCoinIcon) renderCoinIcon(dupeCoinIcon);
+            document.querySelectorAll('.dg-reveal-coin').forEach(renderCoinIcon);   // Batch 585
             const dupeCarIcon = document.getElementById('dgDupeCarIcon');
             if (dupeCarIcon && reward.wasDuplicateOf && reward.wasDuplicateOf.type === 'car') {
                 const car = GARAGE_CARS.find(c => c.key === reward.wasDuplicateOf.car);
@@ -10367,6 +10380,7 @@
             emergency_exit:         [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 4, 1, '#e63946'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 2, 1, '#e63946'], [4, 5, 5, 1, '#12161f'], [9, 5, 2, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 1, 1, '#e63946'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 3, 1, '#e63946'], [5, 7, 3, 1, '#12161f'], [8, 7, 3, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             cone_slalom:            [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ffd97a'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ffd97a'], [2, 2, 9, 1, '#f5b32a'], [11, 2, 1, 1, '#b87c0a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ffd97a'], [2, 3, 4, 1, '#f5b32a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#f5b32a'], [11, 3, 1, 1, '#b87c0a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ffd97a'], [2, 4, 3, 1, '#f5b32a'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#f5b32a'], [11, 4, 1, 1, '#b87c0a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ffd97a'], [2, 5, 2, 1, '#f5b32a'], [4, 5, 5, 1, '#12161f'], [9, 5, 2, 1, '#f5b32a'], [11, 5, 1, 1, '#b87c0a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ffd97a'], [2, 6, 1, 1, '#f5b32a'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#f5b32a'], [11, 6, 1, 1, '#b87c0a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ffd97a'], [2, 7, 3, 1, '#f5b32a'], [5, 7, 3, 1, '#12161f'], [8, 7, 3, 1, '#f5b32a'], [11, 7, 1, 1, '#b87c0a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ffd97a'], [2, 8, 3, 1, '#f5b32a'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#f5b32a'], [11, 8, 1, 1, '#b87c0a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ffd97a'], [2, 9, 3, 1, '#f5b32a'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#f5b32a'], [11, 9, 1, 1, '#b87c0a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ffd97a'], [2, 10, 9, 1, '#f5b32a'], [11, 10, 1, 1, '#b87c0a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ffd97a'], [2, 11, 10, 1, '#b87c0a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             exact_change:           [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#7fe8a8'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#7fe8a8'], [2, 2, 9, 1, '#27c46a'], [11, 2, 1, 1, '#16874a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#7fe8a8'], [2, 3, 4, 1, '#27c46a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#27c46a'], [11, 3, 1, 1, '#16874a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#7fe8a8'], [2, 4, 2, 1, '#27c46a'], [4, 4, 5, 1, '#12161f'], [9, 4, 2, 1, '#27c46a'], [11, 4, 1, 1, '#16874a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#7fe8a8'], [2, 5, 2, 1, '#27c46a'], [4, 5, 1, 1, '#12161f'], [5, 5, 1, 1, '#27c46a'], [6, 5, 1, 1, '#12161f'], [7, 5, 4, 1, '#27c46a'], [11, 5, 1, 1, '#16874a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#7fe8a8'], [2, 6, 2, 1, '#27c46a'], [4, 6, 5, 1, '#12161f'], [9, 6, 2, 1, '#27c46a'], [11, 6, 1, 1, '#16874a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#7fe8a8'], [2, 7, 4, 1, '#27c46a'], [6, 7, 1, 1, '#12161f'], [7, 7, 1, 1, '#27c46a'], [8, 7, 1, 1, '#12161f'], [9, 7, 2, 1, '#27c46a'], [11, 7, 1, 1, '#16874a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#7fe8a8'], [2, 8, 2, 1, '#27c46a'], [4, 8, 5, 1, '#12161f'], [9, 8, 2, 1, '#27c46a'], [11, 8, 1, 1, '#16874a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#7fe8a8'], [2, 9, 4, 1, '#27c46a'], [6, 9, 1, 1, '#12161f'], [7, 9, 4, 1, '#27c46a'], [11, 9, 1, 1, '#16874a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#7fe8a8'], [2, 10, 9, 1, '#27c46a'], [11, 10, 1, 1, '#16874a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#7fe8a8'], [2, 11, 10, 1, '#16874a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
+            who_calls:              [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 3, 1, '#e63946'], [5, 3, 3, 1, '#12161f'], [8, 3, 3, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 1, 1, '#e63946'], [3, 5, 7, 1, '#12161f'], [10, 5, 1, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 1, 1, '#e63946'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 1, 1, '#e63946'], [3, 7, 7, 1, '#12161f'], [10, 7, 1, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],   // Batch 585
         };
         // Batch 504, direct request: an undiscovered secret shows the '?' badge, not its own.
         // A veiled card said '???' and 'Unknown objective' while still displaying the real icon -
@@ -10521,7 +10535,10 @@
             { id: 'lucky_start', icon: 'lucky_start', name: 'LUCKY START', desc: 'Spot a legendary car among the first 10 vehicles of a run.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.lucky_start },
             { id: 'sound_of_silence', icon: 'sound_of_silence', name: 'SOUND OF SILENCE', desc: 'Turn the master volume all the way down.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.sound_of_silence },
             { id: 'double_shift', icon: 'double_shift', name: 'DOUBLE SHIFT', desc: 'Have two ambulances on the road at the same time.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.double_shift },
-            { id: 'exact_change', icon: 'exact_change', name: 'EXACT CHANGE', desc: 'Level up landing on exactly 0 XP into the new level.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.exact_change }
+            { id: 'exact_change', icon: 'exact_change', name: 'EXACT CHANGE', desc: 'Level up landing on exactly 0 XP into the new level.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.exact_change },
+            // Batch 585, direct request: ambulances can crash now (see the NPC crash loop), rarely - "a secret
+            // achievement to spot on the road".
+            { id: 'who_calls', icon: 'who_calls', name: 'WHO CALLS THE AMBULANCE?', desc: 'See an ambulance crash into another car.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.who_calls }
             ];
         }
         const ACH_TABS = [{ k: 'all', label: 'ALL' }, { k: 'wip', label: 'IN PROGRESS' }, { k: 'done', label: 'COMPLETED' }];
@@ -17200,7 +17217,13 @@
                 }
                 if (ambulanceWaitingForLane) {
                     const laneOrder = Array.from({ length: config.lanes }, (_, i) => i).sort(() => Math.random() - 0.5);
-                    const aLane = laneOrder.find(l => canSpawnAt(l) && !vehicles.some(v => v.lane === l) && !pendingAmbulances.some(pa => pa.lane === l));
+                    // Batch 585, direct report (10 lanes: an ambulance drove straight through a truck): a car
+                    // that is SIGNALLING still counts as its old lane (`lane` only changes when it starts to
+                    // move), and a signalling car always completes its move. So a lane one was signalling
+                    // into looked empty, the ambulance took it, and the car moved in. Such a lane is not free.
+                    const aLane = laneOrder.find(l => canSpawnAt(l) && !vehicles.some(v => v.lane === l)
+                        && !vehicles.some(v => v.changingState === 'indicator' && v.targetLane === l)
+                        && !pendingAmbulances.some(pa => pa.lane === l));
                     if (aLane !== undefined) {
                         // Clear the lane so the ambulance has a straight run when it arrives.
                         vehicles = vehicles.filter(v => v.lane !== aLane || v.y + v.height >= 0);
@@ -17566,12 +17589,15 @@
                 }
 
                 // direct request: two NPCs that end up converging in the same lane (different relative speeds, no lane-change even necessarily involved — confirmed via a live stress test, see PLAN.md) now crash into each other instead of silently overlapping.
+                // Batch 585, direct request: ambulances take part too. They were left out, so one that met a car
+                // drove straight through it; the lane rules keep that very rare, and if it happens anyway, they
+                // crash like anyone else. An ambulance never brakes for the car ahead.
                 for (let i = 0; i < vehicles.length; i++) {
                     const a = vehicles[i];
-                    if (a.crushed || a.type === 'ambulance') continue;
+                    if (a.crushed) continue;
                     for (let j = i + 1; j < vehicles.length; j++) {
                         const b = vehicles[j];
-                        if (b.crushed || b.type === 'ambulance' || a.lane !== b.lane) continue;
+                        if (b.crushed || a.lane !== b.lane) continue;
                         // Batch 431 - a wreck is now a real obstacle to OTHER traffic: drive into one
                         // and you join the pile-up, instead of sliding through it. (Ram-kill corpses,
                         // `crushed`, stay non-collidable - that is Batch 190's deliberate behaviour
@@ -17617,7 +17643,14 @@
                                         '+' + Math.round(gained), 'CRASH', '#ff3b3b'));
                                 }
                             }
+                            // Batch 585 - an ambulance crash on screen (not above it, not off the side of a
+                            // panning road) is the secret WHO CALLS THE AMBULANCE?
+                            if ((a.type === 'ambulance' || b.type === 'ambulance')
+                                && [a, b].some(v => v.y + v.height > 0 && v.y < VIEW_H && !offscreenSide(v.x + v.width / 2))) {
+                                unlockAchievement('who_calls');
+                            }
                             [a, b].filter(v => !v.wrecked).forEach(v => {
+                                if (v.siren) { stopSiren(v.siren); v.siren = null; }   // Batch 585 - a wrecked ambulance goes quiet
                                 v.wrecked = true;
                                 v.speedOffset = 0; // same "scrolls with the road, not at traffic pace" fix Batch 195 gave ram wrecks
                                 v.debrisSpots = Array.from({ length: 4 }, () => ({ dx: Math.random() * v.width, dy: Math.random(), ember: Math.random() < 0.5 }));
@@ -17941,7 +17974,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.35.2';
+        const GAME_VERSION = '3.36.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19707,6 +19740,23 @@
             if (garageView.classList.contains('active')) renderCarGrid();
             if (dailyGiftView.classList.contains('active')) renderDailyGiftHeader();
         });
+        // Batch 585, direct request ("on a less wide screen the sort buttons go to the next line - make them
+        // smaller instead"): the buttons are zoomed down together - text, padding and border - just far enough
+        // to fit the row, and back to full size whenever they fit. Measured in the row's own coordinates, so
+        // TEXT SIZE's zoom is already accounted for. Re-fitted on every render (the active label changes) and
+        // whenever the row changes width.
+        function fitGarageSortRow() {
+            const row = document.getElementById('garageSortTabs');
+            if (!row || !row.clientWidth) return;
+            const btns = [...row.children];
+            btns.forEach(b => { b.style.zoom = ''; });
+            const gaps = (parseFloat(getComputedStyle(row).columnGap) || 0) * (btns.length - 1);
+            const natural = btns.reduce((a, b) => a + b.offsetWidth, 0);
+            const k = (row.clientWidth - gaps) / natural;
+            // 1.5% to spare: each zoomed border and padding rounds on its own, which added up to a 1px overflow
+            if (k < 1) btns.forEach(b => { b.style.zoom = String(Math.floor(k * 0.985 * 1000) / 1000); });
+        }
+        if (typeof ResizeObserver === 'function') new ResizeObserver(fitGarageSortRow).observe(document.getElementById('garageSortTabs'));
         // Garage sort picker (TIER/ABILITY/PRICE).
         document.querySelectorAll('#garageSortTabs [data-garage-sort]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -20136,6 +20186,7 @@
                 btn.style.color = on ? 'var(--c-night)' : 'var(--c-text-dim)';
                 btn.style.border = '2px solid ' + (on ? 'var(--c-amber)' : 'var(--c-panel-border)');
             });
+            fitGarageSortRow();   // Batch 585 - the active label (with its arrow) sets the row's width
 
             const garageCoinTotalEl = document.getElementById('garageCoinTotal');
             // direct correction: no title tooltip, the displayed text itself swaps to the exact number on hover and swaps back on mouse-leave. `.onmouseenter`/`.onmouseleave` (assignment, not addEventListener) so re-running this render doesn't stack listeners on this same persistent element every time the Garage is opened.

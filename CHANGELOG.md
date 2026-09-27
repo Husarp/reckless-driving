@@ -6,6 +6,48 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.36.0 — 2026-09-27 23:51: Batch 585 — ambulances never drive through traffic (and can crash), a new secret award, the real coin in rewards, Garage fixes
+
+Direct reports and requests, in one go.
+
+### Ambulances
+**Reported on 10 lanes: an ambulance appeared in a truck's lane and drove straight through it.** Two causes:
+- A car that is *signalling* a lane change still counts as being in its old lane (`lane` only changes
+  when it starts to move), and a signalling car always completes its move (an earlier fix, so cars don't
+  signal and then cancel). So a lane one was signalling into looked empty; the ambulance took it and the
+  car moved in. **An ambulance no longer takes a lane any car is signalling into.** Spawns and lane changes
+  into an ambulance's lane were already blocked.
+- Ambulances were left out of the traffic crash check entirely, so when two did meet, one drove through
+  the other. **Now an ambulance crashes like any other traffic** (it never brakes for the car ahead): both
+  are wrecked, the siren goes quiet, and the usual crash points apply if it is next to you.
+- **New secret award, WHO CALLS THE AMBULANCE?** - see an ambulance crash into another car. It has to
+  happen on screen (not above it, not off the side of a panning road). Its own icon: the red ambulance
+  frame with a medical cross. Awards: 121 -> 122.
+- Not done: cars steering out of an ambulance's lane (option 2 in the request). With the rule above, no
+  car can be in that lane in the first place, so it would never run; the crash is the backstop.
+Tested in a real 10-lane run: a free lane with a car signalling into it -> no ambulance; the signal over ->
+the ambulance takes that lane; an ambulance meeting a car on screen -> both wrecked, siren stopped, award;
+the same crash fully above the screen -> no award.
+
+### The coin in Daily Gift / Daily Word / Extra Box rewards
+The COINS reveal still drew the old square coin (an amber square with a slot). It is the game's own coin
+sprite now, at 4x its 16px so every pixel stays whole. The old drawing is gone.
+
+### Garage (photos)
+- **Sort buttons (TIER / ABILITY / PRICE / SPEED / OWNED) stay on one line.** On a narrower screen, or with
+  TEXT SIZE up, OWNED wrapped to a second line. When they would not fit, all five now shrink together -
+  text, padding and border - just far enough; at full size whenever they fit. Re-fitted on every render (the
+  active label gets an arrow) and on every width change. Checked at 412 and 360px at all three text sizes -
+  one line every time, labels ~9.6px or more on screen.
+- **BOOST TYPE cards are always the same height.** The name's two-line minimum was 24px - two lines of the
+  desktop 8px font - so with the phone's 11px a one-line UNDERGLOW was 9px shorter. The minimum is now two
+  lines of the name's own size, the cards stretch to the tallest, and the status sits at the bottom so it
+  lines up. Equal heights and level status lines at every size checked.
+- **The coin total is in the middle of the Garage header.** It was centred in the gap between "Garage" and
+  the level badge, which differ in width - 46px left of centre on a 412px phone. Equal outer columns put it
+  exactly in the middle there; on a 360px phone the badge is wider than half the room left, so it sits 18px
+  left of centre rather than overlapping.
+
 ## 3.35.2 — 2026-09-27 23:13: Batch 584 — the update download never shows a frozen 0%
 
 Direct report from testing 3.35.1 on both phones: the Samsung showed no percentage and opened the file
