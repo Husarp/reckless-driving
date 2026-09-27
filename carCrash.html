@@ -2107,6 +2107,14 @@
         .tc-ability.hidden { display: none; }
         /* A touch device gets a bigger pause button - 24px is a mouse target, not a thumb target. */
         body.touch .pause-btn { min-width: 34px; min-height: 34px; }
+        /* Batch 573, agreed design: on a small phone the pause button measures 31px - it matches the
+           energy bar's height, and the bar must not change. An invisible area around it takes the taps
+           instead: out to the screen edge, up into the empty band under the camera island, down onto
+           the top of the road, and on the right only into the gap, so it never covers the bar. Insets
+           are from the padding box (2px inside the border) and in #hudLeft's units before its scale -
+           on a 360px phone (scale 0.8) the area comes out ~45 x 63px. */
+        body.touch #pauseBtn { position: relative; }
+        body.touch #pauseBtn::before { content: ''; position: absolute; top: -22px; bottom: -22px; left: -12px; right: -9px; }
         .touch-only { display: none; }
 
         /* ---- Batch 558: CONTROLS editor ---- */
@@ -2597,7 +2605,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.3</span></div>
                 </div>
             </div>
         </div>
@@ -3785,8 +3793,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.32.2 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">572</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.32.3 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">573</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17633,7 +17641,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.32.2';
+        const GAME_VERSION = '3.32.3';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

@@ -6,6 +6,19 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.32.3 — 2026-09-27 18:04: Batch 573 — the pause button is easier to hit on a phone
+
+Direct request, option A as agreed: on a small phone the pause button measures 31 x 31px - it matches the
+energy bar's height, and the bar was not to change - while a thumb wants ~48px. The button looks exactly
+the same; an invisible area around it takes the taps. It reaches the screen edge on the left, 16px above
+and below, and on the right stops in the gap, so it never covers the energy bar (which ignores taps on a
+phone anyway). Touch screens only.
+
+Measured on a 360px-wide phone: the tappable area went from 31 x 31 to **44 x 63px**, and a tap below the
+button and one to its left both pause the game; the energy bar still owns its own pixels.
+
+---
+
 ## 3.32.2 — 2026-09-27 17:54: Batch 572 — the full energy bar's border runs all the way round
 
 Direct report: when the bar is full its green stripes showed only on the top and bottom - the sides were
