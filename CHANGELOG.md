@@ -6,6 +6,28 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.34.1 — 2026-09-27 21:36: Batch 580 — a new Awards bar (design A1, "dither bar")
+
+Direct request: the bar at the top of Awards is now design A1 from `Awards Bar Options.dc.html` - the old
+bar made thicker (28px, in a dark frame), bevelled (a lighter top row of pixels, a darker bottom row), with
+a checkered hand-off between colours instead of a hard edge, and in tier order (SECRET, BRONZE ... AMETHYST)
+like the counts under it - it used to be sorted by size.
+
+Two changes to the design, agreed with the user after the worry that "one award of a tier shows as two
+pixels":
+- **Square pixels.** The design split the bar into a fixed 120 columns - on a phone that is 2.6 x 7px
+  slivers, so the checker read as stripes. The column count now follows the bar's real width (7px cells):
+  118 columns on a PC window, 40-49 on a phone. Redrawn whenever the width changes (window size, TEXT SIZE).
+- **Every tier earned gets at least 2 solid columns**, and the checker is one extra column between two
+  colours. A tier of 1 award out of 121 was ~2 checkered pixels; now it is a solid block, ~14px on a phone.
+  The columns this adds come out of the widest part, usually the unearned grey - taking them from a
+  mid-sized tier made 13 SECRET as wide as 1 DIAMOND (caught in testing). The exact counts are printed
+  under the bar, so a tiny tier stretching a little costs nothing.
+
+Checked: 7 x 7px cells on a PC and on a 375px phone; with 1 DIAMOND and 1 AMETHYST each is 2 solid columns
+while larger tiers stay larger; nothing earned, and everything earned, both draw correctly; nothing runs
+off a phone screen.
+
 ## 3.34.0 — 2026-09-27 21:20: Batch 579 — Android updates come through Android's own download service
 
 Direct request: update the way Lexling now does, so the game never needs "allow Reckless Driving to

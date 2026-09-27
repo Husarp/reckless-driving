@@ -1801,7 +1801,9 @@
         .ach-header-top { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
         .ach-count-main { font-family: 'VT323', monospace; font-size: 36px; line-height: .8; color: var(--c-amber); }
         .ach-count-sub { font-family: 'VT323', monospace; font-size: 22px; line-height: .9; color: var(--c-text-faint); }
-        .ach-segbar { height: 12px; background: var(--c-card); border: 2px solid var(--c-panel-border); box-sizing: border-box; display: flex; overflow: hidden; }
+        /* Batch 580 - design A1 "DITHER BAR" (Awards Bar Options.dc.html): thicker, bevelled, pixel-drawn - see drawAchBar(). */
+        .ach-segbar { background: var(--c-night); border: 2px solid var(--c-panel-border); padding: 3px; box-shadow: inset 0 0 0 1px #000; }
+        .ach-segbar svg { display: block; width: 100%; height: 28px; }
         .ach-tiercounts { display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; font-family: 'Silkscreen', monospace; font-size: 12px; letter-spacing: 1px; color: var(--c-text-dimmer); }
         .ach-pct { font-family: 'Silkscreen', monospace; font-size: 14px; letter-spacing: 2px; color: var(--c-amber); }
 
@@ -2708,7 +2710,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.1</span></div>
                 </div>
             </div>
         </div>
@@ -3914,8 +3916,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.34.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">579</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.34.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">580</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -10225,6 +10227,56 @@
             amethyst: { n: 'AMETHYST', c: '#b06ef5', dark: '#dcbcfb' }
         };
         const ACH_ORDER = ['secret', 'bronze', 'silver', 'gold', 'diamond', 'amethyst'];
+
+        // Batch 580, direct request: the Awards bar is design A1 "DITHER BAR" - the old bar made thicker, with a
+        // bevel (lighter top row, darker bottom row) and a checkered hand-off between colours - in tier order,
+        // like the counts under it. Two changes to the design, agreed with the user:
+        //   1. square pixels: the column count follows the bar's real width (7px cells, 4 rows). The design's
+        //      fixed 120 columns became 2.6 x 7px slivers on a phone.
+        //   2. every tier earned gets at least 2 solid columns, and the checker is one extra column between
+        //      two colours. A tier of 1 award (1 of 121) was ~2 checkered pixels; now it is a small block. The
+        //      exact counts are printed right under the bar, so a tiny tier stretching a little costs nothing.
+        const ACH_BAR_ROWS = 4, ACH_BAR_EMPTY = '#232a38';
+        function drawAchBar(el) {
+            const d = el._achBar;
+            if (!d) return;
+            const inner = el.clientWidth - 6;                           // minus the 3px padding each side
+            const segs = d.segs.map(s => ({ n: s.n, c: s.c, min: 2 }));
+            if (d.total > d.earned) segs.push({ n: d.total - d.earned, c: ACH_BAR_EMPTY, min: 1 });
+            const joins = Math.max(0, segs.length - 1);
+            const cols = Math.max(Math.round(inner / (28 / ACH_BAR_ROWS)), segs.reduce((a, s) => a + s.min, 0) + joins);
+            // solid columns, in proportion to each tier's count, never under its minimum
+            const room = cols - joins, weight = segs.reduce((a, s) => a + s.n, 0) || 1;
+            segs.forEach(s => { s.ideal = s.n / weight * room; s.w = Math.max(s.min, Math.floor(s.ideal)); });
+            let sum = segs.reduce((a, s) => a + s.w, 0);
+            // the columns the minimums add come out of the widest part (usually the unearned grey), where one
+            // column is the smallest share - taking them from a mid-sized tier made 13 SECRET as wide as 1 DIAMOND
+            while (sum > room) {
+                const s = segs.filter(x => x.w > x.min).sort((a, b) => b.w - a.w || (b.w - b.ideal) - (a.w - a.ideal))[0];
+                s.w--; sum--;
+            }
+            while (sum < room) {
+                segs.slice().sort((a, b) => (b.ideal - b.w) - (a.ideal - a.w))[0].w++; sum++;
+            }
+            // one path per colour; the join column alternates the two colours down its rows
+            const paths = {};
+            const cell = (x, y, c) => { (paths[c] = paths[c] || []).push('M' + x + ' ' + y + 'h1v1h-1z'); };
+            let x = 0;
+            segs.forEach((s, i) => {
+                for (let k = 0; k < s.w; k++, x++) for (let y = 0; y < ACH_BAR_ROWS; y++) cell(x, y, s.c);
+                if (i < segs.length - 1) {
+                    for (let y = 0; y < ACH_BAR_ROWS; y++) cell(x, y, (x + y) % 2 ? segs[i + 1].c : s.c);
+                    x++;
+                }
+            });
+            el.innerHTML = `<svg viewBox="0 0 ${cols} ${ACH_BAR_ROWS}" preserveAspectRatio="none" shape-rendering="crispEdges">`
+                + Object.keys(paths).map(c => `<path fill="${c}" d="${paths[c].join('')}"></path>`).join('')
+                + `<rect x="0" y="0" width="${cols}" height="1" fill="#ffffff" opacity="0.22"></rect>`
+                + `<rect x="0" y="${ACH_BAR_ROWS - 1}" width="${cols}" height="1" fill="#000000" opacity="0.35"></rect></svg>`;
+        }
+        // redrawn whenever the bar changes width - window size, TEXT SIZE, the screen first showing
+        const achBarObserver = typeof ResizeObserver === 'function'
+            ? new ResizeObserver(entries => entries.forEach(e => drawAchBar(e.target))) : null;
         // Kept as aliases (used throughout achModel/renderAchievementsView below) so the secret card color has one single source of truth — ACH_TIER.secret — instead of two.
         const ACH_PURPLE = ACH_TIER.secret.c, ACH_PURPLE_LIGHT = ACH_TIER.secret.dark;
         const ACH_GREY = '#39435a', ACH_GREYBG = '#232b3b';
@@ -10908,16 +10960,18 @@
                         <span class="ach-count-main">${earnedRungs}</span><span class="ach-count-sub">/${totalRungs}</span>
                     </div>
                 </div>
-                <div class="ach-segbar">${ACH_ORDER.map(k => tierCounts[k]).some(n => n > 0)
-                    ? ACH_ORDER.filter(k => tierCounts[k] > 0).sort((a, b) => tierCounts[b] - tierCounts[a])
-                        .map(k => `<div style="width:${(tierCounts[k] / totalRungs) * 100}%;background:${ACH_TIER[k].c}"></div>`).join('')
-                    : ''}</div>
+                <div class="ach-segbar" id="achSegbar"></div>
                 <div class="ach-tiercounts">
                     ${ACH_ORDER.map(k => `<span>${ACH_TIER[k].n} <span style="color:${ACH_TIER[k].c}">${tierCounts[k]}</span></span>`).join('')}
                     <span style="flex:1"></span>
                     <span class="ach-pct">${pct}%</span>
                 </div>
             </div>`;
+            const achBar = document.getElementById('achSegbar');
+            achBar._achBar = { earned: earnedRungs, total: totalRungs,
+                segs: ACH_ORDER.filter(k => tierCounts[k] > 0).map(k => ({ n: tierCounts[k], c: ACH_TIER[k].c })) };
+            drawAchBar(achBar);
+            if (achBarObserver) { achBarObserver.disconnect(); achBarObserver.observe(achBar); }
 
             document.getElementById('achControls').innerHTML = `<div class="ach-controls">
                 <div class="ach-tabs">${ACH_TABS.map(t => {
@@ -17872,7 +17926,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.34.0';
+        const GAME_VERSION = '3.34.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
