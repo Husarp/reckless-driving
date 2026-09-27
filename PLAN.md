@@ -59,10 +59,21 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
-- [ ] **Daily Gift / Daily Word coins are tiny next to Missions** (asked 2026-09-27, waiting on numbers).
-  Missions pay 350,000 coins a day at any level; the Gift a 40% chance of 5,000 + 250/level (x1-1.5), the Word
-  30% of double that - ~14k and ~21k a day at level 93. The Extra Box (3,000 coins, never scaled in Batch 332's
-  x50) rolls from the Word's table, so a Word boost needs the box price looked at too.
+- [ ] **Level-reward cars** (asked 2026-09-28, waiting on the owner's pick). At levels 10, 20 ... 100 a
+  window like the Daily Gift's reveal pops up and the player claims a car. The owner picks which cars (the PC
+  test client has everything unlocked to choose from). Open: do those cars leave the shop and go into the
+  SPECIAL section?
+- [ ] **Boosters** (idea, 2026-09-28). Bought in the shop, equipped, and used up in the next run. Examples:
+  accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
+  prices, and whether boxes can drop them.
+- [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
+  a smaller chance of a paint, a very small chance of a car.
+
+### Done in Batch 586
+
+- [x] ~~Gift/Word coins x4, coin missions follow the level (10k/20k/40k +500 a level), Extra Box 300k +50k~~
+- [x] ~~WHO CALLS THE AMBULANCE? reachable~~ — a quarter of ambulances get a driver who cuts in; ambulances never brake.
+- [x] ~~Energy bar not dimmed while paused~~ / ~~grey screen after coming back~~ / ~~tutorial amounts~~
 - [ ] **Ramming bonus x2** (asked 2026-09-27): a ram kill pays 1.2x a pass - double the points (2.4x, above a
   jump-over's 2x) or double the extra (1.4x)? Asked.
 

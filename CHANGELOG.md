@@ -6,6 +6,54 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.37.0 — 2026-09-28 00:30: Batch 586 — the coin economy rebalanced, the ambulance award made reachable, the pause dims everything, the frozen frame survives the background
+
+### Coins (direct decisions)
+| | before | now |
+|---|---|---|
+| Daily Gift coin roll | 5,000 + 250/level, up to x1.5 | **20,000 + 1,000/level**, up to x1.5 (level 1: 20k-30k, 50: 69k-103.5k, 100: 119k-178.5k) |
+| Daily Word coin roll | double the Gift | double the Gift (level 100: 238k-357k) |
+| Coin missions | 50k / 100k / 200k at every level | **10k / 20k / 40k at level 1, the first +500 a level** (the others x2 / x4), up to level 100: 59.5k / 119k / 238k |
+| Extra Box | 3,000, +5% per box that day | **300,000, +50,000 per box that day** (300k, 350k, 400k...) |
+The Extra Box had never been rescaled with Batch 332's x50 and pays from the Word's table, so each box
+paid back many times its price. Missions help text and the tutorial say the coin missions grow with level.
+
+**What a run earns, measured** (the scripted driver, driving without crashing, RECKLESS): Stock on 4 lanes
+- 1,570 coins at 1 min, 11,220 at 3 min, 20,680 at 5 min; the F1 on 4 lanes 16,767 at 3 min; Stock on 10
+lanes 8,479 at 3 min. A 3-minute run pays about the first coin mission at level 1, well under the others.
+
+### WHO CALLS THE AMBULANCE? can actually happen
+30 simulated minutes on 10 lanes after Batch 585: 20 ambulances, 0 crashes - the new lane rule left no way
+for a car to be in an ambulance's lane, so the award was impossible. Now:
+- **A quarter of ambulances (AMBULANCE_CUT_IN_CHANCE) get one driver ahead who cuts in anyway** - a car in
+  a lane next to it, 50-150px ahead and on screen, signals briefly and pulls into its lane. Never into your
+  lane close to you, never onto another car.
+- **Ambulances never brake** (they were "attentive" like anyone 90% of the time, so even a cut-in rarely
+  crashed). The tutorial: "They never brake, for you or for anyone else."
+Measured with EVERY ambulance given a cut-in, 30 min each: 4 lanes - 4 cut-ins, 2 crashes; 10 lanes - 4
+cut-ins, 4 crashes, all on screen. At 25% that is about one crash per hour of driving on 4 lanes, two on 10.
+
+### The energy bar dims with the pause
+Paused, everything was dimmed except the pause button and energy bar - their block sits above the pause
+wash. It drops just under the wash while paused (a `game-paused` class, cleared by every way out of a run).
+
+### Grey screen after coming back to the app (direct report)
+While paused the game draws nothing - the last frame is left on the canvas - and Android may throw a
+background app's canvas contents away, so nothing put it back until a tap resumed the run. The game and
+energy-bar canvases are now copied into ordinary memory when the app goes to the background during a run
+and painted back on return (and when the browser hands a lost canvas back). Tested by wiping both canvases
+while "away": paused frames left them blank (the report), returning restored them pixel for pixel. Not yet
+confirmed on a phone - Android's own memory clean-up can't be triggered from here.
+
+### Tutorial
+"Gifts, words and missions" now says what a Gift and a Word pay at your level, and what Extra Boxes cost;
+the mission values are labelled "at your level".
+
+### Test client
+The PC app (updated by the user to 3.35.2) was given everything - all 58 cars owned and discovered, all 11
+paints, the boost type - through WebView2's developer port; level and coins left alone. The previous PC
+save is backed up in `Documents\Visual Studio Code\RecklessDriving-PC-save-backup-2026-09-28`.
+
 ## 3.36.0 — 2026-09-27 23:51: Batch 585 — ambulances never drive through traffic (and can crash), a new secret award, the real coin in rewards, Garage fixes
 
 Direct reports and requests, in one go.
