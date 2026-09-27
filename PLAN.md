@@ -41,9 +41,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 - [x] ~~Pause button easier to hit on small screens~~ — done, Batch 573 (invisible area, 31x31 -> 44x63px).
 
-- [ ] **Bigger text (a setting).** Asked 2026-09-27: text in Missions, Awards and elsewhere is too small
-  on a phone; the user asked for ideas on how to scale it without things not fitting. Proposal sent -
-  awaiting a choice.
+- [x] ~~Bigger text (a setting)~~ — done, Batch 575 (option C: ~11px floor on phones + TEXT SIZE 100/115/130%).
 
 ### Done in Batch 574
 

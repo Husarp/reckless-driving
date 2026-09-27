@@ -6,6 +6,52 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.33.0 — 2026-09-27 19:00: Batch 575 — readable text on phones, and a TEXT SIZE setting
+
+Direct request: text in Missions, Awards and elsewhere was too small to read on a phone "even with good
+eyesight"; asked for ideas that would not break layouts, and chose option C - both of the two below.
+
+### Measured first (360px-wide phone)
+
+| screen | median text | smallest | under 9px |
+|---|---|---|---|
+| main menu | 7.4px | 5.7px | 20 of 31 |
+| Awards | 9px | 8px | 132 of 368 |
+| Missions | 11px | 7px | 9 of 46 |
+
+The menu is worst because it is a fixed design box scaled down to fit (x0.82 on this phone), so its 9px
+labels land at 7.4px. ~11px is a practical floor for reading on a phone.
+
+### 1. A floor on phones
+
+Every small label style - about 60 of them across the menu, Missions, Daily Gift, Awards, Garage,
+Scores, Settings, Stats, the tutorial and the pause and results panels - now renders at ~11px (a few
+dense ones, like Garage tile tags and Stats keys, at 10px so they still fit). One clearly marked,
+phone-only block of rules; the original styles and the desktop look are untouched; the logo is left
+alone. Re-measured: nothing below 9.8px anywhere except the logo, down from 5.7px.
+
+### 2. TEXT SIZE (Settings): NORMAL / LARGE / LARGER
+
+100 / 115 / 130%, saved like every setting and applied at once. It zooms the scrolling part of every
+screen, so text, boxes and icons grow together and the content re-flows as on a narrower screen - it
+wraps and scrolls further instead of spilling off the side. The menu, pause and results panels are
+already fitted to the screen, so the floor above is what helps there.
+
+### Making everything fit
+
+Every screen was checked on a 360px phone at all three sizes, automatically, for anything running off
+the screen or clipping its text. At LARGER, four layouts did:
+- **Missions, Daily Gift, Awards and the paint picker** had grid columns with a fixed minimum width
+  (292 / 292 / 270 / 88px) that could not shrink; they now give way to the space available - no change
+  when there is room, on any screen size.
+- **Garage**: three tiles no longer fit across - two per row while the text is enlarged on a narrow
+  screen (a PC's wide Garage keeps three).
+- **Stats** tabs clipped SURVIVAL by 3px - tighter lettering while enlarged (still 11.5px on screen).
+- **Tutorial** headings could not wrap - now they can.
+After the fixes: nothing spills or clips at any size, and a hit-test confirmed the Garage at LARGER.
+
+---
+
 ## 3.32.4 — 2026-09-27 18:47: Batch 574 — Settings ends with BACK, the GIFT link's colours, a faster answer when GitHub can't be reached
 
 Three direct reports.

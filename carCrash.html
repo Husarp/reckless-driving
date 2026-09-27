@@ -868,7 +868,7 @@
            panel is nowhere near that on a phone, where six columns squeezed the cards until the names
            broke mid-word - "BLU E", "CY AN" - and EQUIPPED was clipped. A minimum width means the
            column COUNT adapts and the text never has to. */
-        .color-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; align-items: start; margin-top: 4px; }
+        .color-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(88px, 100%), 1fr)); gap: 8px; align-items: start; margin-top: 4px; }
         .color-swatch {
             width: 28px; height: 28px;
             border: 3px solid var(--c-card-border);
@@ -1503,7 +1503,7 @@
         .dg-header-stat { display: flex; align-items: center; gap: 6px; }
         .dg-header-num { font-family: 'VT323', monospace; font-size: 19px; color: #fff; line-height: 1; }
 
-        .dg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(292px, 1fr)); gap: 16px; align-items: start; }
+        .dg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(292px, 100%), 1fr)); gap: 16px; align-items: start; }
 
         /* Tutorial / HOW TO PLAY screen (Batches 397-401). Own .tut-* prefix rather than reusing
            .dg-* — same house convention .stats-scroll follows: the fixed-header + scrolling-body
@@ -1772,7 +1772,7 @@
         .dg-progress-fill { height: 100%; background: var(--c-mint); }
 
         /* Daily Missions screen, ported from "Daily Missions.dc.html". */
-        .msn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(292px, 1fr)); gap: 16px; align-items: start; }
+        .msn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(292px, 100%), 1fr)); gap: 16px; align-items: start; }
         .msn-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
         .msn-card { background: var(--c-card); border: 2px solid var(--c-card-border); padding: 12px; display: flex; flex-direction: column; gap: 11px; box-sizing: border-box; min-width: 0; }
         .msn-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
@@ -1845,7 +1845,7 @@
         .ach-group-meta { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; color: var(--c-text-faint); }
         /* direct bug report: the scroll region's own webkit scrollbar sat flush against the card grid's right edge, overlapping the last column's cards. */
         #achievementsView .dg-scroll { padding-right: 10px; }
-        .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; align-items: start; }
+        .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: 12px; align-items: start; }
         .ach-card-outer { }
         /* direct request, after repeated real bugs from the earlier "ladder overlaps the grid, doesn't reflow" approach (border-color/height-guess desyncs across two separately-bordered pieces, then the open ladder physically overlapping and stealing clicks from the card below it — Batches 308/310/313/314/316): the ladder is no longer a separate absolutely-positioned sibling at all. */
         /* No flex `gap` here on purpose — a gap applies uniformly between ALL children, including .ach-ladder even while it's collapsed to 0 height, which would leave permanent dead space at the bottom of every tiered card whether it's ever been opened or not. */
@@ -2527,6 +2527,109 @@
            this: 0px from the left, 371px from the right. `margin-left: auto` holds it right whether or
            not DEV is showing. */
         .mm-footer #menuVersion { margin-left: auto; }
+
+        /* ===== Batch 575, direct request: readable text on a phone. =====================================
+           Measured on a 360px phone before this: the menu's median text was 7.4px (smallest 5.7), Awards 9px
+           with 132 of 368 texts under 9, and 7-8px labels across Garage, Stats, Scores and Missions - hard to
+           read "even with good eyesight". Two layers:
+           1. THIS BLOCK, touch only: every small label style is raised so it renders at ~11px. Kept in one
+              place and phone-only, so the original rules (and the desktop look) are untouched. The logo
+              and other decorative lettering are left alone. The menu, pause and results panels are design
+              boxes shrunk to fit the screen (~0.82 / ~0.89 on a 360px phone), so their sizes are set above
+              11 to land near it.
+           2. TEXT SIZE (Settings): zoom on the scrolling part of every screen - see --ui-zoom below. */
+        /* menu - a design box at ~0.82 on a 360px phone */
+        body.touch #menuView .mm-tab span,
+        body.touch #menuView .mm-diff-label,
+        body.touch #menuView .mm-lanebox-cap,
+        body.touch #menuView #mmLaneMult,
+        body.touch #menuView #mmLaneTraffic { font-size: 13px; }
+        body.touch #menuView .mm-start-multcap { font-size: 12px; }
+        body.touch #menuView #dailyGiftClaimBadge,
+        body.touch #menuView #garageNewBadge,
+        body.touch #menuView #missionsClaimBadge { font-size: 12px; }
+        body.touch #menuView #menuVersion { font-size: 11px; }
+        /* Missions, Daily Gift, Awards */
+        body.touch #missionsView .dg-stat-tile-label,
+        body.touch #missionsView .msn-name,
+        body.touch #missionsView .msn-unit,
+        body.touch #dailyGiftView .dg-stat-tile-label,
+        body.touch #dailyGiftView .dg-card-title,
+        body.touch #dailyGiftView .dg-reveal-kicker,
+        body.touch #dailyGiftView .dg-target-label,
+        body.touch #achievementsView .ach-group-meta,
+        body.touch #achievementsView .ach-ladder-goal,
+        body.touch #achievementsView .ach-ladder-name,
+        body.touch #achievementsView .ach-num-unit,
+        body.touch #achievementsView .ach-tab-btn,
+        body.touch #achievementsView .ach-tab-btn span,
+        body.touch #achievementsView .ach-tag,
+        body.touch #achievementsView .ach-tierbadge { font-size: 11px; }
+        /* Garage */
+        body.touch #garageView .car-tile-lock,
+        body.touch #garageView .car-tile-name,
+        body.touch #garageView .gc-name,
+        body.touch #garageView .gc-on,
+        body.touch #garageView .ach-tab-btn { font-size: 11px; }
+        body.touch #garageView .car-tile-new-tag,
+        body.touch #garageView .car-tile-rarity,
+        body.touch #garageView .car-tile-tag { font-size: 10px; }
+        /* Scores */
+        body.touch #leaderboardView .lb-car,
+        body.touch #leaderboardView .lb-filter,
+        body.touch #leaderboardView .lb-score-label,
+        body.touch #leaderboardView .lb-total-perf-label { font-size: 11px; }
+        /* Settings (and the CONTROLS / TRANSFER screens that share its rows) */
+        body.touch .stg-panel .stg-toggle-label { font-size: 11px; width: auto; min-width: 24px; }
+        body.touch .stg-panel .stg-seg button,
+        body.touch .stg-panel .stg-mult-label,
+        body.touch .stg-panel .stg-section-title,
+        body.touch .stg-panel #sfxExpandToggle span { font-size: 11px; }
+        /* these three carry an inline 9px, which only !important can outrank */
+        body.touch #checkUpdateBtn, body.touch #openGithubBtn, body.touch #getUpdateBtn { font-size: 11px !important; }
+        /* Stats */
+        body.touch #statsView #stzChartLabel,
+        body.touch #statsView #stzPeakVal,
+        body.touch #statsView #stzReadLabel,
+        body.touch #statsView #stzStreakRange,
+        body.touch #statsView .stz-label,
+        body.touch #statsView .stz-streak-best,
+        body.touch #statsView .stz-streak-hint,
+        body.touch #statsView .stz-streak-suffix { font-size: 11px; }
+        body.touch #statsView .stz-cell-key,
+        body.touch #statsView .stz-rarity-name,
+        body.touch #statsView .stz-rarity-pct,
+        body.touch #statsView .stz-streak-tick-num,
+        body.touch #statsView .stz-tab,
+        body.touch #statsView .stz-tile-key,
+        body.touch #statsView #stzTicks span { font-size: 10px; }
+        /* Tutorial */
+        body.touch .tut-scroll .tut-val-cap,
+        body.touch .tut-scroll .tut-vals-title,
+        body.touch .tut-scroll .tut-big-sub,
+        body.touch .tut-scroll #tutLevelRank,
+        body.touch .tut-scroll .touch-hint { font-size: 11px; }
+        /* pause and results - design boxes at ~0.89 on a 360px phone */
+        body.touch #pauseHud .stg-row-title,
+        body.touch #pauseHud .stat-row span:first-child,
+        body.touch #pauseMenuBtn, body.touch #pauseSettingsBtn,
+        body.touch #gameOverHud .go-score-label,
+        body.touch #gameOverHud .stat-row-icon-label,
+        body.touch #gameOverHud .stat-row span:first-child,
+        body.touch #returnBtn, body.touch #goScoresBtn { font-size: 12px; }
+
+        /* Batch 575 - TEXT SIZE. zoom on the scrolling part of every screen, so text, boxes and icons grow
+           together and the content re-flows as if the screen were narrower - it wraps and scrolls further
+           instead of spilling off the side. The menu, pause and results panels are fitted to the screen,
+           so they have nothing to grow into; the phone rules above are what help there. */
+        .stg-scroll, .garage-scroll, .dg-scroll, .stats-scroll, .tut-scroll { zoom: var(--ui-zoom, 1); }
+        /* The three layouts that could not re-flow on their own at LARGE / LARGER on a 360px phone (checked
+           screen by screen for anything spilling off the edge or clipping its text). */
+        @media (max-width: 700px) {
+            html.ui-zoomed .car-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* 3 tiles no longer fit across */
+        }
+        html.ui-zoomed #statsView .stz-tab { font-size: 9px; letter-spacing: 0; padding-left: 1px; padding-right: 1px; }   /* still 11.7px at LARGER */
+        html.ui-zoomed .tut-card-label { flex-shrink: 1; min-width: 0; }   /* a long heading wraps instead of running off */
     </style>
 </head>
 <body class="booting">
@@ -2605,7 +2708,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.4</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.0</span></div>
                 </div>
             </div>
         </div>
@@ -3044,6 +3147,24 @@
                 </div>
     
                 <!-- direct request: abbreviate large coin numbers (50K/10.8M) by default, with a toggle to always show the exact number instead. -->
+                <!-- Batch 575, direct request: bigger text. Scales the scrolling part of every screen. -->
+                <div class="stg-row">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">TEXT SIZE</div>
+                        <div class="stg-row-hint">Bigger text on every screen's list.</div>
+                    </div>
+                    <div class="stg-seg" id="textSizeSeg">
+                        <button type="button" data-val="100">NORMAL</button>
+                        <button type="button" data-val="115">LARGE</button>
+                        <button type="button" data-val="130">LARGER</button>
+                    </div>
+                    <select id="textSizeSetting" style="display:none;">
+                        <option value="100" selected>Normal</option>
+                        <option value="115">Large</option>
+                        <option value="130">Larger</option>
+                    </select>
+                </div>
+
                 <div class="stg-row">
                     <div class="stg-row-label">
                         <div class="stg-row-title">ABBREVIATE MONEY</div>
@@ -3793,8 +3914,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.32.4 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">574</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.33.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">575</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17640,7 +17761,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.32.4';
+        const GAME_VERSION = '3.33.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -18776,6 +18897,20 @@
             const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
             refreshSp();
             selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
+            // Batch 575 - TEXT SIZE, saved like every other setting and applied the moment it changes.
+            const selectTextSize = document.getElementById('textSizeSetting');
+            const applyTextSize = () => {
+                const pct = parseInt(selectTextSize.value, 10) || 100;
+                document.documentElement.style.setProperty('--ui-zoom', String(pct / 100));
+                document.documentElement.classList.toggle('ui-zoomed', pct > 100);
+            };
+            try { const v = localStorage.getItem('textSize'); if (['100', '115', '130'].includes(v)) selectTextSize.value = v; } catch (e) {}
+            bindSeg(document.getElementById('textSizeSeg'), selectTextSize);
+            applyTextSize();
+            selectTextSize.addEventListener('change', () => {
+                try { localStorage.setItem('textSize', selectTextSize.value); } catch (e) {}
+                applyTextSize();
+            });
         }
         // ---------- Batch 482: in-app updates ----------
         // One check, three platforms. The game asks GitHub which release is newest and compares it
