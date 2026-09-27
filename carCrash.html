@@ -2597,7 +2597,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.31.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.0</span></div>
                 </div>
             </div>
         </div>
@@ -3535,7 +3535,7 @@
                         <div class="tut-card-body">
                             <div class="tut-art"><div style="text-align:center;"><div class="tut-big">4.30x</div><div class="tut-big-sub">AT 200 KM/H</div></div></div>
                             <div class="tut-copy">
-                                <p>Everything is multiplied. Fewer lanes pay more (<span class="k">3 lanes: x1.30</span>). Harder difficulty pays more (<span class="k">SUICIDAL: x1.25</span>) and safer pays less (<span class="k">SAFE: x0.75</span>). Bigger cars pay more &mdash; a Road Train nearly doubles a Stock car's rate.</p>
+                                <p>Everything is multiplied. Fewer lanes pay more (<span class="k">3 lanes: x1.10</span>). Harder difficulty pays more (<span class="k">SUICIDAL: x1.25</span>) and safer pays less (<span class="k">SAFE: x0.75</span>). Bigger cars pay more &mdash; a Road Train nearly doubles a Stock car's rate.</p>
                                 <p>Difficulty also sets how fast you get up to speed: <span class="k">SAFE</span> is the slow ramp, <span class="k">RECKLESS</span> is half again as quick, <span class="k">SUICIDAL</span> twice. Since the multiplier climbs with speed, the harder modes reach the big numbers sooner as well as paying more for them.</p>
                                 <p>And past <span class="k">50 km/h</span>, every extra km/h adds <span class="k">+1%</span>. At 200 km/h that alone is <span class="k">x2.5</span>. Speed is most of your score.</p>
                             </div>
@@ -3668,7 +3668,7 @@
                         <div class="tut-card-body">
                             <div class="tut-copy">
                                 <p>Both dials live on the menu itself, above <span class="k">START RUN</span>, because both change what you are paid.</p>
-                                <p><span class="k">LANES</span> is the track you drag &mdash; 3 to 10. Fewer lanes is less room and pays more (<span class="k">3 lanes: x1.30</span>); ten is the easiest and pays <span class="k">x1.00</span>. The track is coloured red through green to say which is which.</p>
+                                <p><span class="k">LANES</span> is the track you drag &mdash; 3 to 10. Fewer lanes is less room and pays more (<span class="k">3 lanes: x1.10</span>); ten is the easiest and pays <span class="k">x1.00</span>. The track is coloured red through green to say which is which.</p>
                                 <p><span class="k">MODE</span> is the three tiles under it. <span class="k">SAFE</span> x0.75, <span class="k">RECKLESS</span> x1.00, <span class="k">SUICIDAL</span> x1.25 &mdash; and each one also decides how quickly you get up to speed.</p>
                             </div>
                         </div>
@@ -3785,8 +3785,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.31.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">569</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.32.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">570</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -12069,6 +12069,11 @@
             }
         }
 
+        // Batch 570 - the half-busy cap in canSpawnAt() rarely binds on a wide road (with many lanes the
+        // busy share seldom reaches half), so wide roads still ran a little busier per lane than 4
+        // lanes. This trims their spawn rate to match; measured, see CHANGELOG 3.32.0.
+        const LANE_TRAFFIC_TRIM = { 5: 0.96, 6: 0.86, 7: 0.86, 8: 0.87, 9: 0.87, 10: 0.86 };
+        function laneTrafficTrim(lanes) { return LANE_TRAFFIC_TRIM[lanes] || 1; }
         function canSpawnAt(lane) {
             // Lane is reserved while an ambulance warning is counting down in it
             if (laneReservedForAmbulance(lane) || laneReservedForObstacle(lane)) {
@@ -12105,8 +12110,16 @@
 
             topBlockedLanes.add(lane);
             // real gap found via direct empirical testing (not just a code read), pre-existing before this batch: this check only guards THIS spawn from being the one that fills the last lane — it never accounts for several separately-approved spawns later coinciding into a simultaneously-busy top zone as they all scroll down together.
-            const requiredFreeLanes = config.lanes >= 4 ? 2 : 1;
-            if (config.lanes - topBlockedLanes.size < requiredFreeLanes) {
+            // Batch 570, direct decision ("make traffic even"): at most HALF the lanes may be busy near
+            // the top. It was a fixed "2 lanes stay free" (1 at 3 lanes), which caps a 4-lane road at
+            // half full but lets 10 lanes fill to 80% - so traffic per lane was not even at all:
+            // measured 0.32 cars per lane at 4 lanes against 0.52 at 10 (0.44 at 3). Half is still 2 at
+            // 4 lanes, so the default road is unchanged. On an odd count the half lane is allowed half
+            // the time, so 3 lanes averages 1.5 busy rather than rounding to 1 (0.24, far too empty) or
+            // 2 (the old, too busy).
+            const maxBusy = config.lanes / 2;
+            if (topBlockedLanes.size > Math.ceil(maxBusy)) return false;
+            if (topBlockedLanes.size > Math.floor(maxBusy) && Math.random() >= maxBusy - Math.floor(maxBusy)) {
                 return false;
             }
 
@@ -12226,7 +12239,12 @@
         const SPEED_TIER_COLOR = { slow: 'var(--c-mint)', medium: 'var(--c-amber)', fast: 'var(--c-red)' };
 
         // direct instruction: lane/mode/car bonuses now MULTIPLY together instead of summing onto a shared flat base ("cars work as they should — multiply base mult by other mults").
-        const LANE_MULT = { 3: 1.30, 4: 1.15, 5: 1.10, 6: 1.07, 7: 1.05, 8: 1.03, 9: 1.01, 10: 1.00 };
+        // Batch 570, direct decision ("4 lanes should be 1x, 3 a little higher, 10 like 0.8-0.9") and
+        // measured: with traffic even per lane (canSpawnAt / laneTrafficTrim) a scripted driver scored
+        // about 8% more per extra lane beyond 4, and ~20% less at 3 (60 runs per lane count). These
+        // cancel roughly half of that, so a wide road still feels more forgiving but pays for it.
+        // Was { 3: 1.30, 4: 1.15, ... 10: 1.00 }, set when 10 lanes was actually the busiest road.
+        const LANE_MULT = { 3: 1.10, 4: 1.00, 5: 0.97, 6: 0.94, 7: 0.91, 8: 0.88, 9: 0.85, 10: 0.82 };
         function calculateMultiplier() {
             // was `config.lanes`, which only updates inside launchGame() and so stayed stale on this live Settings-screen preview until a run actually started.
             const lanes = parseInt(selectLanes.value, 10);
@@ -14182,7 +14200,7 @@
          *
          * It maps the right way round, which is worth stating because it is easy to assume backwards:
          * FEWER lanes is harder (less room to dodge in), and the reward matches - LANE_MULT runs from
-         * x1.30 at 3 lanes down to x1.00 at 10. So red marks the hard, high-paying end.
+         * x1.10 at 3 lanes down to x0.82 at 10 (Batch 570). So red marks the hard, high-paying end.
          *
          * Red -> amber -> mint are the same three signal colours the energy bar already grades itself
          * with (see cellColor), so the game only has one vocabulary for "how bad is this".
@@ -16826,7 +16844,8 @@
                 }
 
                 // Procedural spawning — Batch 127: density scales with DIFFICULTY_DENSITY, speed ramp itself is untouched per direct instruction ("speed up should be unchanged"). canSpawnAt()'s existing topBlockedLanes check (below) already guarantees at least one lane stays free every single spawn attempt regardless of how high this multiplier pushes the raw chance — verified empirically at SUICIDAL across every lane count, see CHANGELOG Batch 127.
-                let spawnChance = (0.015 + (currentSpeed * 0.0012)) * DIFFICULTY_DENSITY[config.difficulty] * (config.lanes / 4);
+                let spawnChance = (0.015 + (currentSpeed * 0.0012)) * DIFFICULTY_DENSITY[config.difficulty] * (config.lanes / 4)
+                    * laneTrafficTrim(config.lanes);   // Batch 570
 
                 // direct request: "make it so that ambulances have just a chance to spawn, so it's not like the more lanes you have the more often the ambulance will spawn." The ambulance roll used to be nested INSIDE the normal-traffic check above, so it inherited that check's `config.lanes / 4` term — meaning more lanes meant more spawnChance rolls per frame, which meant more ambulance rolls too, even though the ambulance's OWN conditional odds (2% of a hit) never changed.
                 // Batch 431 - reported as too frequent, especially at 7-9 lanes. The per-frame odds
@@ -17603,7 +17622,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.31.1';
+        const GAME_VERSION = '3.32.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

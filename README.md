@@ -61,7 +61,7 @@ steer with.
 | Transfer Save (OTHER) | OPEN | Move your progress to another device - see [Moving your save](#moving-your-save-to-another-device) |
 
 Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu (both are remembered, like every setting)
-(they drive the score multiplier: 3 lanes x1.30 down to 10 x1.00), and paint is in the Garage.
+(they drive the score multiplier: 3 lanes x1.10, 4 lanes x1.00, down to 10 x0.82 - traffic per lane is the same at every count, so a wider road is more forgiving and pays less), and paint is in the Garage.
 
 **Lanes on a phone:** every lane count from 4 up shows lanes at the same size and the same distance
 ahead. A road wider than the screen slides sideways to follow your car, and warnings for lanes off

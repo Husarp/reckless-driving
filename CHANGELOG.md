@@ -6,6 +6,60 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.32.0 — 2026-09-27 17:05: Batch 570 — traffic is even across lane counts, and new lane multipliers
+
+Direct request: rework the lane multipliers ("4 lanes should be 1x, 3 a little higher, 10 like 0.8 or
+0.9 at best - think it through, do some tests"). The tests changed the question first.
+
+### The finding: wide roads were the BUSIEST roads
+
+A scripted driver played the real game loop (no drawing, the game logic untouched), 60 runs per lane
+count, in two styles - one that only looks one lane each way, one that plans across every lane on screen.
+Both found **4 lanes the easiest and 10 about as hard as 3**. The reason was traffic per lane, measured
+directly:
+
+| lanes | 3 | 4 | 6 | 8 | 10 |
+|---|---|---|---|---|---|
+| cars per lane, before | 0.44 | 0.32 | 0.51 | 0.48 | 0.52 |
+| cars per lane, now | 0.34 | 0.38 | 0.35 | 0.37 | 0.40 |
+
+The cause was the rule that keeps escape routes open near the top of the screen: "at least 2 lanes stay
+free" (1 at 3 lanes). A fixed number, so it held a 4-lane road to half full but let 10 lanes fill to
+80% - a 10-lane road carried ~3.5x the traffic of 4 while the menu said 2.50x.
+
+### Fixed: at most half the road busy near the top
+
+- The rule is now **half the lanes**, which is still 2 at 4 lanes - **the default road is unchanged**. On
+  an odd count the half lane is allowed half the time (3 lanes averages 1.5 busy; rounding to 1 left it
+  far too empty, 0.24 cars per lane).
+- With many lanes the busy share rarely reaches half, so wide roads still ran ~15% busier; a small
+  spawn-rate trim for 5+ lanes (0.86-0.96, measured) closes that. Every lane count now sits within
+  about +-10% of 0.37 cars per lane - the same size as the measurement's own noise. The menu's
+  "x TRAFFIC" number is true now.
+
+### The new multipliers, from a re-test on even traffic
+
+Same planning driver, 60 runs per lane count again. Now wider roads really are more forgiving: about
+**+8% points per extra lane** beyond 4, and 3 lanes ~20% harder than 4 (single counts are noisy, the
+trend is not). Cancelling roughly half of that gives almost exactly the curve asked for:
+
+| lanes | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|
+| before | 1.30 | 1.15 | 1.10 | 1.07 | 1.05 | 1.03 | 1.01 | 1.00 |
+| now | **1.10** | **1.00** | 0.97 | 0.94 | 0.91 | 0.88 | 0.85 | **0.82** |
+
+Because 4 lanes goes from x1.15 to x1.00, **the same run now scores ~13% less at 4 lanes** - older high
+scores are that much harder to beat. The tutorial's "3 lanes: x1.30" lines now say x1.10.
+
+### Found, not changed: HIGH ROLLER's top tiers
+
+Its tiers are 3 / 4.5 / 6 / 7.5x. The highest multiplier any setup can reach was **6.68x** before this
+change (the SHIP, ramming, 3 lanes, SUICIDAL), so **diamond (7.5x) was already impossible**; with the
+new lane multipliers the best is 5.65x, which puts gold out of reach as well. Asked the user how to
+rescale them.
+
+---
+
 ## 3.31.1 — 2026-09-27 15:29: Batch 569 — the lane strip is gone
 
 Direct feedback on 3.31.0: "it looks really nice - we don't need this bar at the top that shows which
