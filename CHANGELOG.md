@@ -6,6 +6,29 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.33.2 — 2026-09-27 20:16: Batch 577 — old Scores converted to today's lane multipliers
+
+Direct question: are the multipliers shown in Scores updated, because right now they "might be
+impossible to achieve"? They were not - Batch 570 changed the lane multipliers (4 lanes x1.15 -> x1.00,
+3 lanes x1.30 -> x1.10, 10 lanes x1.00 -> x0.82 ...), so a run saved before it shows a higher score
+and multiplier than the same drive earns today. Option B (user's pick): convert them.
+
+**What it does, once, on the first start of this version:** every Scores entry recorded under the old
+rates gets its score, starting multiplier and final multiplier multiplied by new / old for that run's
+lane count (a 4-lane 1150 becomes 1000, 3 lanes 1300 -> 1100, 10 lanes 1000 -> 820). The list is
+re-sorted. Nothing else changes - coins, XP, stats and achievements already earned stay as they are.
+
+**How an old entry is recognised:** its saved starting multiplier matches car x difficulty x OLD lane
+rate and not the new one. Entries too old to have a starting multiplier fall back to the date - before
+27/09/26 means old rates. An entry that fits neither stays untouched. A flag in the save
+(`laneRatesConverted`) makes sure it never runs twice.
+
+Tested with planted entries: old 4/3/10-lane entries converted exactly, new-rate entries and a
+27/09 entry without a starting multiplier left alone, a second start changed nothing.
+
+**TEMPORARY** - marked in the code (`convertOldLaneRateScores`). Only one player has old scores; it
+stays for a few releases, and the user decides at each release when to remove it.
+
 ## 3.33.1 — 2026-09-27 19:23: Batch 576 — the game runs at the same speed on every screen
 
 Direct report from testing on two phones side by side: on the Samsung Galaxy A56 "everything is

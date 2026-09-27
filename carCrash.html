@@ -2708,7 +2708,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.2</span></div>
                 </div>
             </div>
         </div>
@@ -3914,8 +3914,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.33.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">576</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.33.2 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">577</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -12400,6 +12400,53 @@
         // cancel roughly half of that, so a wide road still feels more forgiving but pays for it.
         // Was { 3: 1.30, 4: 1.15, ... 10: 1.00 }, set when 10 lanes was actually the busiest road.
         const LANE_MULT = { 3: 1.10, 4: 1.00, 5: 0.97, 6: 0.94, 7: 0.91, 8: 0.88, 9: 0.85, 10: 0.82 };
+
+        // ===== TEMPORARY (Batch 577) - remove after a few releases; ask the user at each release first. =====
+        // Direct decision (option B): Scores recorded under the lane rates before 3.32.0 are converted to
+        // today's, so the list compares like with like and no old multiplier looks unreachable. The lane
+        // rate is one factor on the whole score, so the conversion is exact: score and both multipliers
+        // x new/old for that run's lane count. Only the Scores list changes - coins, XP, achievements and
+        // the run-history graph stay as they were (the graph's runs carry no lane count to convert by).
+        //
+        // A run's rates are read from its starting multiplier (car x difficulty x lanes): it fits the old
+        // lane rate or the new one, never both (their ratios, 1.15-1.22, never equal a difficulty ratio).
+        // Runs that fit neither - saved before multStart existed, or before a car's own rate was retuned -
+        // go by date: anything before 27 Sep 2026, the day the new rates shipped, is old. Runs once; the
+        // flag lives in allTimeStats so it travels with a transferred save and an older import converts too.
+        const OLD_LANE_MULT = { 3: 1.30, 4: 1.15, 5: 1.10, 6: 1.07, 7: 1.05, 8: 1.03, 9: 1.01, 10: 1.00 };
+        (function convertOldLaneRateScores() {
+            if (allTimeStats.laneRatesConverted) return;
+            const scores = readSavedJSON('highscores', []);
+            const fits = (h, laneMult) => {
+                const car = GARAGE_CARS.find(c => c.key === h.car);
+                if (!car || h.multStart == null) return false;
+                const base = carBaseMultiplier(car) * laneMult;
+                return [0.75, 1, 1.25].some(m => Math.abs(h.multStart - base * m) <= base * m * 0.015);
+            };
+            const beforeNewRates = h => {
+                const m = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(h.date || '');
+                return !!m && new Date(2000 + +m[3], +m[2] - 1, +m[1]) < new Date(2026, 8, 27);
+            };
+            let converted = 0;
+            scores.forEach(h => {
+                const oldM = OLD_LANE_MULT[h.lanes], newM = LANE_MULT[h.lanes];
+                if (!oldM || !newM || oldM === newM) return;
+                const isOld = fits(h, oldM) ? !fits(h, newM) : (!fits(h, newM) && beforeNewRates(h));
+                if (!isOld) return;
+                const f = newM / oldM;
+                h.score = Math.round(h.score * f);
+                h.multiplier *= f;
+                if (h.multStart != null) h.multStart *= f;
+                converted++;
+            });
+            if (converted) {
+                scores.sort((a, b) => b.score - a.score);
+                try { localStorage.setItem('highscores', JSON.stringify(scores)); } catch (e) {}
+            }
+            allTimeStats.laneRatesConverted = true;
+            saveAllTimeStats();
+        })();
+        // ===== end TEMPORARY ======================================================================================
         function calculateMultiplier() {
             // was `config.lanes`, which only updates inside launchGame() and so stayed stale on this live Settings-screen preview until a run actually started.
             const lanes = parseInt(selectLanes.value, 10);
@@ -17796,7 +17843,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.33.1';
+        const GAME_VERSION = '3.33.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

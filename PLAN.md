@@ -43,6 +43,15 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 - [x] ~~Bigger text (a setting)~~ — done, Batch 575 (option C: ~11px floor on phones + TEXT SIZE 100/115/130%).
 
+- [ ] **TEMPORARY: remove `convertOldLaneRateScores`** (Batch 577, the one-time conversion of old
+  Scores to the new lane multipliers). User: leave it "for a couple of updates" - at EVERY release,
+  remind the user and ask whether to remove it now. Remove the whole block between the TEMPORARY
+  markers after `const LANE_MULT` (the `laneRatesConverted` flag in saves can stay, it is harmless).
+
+### Done in Batch 577
+
+- [x] ~~Old Scores show multipliers that can't be reached any more~~ — converted to today's lane rates, once (option B).
+
 ### Done in Batch 576
 
 - [x] ~~Everything runs faster on the Samsung (120Hz)~~ — the game ticks 60 times per second of real time on any screen.
