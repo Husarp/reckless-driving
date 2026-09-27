@@ -39,8 +39,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- In-app updates: lets the game hand a downloaded APK to Android's own installer.
-         Android still shows its install confirmation - a sideloaded app can never replace
-         itself silently - but the player never has to leave the game to find the file. -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Batch 579: no REQUEST_INSTALL_PACKAGES any more. Updates are downloaded by Android's own
+         download service and the player opens the file, so the game never installs anything. -->
 </manifest>

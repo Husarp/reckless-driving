@@ -1,11 +1,12 @@
 package com.husarp.recklessdriving;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
-
-import androidx.core.content.FileProvider;
+import android.os.Environment;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -13,23 +14,16 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 /**
  * In-app updating for the Android build.
  *
- * Android will not let a sideloaded app replace itself silently - the system installer always asks
- * the player to confirm, and that is a platform guarantee, not something to work around. What this
- * removes is everything BEFORE that confirmation: no browser, no downloads folder, no hunting for
- * the file. The game fetches the APK itself and hands it straight to the installer.
- *
- * The APK goes to the app's own cache directory, which needs no storage permission, and is shared
- * through the FileProvider Capacitor already declares. A raw file:// URI would throw
- * FileUriExposedException on Android 7 and later.
+ * Batch 579, direct request ("like Lexling"): the new version is downloaded by Android's own download
+ * service - the progress in the notification bar, even with the game closed, and the file in Downloads,
+ * named with its version. The game never installs it: the player opens the file (the finished download's
+ * notification, or the Downloads list openDownloads() shows) and the phone's own installer does it. So
+ * the game needs no permission to install apps; if Android asks at all, it asks once about the Files /
+ * Downloads app. It used to download the APK itself and hand it to the installer, which needed
+ * "allow Reckless Driving to install unknown apps". Same plugin as Lexling's UpdateDownloadPlugin.
  */
 @CapacitorPlugin(name = "AppUpdate")
 public class AppUpdatePlugin extends Plugin {
@@ -61,79 +55,82 @@ public class AppUpdatePlugin extends Plugin {
         }
     }
 
+    private DownloadManager manager() {
+        return (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+    }
+
+    /** Starts downloading `url` as `name` into Downloads. Resolves with the download's id. */
     @PluginMethod
-    public void downloadAndInstall(PluginCall call) {
-        final String url = call.getString("url");
-        if (url == null || url.isEmpty()) {
+    public void download(PluginCall call) {
+        String url = call.getString("url"), name = call.getString("name", "RecklessDriving.apk");
+        DownloadManager m = manager();
+        if (url == null || m == null) {
             call.reject("No download URL was given");
             return;
         }
+        try {
+            DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url))
+                    .setTitle(call.getString("title", name))
+                    .setMimeType("application/vnd.android.package-archive")
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            // Downloads, where the player finds it. Android 10 and later need no permission for that; older
+            // ones keep it in the download service's own place, still openable from its notification.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+            }
+            JSObject o = new JSObject();
+            o.put("id", String.valueOf(m.enqueue(r)));
+            call.resolve(o);
+        } catch (RuntimeException e) {
+            call.reject("Could not start the download: " + e.getMessage());
+        }
+    }
 
-        // Checked before downloading, so a blocked permission does not waste 5 MB of the player's
-        // data first. Sends them straight to the one settings screen that grants it.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                && !getContext().getPackageManager().canRequestPackageInstalls()) {
-            Intent allow = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:" + getContext().getPackageName()));
-            allow.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(allow);
-            call.reject("NEEDS_PERMISSION");
+    /** How the download `id` is doing: status running / done / failed, and its bytes so far out of the whole. */
+    @PluginMethod
+    public void progress(PluginCall call) {
+        DownloadManager m = manager();
+        long id;
+        try {
+            id = Long.parseLong(call.getString("id", ""));
+        } catch (NumberFormatException e) {
+            call.reject("No such download");
             return;
         }
-
-        new Thread(() -> {
-            HttpURLConnection conn = null;
-            try {
-                File apk = new File(getContext().getCacheDir(), "update.apk");
-                if (apk.exists() && !apk.delete()) {
-                    call.reject("Could not clear the previous download");
-                    return;
-                }
-
-                conn = (HttpURLConnection) new URL(url).openConnection();
-                conn.setInstanceFollowRedirects(true);   // GitHub redirects release assets to a CDN
-                conn.setConnectTimeout(30000);
-                conn.setReadTimeout(60000);
-                conn.connect();
-
-                int status = conn.getResponseCode();
-                if (status / 100 != 2) {
-                    call.reject("Download failed (HTTP " + status + ")");
-                    return;
-                }
-
-                try (InputStream in = conn.getInputStream();
-                     FileOutputStream out = new FileOutputStream(apk)) {
-                    byte[] buffer = new byte[8192];
-                    int read;
-                    while ((read = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, read);
-                    }
-                }
-
-                // A truncated download would fail to install with a confusing parser error, so
-                // treat an implausibly small file as a failure here where the message can be clear.
-                if (apk.length() < 100000) {
-                    call.reject("The downloaded file looks incomplete (" + apk.length() + " bytes)");
-                    return;
-                }
-
-                Uri uri = FileProvider.getUriForFile(
-                        getContext(), getContext().getPackageName() + ".fileprovider", apk);
-
-                Intent install = new Intent(Intent.ACTION_VIEW);
-                install.setDataAndType(uri, "application/vnd.android.package-archive");
-                install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(install);
-
-                JSObject result = new JSObject();
-                result.put("handedToInstaller", true);
-                call.resolve(result);
-            } catch (Exception e) {
-                call.reject(e.getMessage() != null ? e.getMessage() : e.toString());
-            } finally {
-                if (conn != null) conn.disconnect();
+        JSObject o = new JSObject();
+        try (Cursor c = m == null ? null : m.query(new DownloadManager.Query().setFilterById(id))) {
+            if (c == null || !c.moveToFirst()) {
+                o.put("status", "failed");
+                call.resolve(o);
+                return;
             }
-        }).start();
+            int status = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+            o.put("status", status == DownloadManager.STATUS_SUCCESSFUL ? "done"
+                    : status == DownloadManager.STATUS_FAILED ? "failed" : "running");
+            o.put("done", c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)));
+            o.put("total", c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
+            call.resolve(o);
+        }
+    }
+
+    /** The download `id` and its file gone - the new version runs, so the file that brought it is not needed. */
+    @PluginMethod
+    public void remove(PluginCall call) {
+        DownloadManager m = manager();
+        try {
+            if (m != null) m.remove(Long.parseLong(call.getString("id", "")));
+        } catch (RuntimeException e) {
+            // gone already
+        }
+        call.resolve();
+    }
+
+    /** The phone's list of downloads - where the player taps the file to install it. */
+    @PluginMethod
+    public void openDownloads(PluginCall call) {
+        Intent list = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
+        list.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(list);
+        call.resolve();
     }
 }

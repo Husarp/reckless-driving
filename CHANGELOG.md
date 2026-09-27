@@ -6,6 +6,34 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.34.0 — 2026-09-27 21:20: Batch 579 — Android updates come through Android's own download service
+
+Direct request: update the way Lexling now does, so the game never needs "allow Reckless Driving to
+install unknown apps".
+
+**Before:** the game downloaded the APK itself and handed it to Android's installer. Android requires
+that switch for any app that does this, so the first update sent the player to a settings screen to
+allow a game to install apps.
+
+**Now (same plugin design as Lexling's):**
+1. UPDATE / GET UPDATE starts the download in **Android's own download service** - the progress shows in
+   the game ("Downloading… 65%") and in the notification bar, and it keeps going with the game closed.
+   The file lands in Downloads as `RecklessDriving-v<version>.apk`.
+2. When it is done, both buttons say **INSTALL**. The player taps the finished download's notification,
+   or INSTALL, which opens the phone's Downloads list, and taps the file.
+3. The phone's own installer takes it from there. The game never installs anything, so it no longer asks
+   for (or declares) `REQUEST_INSTALL_PACKAGES`. If Android asks at all, it asks once about the Files /
+   Downloads app - many phones already allow that.
+- A new download removes the previous one, and the downloaded file is deleted once the new version runs.
+- A failed download opens the release page. So does any other failed update: the old fallback used
+  window.open, which does nothing inside the Android app.
+
+Tested in the browser against a stand-in for the Android plugin: the percentage steps (0 / 30 / 65%), both
+buttons turning to INSTALL, INSTALL opening the Downloads list, the earlier download removed first, a
+failed download opening the release page, and the file removed once its version runs (kept while it is
+still the newer one). The Java plugin compiles. Not yet run on a phone - that needs this version
+installed and a newer release to update to.
+
 ## 3.33.3 — 2026-09-27 20:57: Batch 578 — the update check runs every time you come back, and car multipliers in 0.05 steps
 
 Two direct requests.

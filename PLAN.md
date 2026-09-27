@@ -51,11 +51,10 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Rename "Car Crash" to "Reckless Driving" everywhere** (asked 2026-09-27) - it is the game's real
   name. Not started: needs a list of where "Car Crash" / carCrash still appears (file names, folder,
   docs, code comments, build scripts, the repo folder) and which of those are safe to rename.
-- [ ] **Android updates through Android's own download manager** (asked 2026-09-27, waiting on a
-  decision; idea from the Lexling chat). The download runs in the notification bar with a progress bar;
-  when it is done, the player taps the notification (or INSTALL in the game, which opens the phone's
-  Downloads list) and the phone's installer takes it from there - so the game itself never needs the
-  "install unknown apps" switch; if Android asks at all, it asks once about the Files / My Files app.
+- [x] ~~Android updates through Android's own download service~~ — done, Batch 579 (v3.34.0), like
+  Lexling. Not yet tried on a phone: needs 3.34.0 installed and a newer release to update to.
+- [ ] **Awards bar: design A1 "DITHER BAR"** (asked 2026-09-27, waiting on a decision; design in
+  `Downloads\Awards Bar Options.dc.html`). User's worry: a tier with 1 award shows as ~2 pixels.
 - [x] ~~Version numbers in release file names~~ — from v3.33.3 on, and every past release renamed
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.

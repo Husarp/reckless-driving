@@ -2708,7 +2708,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.3</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.0</span></div>
                 </div>
             </div>
         </div>
@@ -3914,8 +3914,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.33.3 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">578</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.34.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">579</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17872,7 +17872,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.33.3';
+        const GAME_VERSION = '3.34.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19419,8 +19419,57 @@
             }
         }
 
+        // Batch 579, direct request ("like Lexling"): on Android the APK is fetched by Android's own download
+        // service - the progress shows here and in the notification bar, the file lands in Downloads named
+        // with its version - and the PLAYER opens it (the finished download's notification, or INSTALL, which
+        // shows the phone's Downloads list), so the phone's own installer does it. The game needs no
+        // permission to install apps; if Android asks at all, it asks once about the Files / Downloads app.
+        // The download is remembered (updateFile) so the file goes once the new version runs.
+        let apkDownloadedVersion = null;
+        async function downloadApkUpdate(say, buttons) {
+            const P = window.Capacitor.Plugins.AppUpdate;
+            const version = updateInfo.version, name = 'RecklessDriving-v' + version + '.apk';
+            let prev = null;
+            try { prev = JSON.parse(localStorage.getItem('updateFile')); } catch (e) {}
+            if (prev) await P.remove({ id: prev.id }).catch(() => {});   // an earlier download, not needed
+            const { id } = await P.download({ url: updateInfo.apkUrl, name: name, title: 'Reckless Driving ' + version });
+            try { localStorage.setItem('updateFile', JSON.stringify({ id: id, version: version })); } catch (e) {}
+            say('Downloading… 0%');
+            const poll = setInterval(async () => {
+                const s = await P.progress({ id: id }).catch(() => ({ status: 'failed' }));
+                if (s.status === 'running') {
+                    say('Downloading… ' + (s.total > 0 ? Math.round(s.done / s.total * 100) : 0) + '%');
+                    return;
+                }
+                clearInterval(poll);
+                buttons.forEach(b => { if (b) b.disabled = false; });
+                if (s.status === 'done') {
+                    apkDownloadedVersion = version;
+                    buttons.forEach(b => { if (b) b.textContent = 'INSTALL'; });
+                    say('Downloaded. Tap INSTALL, then ' + name + '.');
+                } else {
+                    say('The download failed. Opening the download page instead…');
+                    openUpdatePage();
+                }
+            }, 700);
+        }
+        // the new version runs: the downloaded file that brought it goes
+        (function removeInstalledApkDownload() {
+            if (updatePlatform() !== 'android') return;
+            let f = null;
+            try { f = JSON.parse(localStorage.getItem('updateFile')); } catch (e) {}
+            if (!f || versionIsNewer(f.version, GAME_VERSION)) return;
+            window.Capacitor.Plugins.AppUpdate.remove({ id: f.id }).catch(() => {});
+            try { localStorage.removeItem('updateFile'); } catch (e) {}
+        })();
+
         async function applyUpdate() {
             if (!updateInfo) return;
+            // already downloaded: INSTALL shows the phone's Downloads list, where the player taps the file
+            if (updatePlatform() === 'android' && apkDownloadedVersion === updateInfo.version) {
+                window.Capacitor.Plugins.AppUpdate.openDownloads().catch(() => {});
+                return;
+            }
             const btn = document.getElementById('mmUpdateBtn');
             const sub = document.getElementById('mmUpdateSub');
             const hint = document.getElementById('updateStatusHint');
@@ -19440,9 +19489,7 @@
                     say('Starting the installer…');
                 } else if (platform === 'android') {
                     if (!updateInfo.apkUrl) throw new Error('this release has no Android build');
-                    say('Downloading… Android will ask you to confirm.');
-                    await window.Capacitor.Plugins.AppUpdate.downloadAndInstall({ url: updateInfo.apkUrl });
-                    say('Confirm the install when Android asks.');
+                    await downloadApkUpdate(say, [btn, getBtn]);
                 } else {
                     window.open(UPDATE_PAGE, '_blank');
                     say('Opened the download page in your browser.');
@@ -19452,12 +19499,8 @@
                 // Batch 490: whatever went wrong, there is always the download page. Failing with
                 // only an error message was the other half of "it doesn't show any button" - the
                 // player was told it broke and left with nowhere to go.
-                say(msg.indexOf('NEEDS_PERMISSION') !== -1
-                    ? 'Allow installs from this app, then press GET UPDATE again.'
-                    : 'Update failed (' + msg + '). Opening the download page instead…');
-                if (msg.indexOf('NEEDS_PERMISSION') === -1) {
-                    try { window.open(UPDATE_PAGE, '_blank'); } catch (e2) {}
-                }
+                say('Update failed (' + msg + '). Opening the download page instead…');
+                openUpdatePage();   // Batch 579: window.open does nothing inside the Android app
                 if (btn) btn.disabled = false;
                 if (getBtn) getBtn.disabled = false;
             }
