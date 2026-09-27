@@ -48,6 +48,20 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   remind the user and ask whether to remove it now. Remove the whole block between the TEMPORARY
   markers after `const LANE_MULT` (the `laneRatesConverted` flag in saves can stay, it is harmless).
 
+- [ ] **Rename "Car Crash" to "Reckless Driving" everywhere** (asked 2026-09-27) - it is the game's real
+  name. Not started: needs a list of where "Car Crash" / carCrash still appears (file names, folder,
+  docs, code comments, build scripts, the repo folder) and which of those are safe to rename.
+- [ ] **GIANT SNAIL's flat +0.20** (asked 2026-09-27, waiting on a decision). It is the only car paid
+  outside the size formula - added in Batch 499 because shrinking the snail halved its size pay and it
+  has no ability. Without it: x0.85. User: "maybe remove it".
+
+### Done in Batch 578
+
+- [x] ~~Update check on every return to the game~~ — checks on launch and on every return (GitHub at most
+  every 5 minutes); closing the banner hides it only until the next return.
+- [x] ~~Car multipliers in 0.05 steps~~ — rounded in one place; x0.99 / x1.01 cars are x1.00; old Scores
+  only go down (a run whose car rate rose is left as it is).
+
 ### Done in Batch 577
 
 - [x] ~~Old Scores show multipliers that can't be reached any more~~ — converted to today's lane rates, once (option B).

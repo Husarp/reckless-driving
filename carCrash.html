@@ -2708,7 +2708,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.3</span></div>
                 </div>
             </div>
         </div>
@@ -3914,8 +3914,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.33.2 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">577</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.33.3 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">578</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -12318,8 +12318,11 @@
             return lengthBonus + widthBonus + (car.multBonus || 0);
         }
         // the per-car "BASE MULT" shown on the Garage hover card: the two multiplier terms that depend only on the CAR (not on settings the player chooses per run — lane count, night mode, etc., which calculateMultiplier() also folds in).
+        // Batch 578, direct request: in steps of 0.05. x0.99 / x1.01 / x1.21 were differences too small
+        // to mean anything - "0.01 has no sense, 0.05 is something already". Rounded here, so every car,
+        // and every car added later, follows the same rule.
         function carBaseMultiplier(car) {
-            return 1.0 + vehicleMultiplierBonus(car);
+            return Math.round((1.0 + vehicleMultiplierBonus(car)) * 20) / 20;
         }
 
         // renamed from SPEED_CLASS_KMH: no longer gated on the `speedClass` flag at all (that flag exists for an unrelated system, isTruckLike()'s truck-exemption check — Batch 136).
@@ -12401,7 +12404,7 @@
         // Was { 3: 1.30, 4: 1.15, ... 10: 1.00 }, set when 10 lanes was actually the busiest road.
         const LANE_MULT = { 3: 1.10, 4: 1.00, 5: 0.97, 6: 0.94, 7: 0.91, 8: 0.88, 9: 0.85, 10: 0.82 };
 
-        // ===== TEMPORARY (Batch 577) - remove after a few releases; ask the user at each release first. =====
+        // ===== TEMPORARY (Batches 577-578) - remove after a few releases; ask the user at each release first. =====
         // Direct decision (option B): Scores recorded under the lane rates before 3.32.0 are converted to
         // today's, so the list compares like with like and no old multiplier looks unreachable. The lane
         // rate is one factor on the whole score, so the conversion is exact: score and both multipliers
@@ -12414,13 +12417,15 @@
         // go by date: anything before 27 Sep 2026, the day the new rates shipped, is old. Runs once; the
         // flag lives in allTimeStats so it travels with a transferred save and an older import converts too.
         const OLD_LANE_MULT = { 3: 1.30, 4: 1.15, 5: 1.10, 6: 1.07, 7: 1.05, 8: 1.03, 9: 1.01, 10: 1.00 };
+        // a car's rate before Batch 578 rounded it - what every run saved until then was scored with
+        const oldCarMultiplier = car => 1.0 + vehicleMultiplierBonus(car);
         (function convertOldLaneRateScores() {
             if (allTimeStats.laneRatesConverted) return;
             const scores = readSavedJSON('highscores', []);
             const fits = (h, laneMult) => {
                 const car = GARAGE_CARS.find(c => c.key === h.car);
                 if (!car || h.multStart == null) return false;
-                const base = carBaseMultiplier(car) * laneMult;
+                const base = oldCarMultiplier(car) * laneMult;
                 return [0.75, 1, 1.25].some(m => Math.abs(h.multStart - base * m) <= base * m * 0.015);
             };
             const beforeNewRates = h => {
@@ -12444,6 +12449,30 @@
                 try { localStorage.setItem('highscores', JSON.stringify(scores)); } catch (e) {}
             }
             allTimeStats.laneRatesConverted = true;
+            saveAllTimeStats();
+        })();
+        // Batch 578, direct decision: car rates now come in steps of 0.05. A run with a car whose rate
+        // DROPPED goes down with it (score and both multipliers x new/old); where the rate rose (+3% at
+        // most) it stays as it is - "we only nerf scores, not increase them". Runs once, like the above.
+        (function convertRoundedCarMultScores() {
+            if (allTimeStats.carMultsRounded) return;
+            const scores = readSavedJSON('highscores', []);
+            let converted = 0;
+            scores.forEach(h => {
+                const car = GARAGE_CARS.find(c => c.key === h.car);
+                if (!car) return;
+                const f = carBaseMultiplier(car) / oldCarMultiplier(car);
+                if (f >= 1 - 1e-9) return;
+                h.score = Math.round(h.score * f);
+                h.multiplier *= f;
+                if (h.multStart != null) h.multStart *= f;
+                converted++;
+            });
+            if (converted) {
+                scores.sort((a, b) => b.score - a.score);
+                try { localStorage.setItem('highscores', JSON.stringify(scores)); } catch (e) {}
+            }
+            allTimeStats.carMultsRounded = true;
             saveAllTimeStats();
         })();
         // ===== end TEMPORARY ======================================================================================
@@ -17843,7 +17872,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.33.2';
+        const GAME_VERSION = '3.33.3';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19345,9 +19374,8 @@
         function showUpdateBanner(version) {
             const el = document.getElementById('mmUpdateBanner');
             if (!el) return;
-            // A dismissal is remembered per version, so saying "not now" is not undone by the next
-            // restart - but a genuinely newer release still gets to speak up.
-            try { if (localStorage.getItem('updateDismissed') === version) return; } catch (e) {}
+            // Batch 578, direct request: a dismissal lasts until the game is next entered - it used to
+            // be saved per version, so a dismissed update never showed again.
             const sub = document.getElementById('mmUpdateSub');
             if (sub) sub.textContent = 'v' + version + ' is ready to install.';
             el.classList.add('on');
@@ -19457,12 +19485,23 @@
             document.getElementById('mmUpdateBtn').addEventListener('click', applyUpdate);
             document.getElementById('mmUpdateDismiss').addEventListener('click', () => {
                 document.getElementById('mmUpdateBanner').classList.remove('on');
-                try { if (updateInfo) localStorage.setItem('updateDismissed', updateInfo.version); } catch (e) {}
             });
 
             // Delayed so a boot that is already doing font loading, canvas sizing and save parsing
             // is not also waiting on the network.
-            if (selectUpdateCheck.value === 'yes') setTimeout(() => checkForUpdates(false), 3000);
+            let lastAutoCheck = 0;
+            if (selectUpdateCheck.value === 'yes') setTimeout(() => { lastAutoCheck = Date.now(); checkForUpdates(false); }, 3000);
+            // Batch 578, direct request: check again every time the player comes back to the game. A
+            // phone keeps the app alive in the background, so "opening" it is usually this, not a launch.
+            // An update already found shows again at once; GitHub is asked at most every 5 minutes,
+            // because it answers only 60 unsigned requests an hour (the same limit Lexling uses).
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden || selectUpdateCheck.value !== 'yes') return;
+                if (updateInfo) showUpdateBanner(updateInfo.version);
+                if (Date.now() - lastAutoCheck < 5 * 60000) return;
+                lastAutoCheck = Date.now();
+                checkForUpdates(false);
+            });
         }
 
         // FPS counter toggle. Persisted (unlike the run-config toggles above) since it's a display preference, not a per-run gameplay setting.

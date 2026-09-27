@@ -96,9 +96,10 @@ progress is gone - keep it until the import is done.
 
 ## Updating
 
-The game checks GitHub for a newer release on startup and shows a banner on the main menu when it
-finds one. The check is a Settings toggle (**CHECK FOR UPDATES**, on by default) and there is a
-**CHECK NOW** button beside it. A failed check is silent unless you asked for it - it is usually
+The game checks GitHub for a newer release on startup and whenever you come back to it (switching
+back to the app, or restoring the window - at most every 5 minutes), and shows a banner on the main
+menu when it finds one. Closing the banner hides it until the next time you come back. The check is
+a Settings toggle (**CHECK FOR UPDATES**, on by default) and there is a **CHECK NOW** button beside it. A failed check is silent unless you asked for it - it is usually
 just no internet.
 
 | Where | What UPDATE does |

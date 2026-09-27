@@ -6,6 +6,46 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.33.3 — 2026-09-27 20:57: Batch 578 — the update check runs every time you come back, and car multipliers in 0.05 steps
+
+Two direct requests.
+
+### The update check
+It ran only on a cold start (3s after launch). A phone keeps the app alive in the background, so
+"opening" it is usually a return, which never checked - and closing the banner was saved for that
+version, so a dismissed update never showed again.
+- **It now also checks every time you come back to the game** (switching back to the app, or restoring
+  the window). GitHub is asked at most every 5 minutes - it answers only 60 unsigned requests an hour,
+  the same limit Lexling uses - and an update already found shows again at once.
+- **Closing the banner hides it until the next time you come back**, not for good.
+- CHECK FOR UPDATES off still means no automatic checks at all.
+Tested with a stubbed GitHub answer: a return within 5 minutes made no request, one after 5 minutes found
+the update and showed the banner, a closed banner came back on the next return, and with the setting off
+a return did nothing.
+
+### Car multipliers in steps of 0.05
+Many cars read x0.99, x1.01 or x1.21 - differences too small to mean anything ("0.01 has no sense, 0.05 is
+something already"). The size formula is unchanged; its result is now rounded to the nearest 0.05, in one
+place, so every car and every car added later follows it. The x0.99 / x1.01 cars become x1.00 (user's pick).
+| was | now | cars |
+|---|---|---|
+| 0.99 | 1.00 | Hot Hatch, Drift, Convertible |
+| 1.01 | 1.00 | Offroad, Muscle, Hypercar, Hover Coupe, Neon Wedge, SUV, Lowrider, GT3, EV Hyper, Interceptor |
+| 1.03-1.04 | 1.05 | Formula, Ice Cream Van, Wagon, Minivan, Time Attack, Stock Car, Coachbuilt, Snail, Bumper Car, Donut |
+| 1.06 | 1.05 | Prototype, Steamroller, F3 Junior, Le Mans Hyper, Super SUV |
+| 1.11-1.12 | 1.10 | Armored Van, Monster Truck, Grand Piano, Bathtub |
+| 1.13 | 1.15 | Hearse, Camper, F1 |
+| 1.16-1.17 | 1.15 | Tank, Tow Truck (its body really is 34 x 18 against Stock's 24 x 14) |
+| 1.19-1.21 | 1.20 | Dragster, Land Speeder, Garbage Truck |
+| 1.79 / 0.96 / 0.83 | 1.80 / 0.95 / 0.85 | Road Train / Roadster / Go-Kart |
+
+**Old Scores:** a run with a car whose rate dropped goes down with it, once (score and both multipliers x
+new/old); where the rate rose (+3% at most) it stays as it is - user: "we only nerf scores, not increase
+them". Part of the same TEMPORARY block as Batch 577 (flag `carMultsRounded`). The Batch 577 lane
+conversion now reads the car rate a run was actually saved with. Tested with planted runs: Tow Truck
+1175 -> 1150, Garbage Truck 1212 -> 1200, an old-lane-rate Tow Truck run through both passes 1351 -> 1150,
+Hot Hatch (rate rose) and Stock unchanged.
+
 ## 3.33.2 — 2026-09-27 20:16: Batch 577 — old Scores converted to today's lane multipliers
 
 Direct question: are the multipliers shown in Scores updated, because right now they "might be
