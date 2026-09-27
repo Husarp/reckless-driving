@@ -56,8 +56,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   when it is done, the player taps the notification (or INSTALL in the game, which opens the phone's
   Downloads list) and the phone's installer takes it from there - so the game itself never needs the
   "install unknown apps" switch; if Android asks at all, it asks once about the Files / My Files app.
-- [ ] **Version numbers in the names of OLD release files** (asked 2026-09-27, "maybe"). From v3.33.3 on,
-  release files carry the version (RecklessDrivingSetup-v3.33.3.exe, RecklessDriving-v3.33.3.apk).
+- [x] ~~Version numbers in release file names~~ — from v3.33.3 on, and every past release renamed
+  (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
 ### Done in Batch 578
