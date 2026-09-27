@@ -37,8 +37,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   - a thin lane-position strip, with an on/off setting (removed again in Batch 569 - "we don't need it").
 
 - [x] ~~Lane multipliers~~ — done, Batch 570 (option B: traffic made even, re-tested, 3 x1.10 / 4 x1.00 / 10 x0.82).
-- [ ] **HIGH ROLLER tiers (asked 2026-09-27).** 3 / 4.5 / 6 / 7.5x; best reachable was 6.68x (diamond already
-  impossible), now 5.65x (gold too). Asked how to rescale.
+- [x] ~~HIGH ROLLER tiers~~ — done, Batch 571 (2.5 / 3.5 / 4.5 / 5.5x; best reachable 5.65x).
 
 ### Done in Batch 565
 

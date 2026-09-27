@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.32.1 — 2026-09-27 17:39: Batch 571 — HIGH ROLLER can be completed again
+
+Approved suggestion. HIGH ROLLER's tiers were 3 / 4.5 / 6 / **7.5x**, but the highest multiplier any
+setup can reach was 6.68x before Batch 570 - so diamond had always been impossible - and 5.65x after it
+(the SHIP ramming on 3 lanes, SUICIDAL, at full speed), which would have put gold out of reach too.
+
+Now **2.5 / 3.5 / 4.5 / 5.5x**: diamond needs very nearly the best setup in the game, and bronze stays
+within an ordinary good run. Lowering a tier never takes anything away - a player whose best multiplier
+already clears a new threshold simply holds that tier.
+
+---
+
 ## 3.32.0 — 2026-09-27 17:05: Batch 570 — traffic is even across lane counts, and new lane multipliers
 
 Direct request: rework the lane multipliers ("4 lanes should be 1x, 3 a little higher, 10 like 0.8 or

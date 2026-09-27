@@ -2597,7 +2597,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.1</span></div>
                 </div>
             </div>
         </div>
@@ -3785,8 +3785,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.32.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">570</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.32.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">571</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -10219,7 +10219,7 @@
                 { id: 'full_wardrobe', icon: 'full_wardrobe', name: 'FULL WARDROBE', desc: 'Own every cosmetic in the game.', once: true, tier: 'amethyst', done: GARAGE_COLORS.every(c => isColorOwned(c.color)) && FLAME_TYPES.every(f => isFlameUnlocked(f.key)) },
                 { id: 'car_fanatic', icon: 'car_fanatic', name: 'CAR FANATIC', desc: 'Take a run in this many different cars.', v: Object.keys(allTimeStats.carStats).filter(k => allTimeStats.carStats[k].runs >= 1).length, unit: 'CARS DRIVEN', tiers: [['bronze', 15], ['silver', 35], ['gold', 52]] },
                 { id: 'i_am_speed', icon: 'i_am_speed', name: 'I AM SPEED', desc: 'Reach a top speed, like Sonic himself.', v: allTimeStats.bestTopSpeedKmh, unit: 'KM/H', tiers: [['bronze', 150], ['silver', 200], ['gold', 250]] },
-                { id: 'high_roller', icon: 'high_roller', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 3], ['silver', 4.5], ['gold', 6], ['diamond', 7.5]] },
+                { id: 'high_roller', icon: 'high_roller', name: 'HIGH ROLLER', desc: 'Reach a high multiplier in a single run.', v: allTimeStats.highestMultiplier, unit: 'MULTIPLIER', tiers: [['bronze', 2.5], ['silver', 3.5], ['gold', 4.5], ['diamond', 5.5]] },   // Batch 571 - was 3/4.5/6/7.5; the best reachable is 5.65x (see CHANGELOG 3.32.1)
                 // Batch 324/325 — phase 2 + 2b: the full real ONE-TIME roster.
                 // Batch 438 — every secret found. Derived live rather than event-unlocked: it is a
                 // statement about the other achievements, so computing it cannot fall out of sync.
@@ -10338,7 +10338,7 @@
         // The full (non-abbreviated) number now has no separator of any kind, just plain digits.
         function achFullNum(n) {
             // Math.round() would silently break a genuinely fractional value (e.g. HIGH ROLLER's
-            // 4.5/7.5 multiplier tiers, the first achievement with non-integer thresholds) — only
+            // 2.5/3.5/5.5 multiplier tiers, the first achievement with non-integer thresholds) — only
             // whole numbers get the plain integer path; anything else keeps up to 2 real decimals.
             if (Number.isInteger(n)) return n.toString();
             return achStripTrailingZeros(n.toFixed(2));
@@ -17622,7 +17622,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.32.0';
+        const GAME_VERSION = '3.32.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
