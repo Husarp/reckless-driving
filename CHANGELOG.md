@@ -6,6 +6,25 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.35.2 — 2026-09-27 23:13: Batch 584 — the update download never shows a frozen 0%
+
+Direct report from testing 3.35.1 on both phones: the Samsung showed no percentage and opened the file
+through the Files app (no "allow Reckless Driving to install apps"); the OnePlus sat at 0% while Lexling's
+update on the same phone downloaded fine, with its percentage.
+
+**Cause - both phones ran the OLD updater.** An update is carried out by the version already installed:
+the OnePlus is on 3.34.2 (checked over adb), and the Samsung's behaviour - Files app, no permission for the
+game - is 3.34.x's route through Android's download service too. On the OnePlus the download service has
+the 3.35.1 download at status 190, *pending*: it never starts on that phone (firewall + VPN filter). Lexling
+0.58.1 is not in the download service at all - it downloads over its own connection, the route Reckless
+Driving has used since 3.35.0. So nothing in 3.35.x was at fault; a phone on 3.34.x gets 3.35.x once by
+another way (Settings -> GITHUB, or the Files app as the Samsung did), and every update after that uses the
+new route.
+
+**Changed anyway:** the download text shows the percentage only once the size is known - before that
+"Downloading…", and if the size never comes, how much has arrived ("Downloading… 1.2 MB") - so it never
+shows a 0% that looks frozen. Android and Windows. Checked: Downloading… -> 1.2 MB -> 50% -> the installer.
+
 ## 3.35.1 — 2026-09-27 22:24: Batch 583 — updates follow the shared app rules; the update banner no longer pushes the version off a phone
 
 Direct request: bring Reckless Driving in line with three rules the owner set for all apps

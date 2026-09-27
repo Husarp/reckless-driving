@@ -2725,7 +2725,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.2</span></div>
                 </div>
             </div>
         </div>
@@ -3931,8 +3931,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.35.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">583</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.35.2 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">584</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17941,7 +17941,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.35.1';
+        const GAME_VERSION = '3.35.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19531,6 +19531,13 @@
                     : 'Not allowed yet. Allow Reckless Driving to install apps in Android settings, then tap INSTALL.');
             }
         }
+        // Batch 584, direct report ("stuck on 0%"): the percentage only once the size is known; before
+        // that "Downloading…", and if the size never comes, how much has arrived - never a 0% that looks
+        // frozen. (The report itself was 3.34.x's download-service route, which on one phone never starts.)
+        function downloadingText(done, total) {
+            if (total > 0) return 'Downloading… ' + Math.round(done / total * 100) + '%';
+            return done > 0 ? 'Downloading… ' + (done / 1048576).toFixed(1) + ' MB' : 'Downloading…';
+        }
         async function downloadApkUpdate(buttons) {
             const P = window.Capacitor.Plugins.AppUpdate, version = updateInfo.version;
             let prev = null;
@@ -19538,12 +19545,12 @@
             if (prev) await P.remove({ id: prev.id }).catch(() => {});   // an earlier download, not needed
             await P.download({ url: updateInfo.apkUrl });
             try { localStorage.setItem('updateFile', JSON.stringify({ id: 'cache', version: version })); } catch (e) {}
-            sayUpdate('Downloading… 0%');
+            sayUpdate('Downloading…');
             await new Promise((resolve, reject) => {
                 const poll = setInterval(async () => {
                     const s = await P.progress().catch(() => ({ status: 'failed' }));
                     if (s.status === 'running') {
-                        sayUpdate('Downloading… ' + (s.total > 0 ? Math.round(s.done / s.total * 100) : 0) + '%');
+                        sayUpdate(downloadingText(s.done, s.total));
                         return;
                     }
                     clearInterval(poll);
@@ -19584,10 +19591,10 @@
                     if (!updateInfo.exeUrl) throw new Error('this release has no Windows installer');
                     // Batch 583 (APP-STANDARDS.md): the progress, as on Android
                     const api = window.pywebview.api;
-                    say('Downloading… 0%');
+                    say('Downloading…');
                     const poll = setInterval(async () => {
                         const p = await api.update_progress().catch(() => null);
-                        if (p && p.total > 0) say('Downloading… ' + Math.round(p.done / p.total * 100) + '%');
+                        if (p) say(downloadingText(p.done, p.total));
                     }, 500);
                     let result;
                     try { result = await api.install_update(updateInfo.exeUrl, updateInfo.version); }
