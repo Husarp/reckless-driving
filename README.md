@@ -98,15 +98,19 @@ progress is gone - keep it until the import is done.
 
 The game checks GitHub for a newer release on startup and whenever you come back to it (switching
 back to the app, or restoring the window - at most every 5 minutes), and shows a banner on the main
-menu when it finds one. Closing the banner hides it until the next time you come back. The check is
+menu when it finds one. Closing the banner hides it until the game next starts (coming back from
+another app does not bring it back). The check is
 a Settings toggle (**CHECK FOR UPDATES**, on by default) and there is a **CHECK NOW** button beside it. A failed check is silent unless you asked for it - it is usually
 just no internet.
 
 | Where | What UPDATE does |
 |---|---|
-| Windows app | Downloads the setup exe and runs it; the app closes so the installer can replace it. Per-user, so no admin prompt. |
+| Windows app | Downloads `RecklessDrivingSetup-v<version>.exe` (0-100% shown) and runs it; the app closes so the installer can replace it, and deletes the downloaded installer at its next start. Per-user, so no admin prompt. |
 | Android | Downloads the APK (0-100% on the banner and in Settings) and hands it to Android's installer. **Android always asks you to confirm** - a sideloaded app may never replace itself silently. |
 | Browser | Opens the release page, since there is nothing to install. |
+
+If an update fails, the game says why, and UPDATE turns into **TRY AGAIN** with a **GITHUB** button next
+to it (the release page). Nothing opens by itself.
 
 On Android the game needs "allow Reckless Driving to install unknown apps", once per phone
 (`REQUEST_INSTALL_PACKAGES`). The first UPDATE opens that settings screen; coming back from it carries on

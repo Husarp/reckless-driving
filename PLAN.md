@@ -59,6 +59,12 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
+### Done in Batch 583
+
+- [x] ~~Follow the shared app rules (from Lexling)~~ — X until the next start, the Windows installer named with
+  its version (with progress, deleted at the next start), a failed update: TRY AGAIN + GITHUB.
+- [x] ~~Update banner pushes the version off a phone~~ — the road gap gives up exactly the banner's height.
+
 ### Done in Batch 582
 
 - [x] ~~Android updates: back to the game installing them itself~~ — with the percentage, and the install

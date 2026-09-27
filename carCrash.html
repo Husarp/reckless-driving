@@ -2447,7 +2447,12 @@
            takes the full window height, so on a tall window this reaches its full 119 and on a
            short one it shrinks instead of shoving the footer off the bottom. The heavy flex weight
            means free space fills this first; whatever is left over goes to .mm-endgap. */
-        .mm-gap { flex: none; height: 119px; }   /* fixed: the design height is fixed now */
+        /* fixed: the design height is fixed now. Batch 583, direct report: the update banner pushed the
+           version line off a phone screen - the menu box has a fixed height and .mm-endgap was already at
+           its minimum, so the banner's height had nowhere to come from. The road gap now gives up exactly
+           the banner's height (--mm-banner-h, measured - it grows when a long message wraps), so nothing
+           below it moves. Without the banner it is 0 and nothing changes. */
+        .mm-gap { flex: none; height: max(0px, calc(119px - var(--mm-banner-h, 0px))); }
         .mm-endgap { flex: 1 1 0; min-height: 44px; }   /* keeps the tabs well clear of the footer */
         /* Batch 482 - update banner. Sits above the footer rather than above START RUN: an update
            is worth telling you about, not worth pushing the game's own button down the screen. */
@@ -2460,6 +2465,9 @@
         .mm-update-sub { font-size: 10px; color: var(--c-text-dim); }
         .mm-update-btn { font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; padding: 7px 11px; border: none; background: var(--c-mint); color: #06240f; cursor: pointer; }
         .mm-update-btn:disabled { opacity: .55; cursor: default; }
+        /* Batch 583 - GITHUB beside TRY AGAIN, only after an update failed */
+        .mm-update-gh { display: none; background: transparent; color: var(--c-mint); box-shadow: inset 0 0 0 2px var(--c-mint); }
+        .mm-update.failed .mm-update-gh { display: inline-block; }
         .mm-update-x { font-family: 'Silkscreen', monospace; font-size: 11px; line-height: 1; padding: 6px 8px; border: 2px solid var(--c-text-dimmer); background: transparent; color: var(--c-text-dim); cursor: pointer; }
         .mm-setup { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
         .mm-setup-row { display: flex; gap: 8px; align-items: stretch; }
@@ -2713,10 +2721,11 @@
                             <span class="mm-update-sub" id="mmUpdateSub">A newer version is ready.</span>
                         </div>
                         <button class="mm-update-btn" id="mmUpdateBtn">UPDATE</button>
+                        <button class="mm-update-btn mm-update-gh" id="mmUpdateGithub">GITHUB</button>
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.1</span></div>
                 </div>
             </div>
         </div>
@@ -3922,8 +3931,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.35.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">582</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.35.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">583</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17932,7 +17941,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.35.0';
+        const GAME_VERSION = '3.35.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19431,11 +19440,14 @@
             return { version: version, apkUrl: urlEndingIn('.apk'), exeUrl: urlEndingIn('.exe') };
         }
 
+        // Batch 583 (APP-STANDARDS.md, the owner's rule): the X hides the banner until the game next
+        // STARTS - kept in memory only, so a fresh start (closed by the player, or by the phone in the
+        // background) shows it again, while coming back from another app does not. Batch 578 brought it
+        // back on every return; before that it was saved per version and never came back at all.
+        let updateClosedVersion = null;
         function showUpdateBanner(version) {
             const el = document.getElementById('mmUpdateBanner');
-            if (!el) return;
-            // Batch 578, direct request: a dismissal lasts until the game is next entered - it used to
-            // be saved per version, so a dismissed update never showed again.
+            if (!el || version === updateClosedVersion) return;
             const sub = document.getElementById('mmUpdateSub');
             if (sub) sub.textContent = 'v' + version + ' is ready to install.';
             el.classList.add('on');
@@ -19496,6 +19508,17 @@
             if (sub) sub.textContent = t;
             if (hint) hint.textContent = t;
         }
+        // Batch 583 (APP-STANDARDS.md, the owner's rule): a failed update says so, with TRY AGAIN and a
+        // GITHUB button (the release page) beside it - the player chooses; nothing opens by itself. It used
+        // to open the release page at once. Batch 490's point stands: never a dead end.
+        function showUpdateFailed(msg) {
+            sayUpdate('Update failed (' + msg + ').');
+            ['mmUpdateBtn', 'getUpdateBtn'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) { b.textContent = 'TRY AGAIN'; b.disabled = false; }
+            });
+            document.getElementById('mmUpdateBanner').classList.add('failed');
+        }
         async function installApkUpdate(openSettings) {
             try {
                 await window.Capacitor.Plugins.AppUpdate.install({ openSettings: openSettings });
@@ -19535,7 +19558,7 @@
         document.addEventListener('visibilitychange', () => {
             if (document.hidden || !apkAwaitingPermission) return;
             apkAwaitingPermission = false;
-            installApkUpdate(false).catch(e => sayUpdate('Update failed (' + ((e && e.message) || e) + ').'));
+            installApkUpdate(false).catch(e => showUpdateFailed((e && e.message) || String(e)));
         });
         // the new version runs: the downloaded file that brought it goes
         (function removeInstalledApkDownload() {
@@ -19552,14 +19575,23 @@
             const btn = document.getElementById('mmUpdateBtn');
             const getBtn = document.getElementById('getUpdateBtn');
             const say = sayUpdate;
+            document.getElementById('mmUpdateBanner').classList.remove('failed');
             if (btn) btn.disabled = true;
             if (getBtn) getBtn.disabled = true;
             try {
                 const platform = updatePlatform();
                 if (platform === 'windows') {
                     if (!updateInfo.exeUrl) throw new Error('this release has no Windows installer');
-                    say('Downloading… the installer opens by itself.');
-                    const result = await window.pywebview.api.install_update(updateInfo.exeUrl);
+                    // Batch 583 (APP-STANDARDS.md): the progress, as on Android
+                    const api = window.pywebview.api;
+                    say('Downloading… 0%');
+                    const poll = setInterval(async () => {
+                        const p = await api.update_progress().catch(() => null);
+                        if (p && p.total > 0) say('Downloading… ' + Math.round(p.done / p.total * 100) + '%');
+                    }, 500);
+                    let result;
+                    try { result = await api.install_update(updateInfo.exeUrl, updateInfo.version); }
+                    finally { clearInterval(poll); }
                     if (result !== 'ok') throw new Error(String(result).replace(/^failed: /, ''));
                     say('Starting the installer…');
                 } else if (platform === 'android') {
@@ -19574,14 +19606,7 @@
                     say('Opened the download page in your browser.');
                 }
             } catch (e) {
-                const msg = (e && e.message) ? e.message : String(e);
-                // Batch 490: whatever went wrong, there is always the download page. Failing with
-                // only an error message was the other half of "it doesn't show any button" - the
-                // player was told it broke and left with nowhere to go.
-                say('Update failed (' + msg + '). Opening the download page instead…');
-                openUpdatePage();   // Batch 579: window.open does nothing inside the Android app
-                if (btn) btn.disabled = false;
-                if (getBtn) getBtn.disabled = false;
+                showUpdateFailed((e && e.message) ? e.message : String(e));
             }
         }
 
@@ -19607,7 +19632,18 @@
             document.getElementById('mmUpdateBtn').addEventListener('click', applyUpdate);
             document.getElementById('mmUpdateDismiss').addEventListener('click', () => {
                 document.getElementById('mmUpdateBanner').classList.remove('on');
+                updateClosedVersion = updateInfo ? updateInfo.version : null;
             });
+            document.getElementById('mmUpdateGithub').addEventListener('click', openUpdatePage);
+            // Batch 583 - the banner's height, for .mm-gap to give up (the box is scaled by a transform,
+            // so offsetHeight is already in the design's own pixels)
+            if (typeof ResizeObserver === 'function') {
+                const banner = document.getElementById('mmUpdateBanner'), overlay = document.getElementById('menuOverlay');
+                new ResizeObserver(() => {
+                    const h = banner.offsetHeight ? banner.offsetHeight + (parseFloat(getComputedStyle(banner).marginTop) || 0) : 0;
+                    overlay.style.setProperty('--mm-banner-h', h + 'px');
+                }).observe(banner);
+            }
 
             // Delayed so a boot that is already doing font loading, canvas sizing and save parsing
             // is not also waiting on the network.
@@ -19631,7 +19667,8 @@
             window.addEventListener('online', autoCheck);
             // Batch 578, direct request: check again every time the player comes back to the game. A
             // phone keeps the app alive in the background, so "opening" it is usually this, not a launch.
-            // An update already found shows again at once; GitHub is asked at most every 5 minutes,
+            // An update already found shows again at once (unless its banner was closed - Batch 583);
+            // GitHub is asked at most every 5 minutes,
             // because it answers only 60 unsigned requests an hour (the same limit Lexling uses).
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden || selectUpdateCheck.value !== 'yes') return;

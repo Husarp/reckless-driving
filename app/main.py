@@ -25,6 +25,7 @@ import argparse
 import ctypes
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -275,23 +276,34 @@ class UpdateApi:
             return f"failed: {e}"
         return "ok"
 
-    def install_update(self, url: str) -> str:
+    _progress = {"done": 0, "total": 0}
+
+    def install_update(self, url: str, version: str) -> str:
         try:
             # The URL arrives from a web page, so it is not trusted to point anywhere: this app
             # downloads and EXECUTES what comes back, which is worth one guard.
             if not url.lower().startswith("https://github.com/husarp/"):
                 return "failed: refusing to download from an unexpected location"
+            # Batch 583 (APP-STANDARDS.md): the installer is saved under its version, and the page
+            # shows how far the download is (update_progress). The version becomes part of a file
+            # name, so it has to be a version number and nothing else.
+            if not re.fullmatch(r"\d+\.\d+\.\d+", version or ""):
+                return "failed: unexpected version"
 
-            target = Path(tempfile.gettempdir()) / "RecklessDrivingSetup-update.exe"
+            target = Path(tempfile.gettempdir()) / f"RecklessDrivingSetup-v{version}.exe"
             request = urllib.request.Request(url, headers={"User-Agent": APP})
-            with urllib.request.urlopen(request, timeout=180) as response:
-                payload = response.read()
+            self._progress = {"done": 0, "total": 0}
+            with urllib.request.urlopen(request, timeout=180) as response, open(target, "wb") as out:
+                self._progress["total"] = int(response.headers.get("Content-Length") or 0)
+                while chunk := response.read(1 << 16):
+                    out.write(chunk)
+                    self._progress["done"] += len(chunk)
 
             # A truncated download would fail as a baffling "not a valid Win32 application".
-            if len(payload) < 1_000_000:
-                return f"failed: the download looks incomplete ({len(payload)} bytes)"
+            size = target.stat().st_size
+            if size < 1_000_000:
+                return f"failed: the download looks incomplete ({size} bytes)"
 
-            target.write_bytes(payload)
             subprocess.Popen([str(target)], close_fds=True)
         except Exception as e:
             return f"failed: {e}"
@@ -301,6 +313,10 @@ class UpdateApi:
         # return to the page first - otherwise the game sees a dead bridge instead of "ok".
         threading.Timer(0.5, _quit).start()
         return "ok"
+
+    def update_progress(self) -> dict:
+        """Batch 583 - how far install_update's download is: bytes so far, out of the whole."""
+        return self._progress
 
     def transfer_device_id(self) -> str:
         """Batch 564 - this PC's fixed ID for TRANSFER SAVE: Windows' own MachineGuid.
@@ -342,6 +358,17 @@ def write_and_read_back(path: Path, text: str) -> dict:
     return {"status": "ok", "name": str(path), "readBack": path.read_bytes().decode("utf-8")}
 
 
+def remove_old_setups() -> None:
+    """Batch 583 (APP-STANDARDS.md): the installer that brought this version is not needed once it
+    runs. One still running - it may start the new version before it exits - cannot be deleted yet,
+    and goes at the next start. The pattern also takes the old fixed name, RecklessDrivingSetup-update.exe."""
+    for old in Path(tempfile.gettempdir()).glob("RecklessDrivingSetup-*.exe"):
+        try:
+            old.unlink()
+        except OSError:
+            pass
+
+
 def _quit() -> None:
     for window in list(webview.windows):
         window.destroy()
@@ -357,6 +384,8 @@ def main() -> None:
         return
 
     set_taskbar_identity()      # before the window exists, or Windows has already decided
+    if not args.selftest:
+        remove_old_setups()
 
     window = webview.create_window(
         APP, start_url(), hidden=bool(args.selftest), js_api=UpdateApi(),

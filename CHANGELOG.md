@@ -6,6 +6,41 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.35.1 — 2026-09-27 22:24: Batch 583 — updates follow the shared app rules; the update banner no longer pushes the version off a phone
+
+Direct request: bring Reckless Driving in line with three rules the owner set for all apps
+(APP-STANDARDS.md, first done in Lexling 0.58.0) - plus a direct report from the Samsung.
+
+**The X on the update banner hides it until the game next starts.** Kept in memory only, so a fresh start
+(closed by the player, or by the phone in the background) shows it again, while coming back from another
+app does not. A newer version found later still shows. (Batch 578 brought it back on every return.)
+
+**Windows: the installer is downloaded under its version, with the progress.** `app/main.py`
+`install_update(url, version)` streams `RecklessDrivingSetup-v<version>.exe` into the temp folder, and a new
+`update_progress()` gives the page 0-100% (the version must be a plain X.Y.Z - it becomes part of a file
+name that is then run). At every start (not in the build self-test) the app deletes old
+`RecklessDrivingSetup-*.exe` from the temp folder - including the old fixed name,
+`RecklessDrivingSetup-update.exe`. One still running is skipped and goes at the next start.
+
+**A failed update says so, with TRY AGAIN and GITHUB beside it; nothing opens by itself.** UPDATE / GET
+UPDATE turn into TRY AGAIN, and the banner shows a GITHUB button (the release page); Settings already has
+one. It used to open the release page at once. Also used when the Android install fails after coming back
+from the permission screen.
+
+**The update banner pushed the version line off the screen (Samsung, photo report).** The menu is a
+fixed-height box and the space above the footer was already at its minimum (and on a phone, with the
+larger text since 3.33.0, the footer already sat a little below the box), so the banner's height went
+straight into pushing the footer down. The road gap above the controls now gives up exactly the banner's
+height - measured as it shows, grows, or hides - so nothing below it moves. Without the banner, nothing
+changes. Measured at 412 x 915: version line at 843-856 with no banner, with the banner (road gap
+111 -> 56), and with a long three-line failure message (road gap 27).
+
+Tested: X then a return keeps it hidden and a newer version shows; Windows 0 -> 45% with the version
+passed through; a failure -> TRY AGAIN + GITHUB with nothing opened until GITHUB is tapped; TRY AGAIN clears
+the failed state; the Windows side for real with patched run/quit - a bad version and a foreign link
+refused, a real 24 MB download from GitHub saved as `RecklessDrivingSetup-v3.35.0.exe` with 26 progress
+readings on the way, and the start-up clean-up removing it and the old fixed-name file.
+
 ## 3.35.0 — 2026-09-27 22:10: Batch 582 — Android updates: the game downloads and installs them itself, with the percentage
 
 Direct decision, after testing Batch 579's route on both phones: back to the game installing its own
