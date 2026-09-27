@@ -23,6 +23,19 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 - [x] ~~The ability badge ignores CONTROLS SIZE on phones~~ — fixed, Batch 567 (79 / 104 / 129 on a OnePlus 6).
 
+- [x] ~~Same-size lanes on phones, with the road panning sideways~~ — done, Batch 568 (v3.31.0).
+  Left open: tune the lane multipliers after playtesting; 3 lanes on a phone kept as is (roadside art).
+  Proposed by the user 2026-09-27:
+  on a phone, more lanes shrink the whole view, so 10 lanes sees far ahead and is "overpowered", and
+  players stick to few lanes because they are easier to see. Measured (375x812): look-ahead vs 4 lanes
+  is 0.83x at 3, 1.38x at 6, 2.13x at 10, lanes 84px wide at 3 down to 33px at 10. PC is already fair
+  (one zoom, the road just gets wider). Idea: one fixed zoom on phones too; when the road is wider than
+  the screen the camera follows the player sideways. DECIDED 2026-09-27, in progress:
+  - zoom: the size 4 lanes have today (my pick, user said "start"); 3 lanes gains roadside, 5-10 pan;
+  - ambulances AND letters spawn in any lane; an off-screen one gets an arrow at the screen edge;
+  - multipliers unchanged for now - user will playtest; maybe MORE lanes = MORE multiplier later;
+  - a thin lane-position strip, with an on/off setting.
+
 ### Done in Batch 565
 
 - [x] ~~Results list remembers its scroll position~~ — always opens at the top.

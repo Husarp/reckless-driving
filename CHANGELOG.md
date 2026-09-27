@@ -6,6 +6,62 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.31.0 — 2026-09-27 14:46: Batch 568 — on phones every lane is the same size, and a wide road pans
+
+### Why
+
+Direct request. On a phone the whole road was squeezed to the screen's width, so more lanes meant
+smaller lanes **and** more road ahead. Measured on a 375x812 phone, look-ahead compared with 4 lanes:
+
+| lanes | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|
+| before: sees | 0.83x | 1x | 1.19x | 1.38x | 1.56x | 1.75x | 1.94x | **2.13x** |
+| before: lane width | 84px | 70px | 59px | 51px | 45px | 40px | 36px | 33px |
+| now: sees | 0.83x | 1x | 1x | 1x | 1x | 1x | 1x | 1x |
+| now: lane width | 84px | 70px | 70px | 70px | 70px | 70px | 70px | 70px |
+
+So 10 lanes was the easy option, not the hard one, and players stayed on few lanes because the lanes
+were bigger. A PC was already fair: one zoom, and the road simply gets wider on screen.
+
+### What changed (phones and other touch screens)
+
+- **One zoom for every lane count**, the one 4 lanes already had. When the road is wider than the screen,
+  it is drawn at its full width and **slides sideways under the screen, following your car**, which
+  stays centred; at the outermost lanes it stops at the roadside. Traffic, letters, crashes and every
+  effect are unchanged - they live on the road, not on the screen.
+- **Warnings for lanes off the screen move to its edge with arrows** (agreed design): an ambulance
+  warning becomes a red band down that edge, a breakdown's sign and a letter's gift-box alert sit at the
+  edge with an arrow, and a letter already on the road off-screen shows as a small token at the edge.
+  Ambulances and letters still come in any lane - going after a letter you cannot see is a choice.
+- **LANE STRIP** - a thin row under the energy bar, one cell per lane: yours in mint, the ones on screen
+  lighter. Appears only when the road pans. **Settings → LANE STRIP** turns it off (on by default).
+- **Breakdown warnings now sit below the HUD.** Their sign was drawn at a fixed height that is always
+  under the pause button and energy bar on a phone - the same fault the letter alert once had -
+  and the edge version made it land there every time. They are measured the same way now.
+- **Multipliers are unchanged**, by decision - to be tuned after playtesting (maybe more lanes should pay
+  more now, since they no longer show more road).
+
+### Not changed
+
+- **PC**: already fair, so identical - no panning, and the setting is hidden there.
+- **3 lanes on a phone** keeps its current look (lanes 84px, sees 0.83x). Matching it to the others would
+  show extra roadside, and the roadside art is drawn at a fixed 18 units wide (27 hard-coded positions in
+  `makeStrip()`), so that needs new art rather than a setting. Its higher multiplier already pays for the
+  shorter view.
+- A **landscape tablet** uses the PC rule (keep 260 of road in view), so a road that fits does not pan.
+
+### How it was checked
+
+On a 375x812 phone: lanes 4-10 all 70.3px with the same 312 units of road ahead; the car centred
+(187px of 375) while panning; the camera stops exactly at both road edges (car at 57px and 318px);
+warnings off-screen drawn at the edges (checked in the canvas pixels as well as by eye); the strip
+tracking your lane and the window; a 3,000-frame run weaving across 10 lanes with real ambulances and
+letters - no errors; a crash's results panel exactly filling the screen; the CONTROLS preview opening on
+the starting lane. On a PC-sized window: nothing pans, every lane count as before. Found and fixed while
+testing: turning the strip off did not hide it (its "already shown" check matched the off state).
+
+---
+
 ## 3.30.1 — 2026-09-26 22:18: Batch 567 — the ability button's badge grows with CONTROLS SIZE on phones
 
 Found in Batch 566 and fixed on a direct yes. The badge is drawn at a whole number of screen pixels

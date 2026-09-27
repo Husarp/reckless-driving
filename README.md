@@ -54,6 +54,7 @@ steer with.
 | Skip Crash Animation | On / Off | Straight to the summary |
 | Fullscreen | On / Off | Hides the phone's navigation bar while you play |
 | Score Popups | On / Off | Floating +points when you pass or jump over a car |
+| Lane Strip (touch) | On / Off | When the road is wider than the screen: which lane you are in, and which ones are on screen |
 | FPS Counter | On / Off | Bottom-right of the game screen |
 | Abbreviate Money | On / Off | Shows 50K / 10.8M instead of the full number |
 | Speed-Scaled Music | On / Off | Tempo rises as you speed up |
@@ -62,6 +63,10 @@ steer with.
 
 Road lanes, difficulty and car colour are **not** here — lanes and difficulty are chosen on the main menu (both are remembered, like every setting)
 (they drive the score multiplier: 3 lanes x1.30 down to 10 x1.00), and paint is in the Garage.
+
+**Lanes on a phone:** every lane count from 4 up shows lanes at the same size and the same distance
+ahead. A road wider than the screen slides sideways to follow your car, and warnings for lanes off
+the screen appear at its edge with an arrow. A PC always shows the whole road.
 
 Speed always accelerates and semi trucks are always on — no longer configurable. The ability you get is
 decided by your CAR, not a setting: **Jump** (43 cars), **Shield Bump** ram (8 heavy cars), or the
@@ -237,7 +242,7 @@ built — see `CHANGELOG.md`. Road pickups were tried and deliberately removed.)
 
 ## Technical notes
 
-- Rendering: HTML5 Canvas, internal resolution scales with lane count (`26px × lanes + 36`) × 260px, displayed via a JS-computed exact-fit frame that preserves the true aspect ratio at any viewport size
+- Rendering: HTML5 Canvas, internal resolution scales with lane count (`26px × lanes + 36`) × 260px, displayed via a JS-computed exact-fit frame that preserves the true aspect ratio at any viewport size. On touch screens the zoom is fixed (4 lanes' fit) and a wider world is panned under the frame with a CSS transform, following the car
 - Pixel art drawn procedurally — no image assets. Road/verge scenery is pre-rendered into offscreen buffers once per lane-count change and blitted each frame
 - Fonts: 'Silkscreen' (headers), 'VT323' (numbers) and 'DotGothic16' (body), embedded in the file as
   base64 `@font-face` (latin + latin-ext subsets, ~68 KB) rather than fetched from Google Fonts, so the

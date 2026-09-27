@@ -758,6 +758,17 @@
             cursor: pointer;
             flex-shrink: 0;
         }
+        /* Batch 568 - a road wider than a phone's screen: the canvas is as wide as the WORLD and slides
+           sideways under a fixed window (see updateCamera), so every lane count shows lanes at one size. */
+        .canvas-container.panning { overflow: hidden; justify-content: flex-start; }
+        .canvas-container.panning > #gameCanvas { flex: none; }
+        /* Batch 568 - the lane strip: under the energy bar and exactly its width, so it reads as part of
+           the same HUD block and scales with it. */
+        #laneStrip { position: absolute; top: calc(100% + 5px); right: 0; width: calc(39px * 127 / 16); height: 9px; display: none; gap: 2px; pointer-events: none; }
+        #laneStrip.on { display: flex; }
+        #laneStrip i { flex: 1 1 0; box-sizing: border-box; background: rgba(18, 22, 31, .72); border: 1px solid #3a4459; }
+        #laneStrip i.vis { background: rgba(120, 132, 156, .5); border-color: #8d97ab; }
+        #laneStrip i.you { background: var(--c-mint); border-color: #fff; }
 
         /* Retro Buttons */
         .btn {
@@ -2593,7 +2604,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.30.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.31.0</span></div>
                 </div>
             </div>
         </div>
@@ -3011,6 +3022,23 @@
                         <div class="stg-toggle-track" id="scorePopupsToggleTrack"><div class="stg-toggle-knob"></div></div>
                     </div>
                     <select id="scorePopupsSetting" style="display:none;">
+                        <option value="yes" selected>On</option>
+                        <option value="no">Off</option>
+                    </select>
+                </div>
+
+                <!-- Batch 568, direct request: the lane strip, with an off switch "because maybe some users
+                     don't want it". Touch only - a PC always shows the whole road. -->
+                <div class="stg-row touch-only">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">LANE STRIP</div>
+                        <div class="stg-row-hint">When the road is wider than the screen: which lane you are in, and which ones you can see.</div>
+                    </div>
+                    <div class="stg-toggle" id="laneStripToggle">
+                        <span class="stg-toggle-label" id="laneStripToggleLabel">ON</span>
+                        <div class="stg-toggle-track" id="laneStripToggleTrack"><div class="stg-toggle-knob"></div></div>
+                    </div>
+                    <select id="laneStripSetting" style="display:none;">
                         <option value="yes" selected>On</option>
                         <option value="no">Off</option>
                     </select>
@@ -3781,8 +3809,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.30.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">567</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.31.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">568</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -3854,6 +3882,7 @@
                 <div id="hudLeft">
                     <button id="pauseBtn" class="pause-btn px">II</button>
                     <canvas id="abilityBar" width="127" height="16" title="Tap and hold to use your ability"></canvas>
+                    <div id="laneStrip" aria-hidden="true"></div>
                 </div>
                 <div id="gameHud">
                     <div class="hud-right">
@@ -4181,6 +4210,8 @@
         const abilityBar = document.getElementById('abilityBar');
         const abilityCtx = abilityBar.getContext('2d');
         const hudLeft = document.getElementById('hudLeft');
+        const laneStripEl = document.getElementById('laneStrip');                // Batch 568
+        const selectLaneStrip = document.getElementById('laneStripSetting');     // Batch 568
         const confirmOverlay = document.getElementById('confirmOverlay');
         const confirmCancelBtn = document.getElementById('confirmCancelBtn');
         const confirmOkBtn = document.getElementById('confirmOkBtn');
@@ -4426,15 +4457,121 @@
         // goalposts on every score ever set. Growing it shows more of the road ahead, which is the
         // point. Desktop keeps 260 exactly - the framed window is deliberate there.
         function fullscreenViewHeight(viewW) {
-            if (!IS_TOUCH || !window.innerWidth || !window.innerHeight) return CANVAS_HEIGHT;
+            const area = touchPlayArea();
+            if (!area) return CANVAS_HEIGHT;
+            const scale = area.w / viewW;               // fit to width first, as asked
+            return Math.max(CANVAS_HEIGHT, Math.round(area.h / scale));
+        }
+        // The CSS px a touch screen gives the playfield, or null off touch. Shared by the two functions
+        // that size it, so they can never disagree about the space.
+        function touchPlayArea() {
+            if (!IS_TOUCH || !window.innerWidth || !window.innerHeight) return null;
             const bs = getComputedStyle(document.body);
-            const padX = parseFloat(bs.paddingLeft) + parseFloat(bs.paddingRight);
-            const padY = parseFloat(bs.paddingTop) + parseFloat(bs.paddingBottom);
-            const availW = window.innerWidth - padX;
-            const availH = window.innerHeight - padY - gameExtraBottom();
-            if (availW <= 0 || availH <= 0) return CANVAS_HEIGHT;
-            const scale = availW / viewW;               // fit to width first, as asked
-            return Math.max(CANVAS_HEIGHT, Math.round(availH / scale));
+            const w = window.innerWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
+            const h = window.innerHeight - parseFloat(bs.paddingTop) - parseFloat(bs.paddingBottom) - gameExtraBottom();
+            return w > 0 && h > 0 ? { w, h } : null;
+        }
+
+        // ---------- Batch 568: one lane size on phones, and a road that pans ----------
+        // Direct request, and the measurement that made the case: on a 375x812 phone the whole world was
+        // squeezed to the screen's width, so more lanes meant smaller lanes AND more road ahead - 10
+        // lanes saw 2.13x as far as 4 (6 lanes 1.38x), with lanes 33px wide instead of 70. That made
+        // many lanes easier, not harder, and players stuck to few lanes because they were easier to
+        // see. A PC was always fair: one zoom, and the road simply gets wider.
+        //
+        // Phones now get the PC rule. The zoom is fixed at what 4 lanes had (the user's default), and
+        // when the road is wider than the screen the canvas is drawn at the WORLD's full width and slid
+        // sideways under a fixed window, following the car (updateCamera). Nothing in the game draws
+        // differently - traffic, letters, crashes and effects all stay in world coordinates - only the
+        // warnings for lanes off the window are moved to its edge with an arrow (offscreenSide).
+        //
+        // Where the screen is wide enough for the height rule instead (a landscape tablet), the zoom is
+        // the one that keeps the designed 260 of road visible, exactly like a PC, and a road that then
+        // fits does not pan. 3 lanes is narrower than the window and keeps its current look: widening its
+        // roadside would need new roadside art, since makeStrip() draws a fixed 18 units.
+        const PAN_REF_LANES = 4;
+        let PAN_W = 0;               // world units visible across the screen; below VIEW_W while the road pans
+        let panCssPerWorld = 0;      // CSS px per world unit, set whenever the frame is fitted
+        let camX = 0;                // world x of the visible window's left edge
+        let camPxApplied = null;
+        const CAM_FOLLOW = 0.18;     // share of the gap closed per frame: the car leads, the road follows
+        function panViewWidth(viewW) {
+            const area = touchPlayArea();
+            if (!area) return viewW;
+            const refW = REF_LANE_WIDTH * PAN_REF_LANES + SIDE_MARGIN * 2;
+            const zoom = Math.min(area.w / refW, area.h / CANVAS_HEIGHT);
+            return Math.min(viewW, Math.floor(area.w / zoom));
+        }
+        function panActive() { return PAN_W > 0 && VIEW_W > PAN_W; }
+        function applyPanLayout() {
+            const on = panActive();
+            canvasContainerEl.classList.toggle('panning', on);
+            canvas.style.width = on ? (VIEW_W / PAN_W * 100) + '%' : '';
+            camX = on ? Math.max(0, Math.min(VIEW_W - PAN_W, camX)) : 0;
+            applyCamera(true);
+            laneStripKey = null;   // never equal to a real key, so the next update always applies
+            updateLaneStrip();
+        }
+        // Whole DEVICE pixels, so the pixel art is not resampled between two positions as it slides.
+        function applyCamera(force) {
+            const dpr = window.devicePixelRatio || 1;
+            const px = panActive() ? Math.round(camX * panCssPerWorld * dpr) / dpr : 0;
+            if (!force && px === camPxApplied) return;
+            camPxApplied = px;
+            canvas.style.transform = px ? 'translateX(' + (-px) + 'px)' : '';
+        }
+        function updateCamera(snap) {
+            if (!panActive() || !player) return;
+            const target = Math.max(0, Math.min(VIEW_W - PAN_W, player.x + player.width / 2 - PAN_W / 2));
+            camX = snap || Math.abs(target - camX) < 0.02 ? target : camX + (target - camX) * CAM_FOLLOW;
+            applyCamera(false);
+            updateLaneStrip();
+        }
+
+        // Which side of the visible window a world x is beyond: -1 left, 1 right, 0 on screen.
+        function offscreenSide(x) {
+            if (!panActive()) return 0;
+            return x < camX ? -1 : x > camX + PAN_W ? 1 : 0;
+        }
+        // The centre x for a marker of the given half-width hugging that edge, clear of its arrow.
+        function edgeAnchorX(side, half) {
+            return side < 0 ? camX + 6 + half : camX + PAN_W - 6 - half;
+        }
+        // A small pixel arrow at the window's edge, pointing out towards what is off it.
+        function drawEdgeArrow(gctx, side, cy, color) {
+            const edge = side < 0 ? Math.ceil(camX) : Math.floor(camX + PAN_W);
+            const y = Math.round(cy);
+            [['#0b0e14', 1], [color, 0]].forEach(([c, d]) => {
+                gctx.fillStyle = c;
+                for (let i = 0; i < 4; i++) {
+                    const x = side < 0 ? edge + 1 + i : edge - 2 - i;
+                    gctx.fillRect(x, y - i + d, 1, 1 + 2 * i);
+                }
+            });
+        }
+
+        // The lane strip. Rebuilt only when what it shows changes: the lane count, your lane, or which
+        // lanes are on screen.
+        let laneStripKey = null;   // never equal to a real key, so the next update always applies
+        function updateLaneStrip() {
+            const on = panActive() && selectLaneStrip.value === 'yes' && !!player;
+            let key = '', vis = '';
+            if (on) {
+                const lw = Math.floor(ROAD_WIDTH / config.lanes);
+                for (let i = 0; i < config.lanes; i++) {
+                    const c = ROAD_BORDER_LEFT + i * lw + lw / 2;
+                    vis += c >= camX && c <= camX + PAN_W ? '1' : '0';
+                }
+                key = player.currentLane + ':' + vis;
+            }
+            if (key === laneStripKey) return;
+            laneStripKey = key;
+            laneStripEl.classList.toggle('on', on);
+            if (!on) return;
+            if (laneStripEl.children.length !== vis.length) laneStripEl.innerHTML = '<i></i>'.repeat(vis.length);
+            [...laneStripEl.children].forEach((cell, i) => {
+                cell.className = i === player.currentLane ? 'you' : vis[i] === '1' ? 'vis' : '';
+            });
         }
         /**
          * Batch 546, direct report with screenshots: switching CROSS -> SPLIT mid-run left the board
@@ -4463,13 +4600,14 @@
             // a whole 3-device-pixel grid and stay sharp. Everything below thinks in world units via
             // VIEW_W/VIEW_H; only the two attribute assignments know about the multiplier.
             VIEW_W = roadWidthPx + SIDE_MARGIN * 2;
-            VIEW_H = fullscreenViewHeight(VIEW_W);
+            PAN_W = panViewWidth(VIEW_W);             // Batch 568 - what fits across the screen at the one zoom
+            VIEW_H = fullscreenViewHeight(PAN_W);
             playerMinY = Math.max(PLAYER_MIN_Y, Math.round(VIEW_H * PLAYER_MIN_Y_FRAC));
             canvas.width = VIEW_W * RENDER_SCALE;
             canvas.height = VIEW_H * RENDER_SCALE;
             canvas.style.aspectRatio = VIEW_W + ' / ' + VIEW_H;
             tcReservedAtLayout = gameExtraBottom();
-            sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
+            panCssPerWorld = sizeFrame(gameContainerEl, PAN_W, VIEW_H, gameExtraBottom()) / PAN_W;
             // Batch 548, direct report: after switching CROSS -> SPLIT mid-run "my car is driving
             // under the bar". VIEW_H shrinks when a strip appears, but the player's bottom bound is
             // worked out once in its constructor (maxY = VIEW_H - height - 1) and was left stale - so
@@ -4483,6 +4621,7 @@
             ROAD_BORDER_RIGHT = VIEW_W - SIDE_MARGIN;
             ROAD_WIDTH = ROAD_BORDER_RIGHT - ROAD_BORDER_LEFT;
             rebuildRoadBuffers();
+            applyPanLayout();
         }
 
         // Sizes a framed canvas box (.game-container) directly in JS to the largest box matching the given aspect ratio that fits the viewport — computed explicitly rather than via CSS aspect-ratio/percentage-height/max-width, which resolved inconsistently depending on whether height or width was the binding constraint (correct when height-bound, silently non-uniform when width-bound, e.g. on a narrow mobile viewport).
@@ -4538,7 +4677,9 @@
         // window is wide and the panel is already as big as it should be.
         function panelDesignW() { return IS_TOUCH ? 400 : PANEL_DESIGN_W; }
         function sizeGameFrame() {
-            const contentW = sizeFrame(gameContainerEl, VIEW_W, VIEW_H, gameExtraBottom());
+            const contentW = sizeFrame(gameContainerEl, PAN_W || VIEW_W, VIEW_H, gameExtraBottom());
+            panCssPerWorld = contentW / (PAN_W || VIEW_W);   // Batch 568
+            applyCamera(true);
             // --hud-scale follows the frame's width, so the gameplay HUD keeps one proportion to the road
             // at every window size (Batch 433) - within two limits:
             //   * at most 1.5x (Batch 475): maximised with many lanes the chips grew absurd, and past a
@@ -10967,8 +11108,10 @@
             const cr = canvas.getBoundingClientRect();
             if (!cr.width || !VIEW_W) return 22;
             const cssPerWorld = cr.width / VIEW_W;
-            const hr = hudLeft.getBoundingClientRect();
-            return Math.max(22, Math.round((hr.bottom - cr.top) / cssPerWorld) + 8);
+            let bottom = hudLeft.getBoundingClientRect().bottom;
+            // Batch 568 - the lane strip hangs below #hudLeft without adding to its box.
+            if (laneStripEl.classList.contains('on')) bottom = Math.max(bottom, laneStripEl.getBoundingClientRect().bottom);
+            return Math.max(22, Math.round((bottom - cr.top) / cssPerWorld) + 8);
         }
 
         function drawPresentIcon(gctx, cx, cy) {
@@ -13981,6 +14124,7 @@
             if (hHeldReleaseTimer.left) { clearTimeout(hHeldReleaseTimer.left); hHeldReleaseTimer.left = null; }
             if (hHeldReleaseTimer.right) { clearTimeout(hHeldReleaseTimer.right); hHeldReleaseTimer.right = null; }
             player = new Player();
+            updateCamera(true);   // Batch 568 - start centred on the car, not sliding in from the last run
             seedOpeningTraffic();
             // Batch 497: the Batch 484 run-start trail seeding is gone with the floor it relied on.
             // A run begins at 50 km/h and the trail now needs 200, so seeded points would be reeled
@@ -15456,6 +15600,10 @@
             const car = (x, y, color) => drawScaledVehicle(ctx, Math.round(x), Math.round(y), PLAYER_WIDTH, PLAYER_HEIGHT,
                 g => drawPixelCar(g, 0, 0, color, false, 0));
             const playerLane = Math.floor(lanes / 2);
+            if (panActive()) {   // Batch 568 - the window the run will open on
+                camX = Math.max(0, Math.min(VIEW_W - PAN_W, laneX(playerLane) + PLAYER_WIDTH / 2 - PAN_W / 2));
+                applyCamera(true);
+            }
             TCE_PARKED.forEach(([share, h, color]) => {
                 const lane = Math.round(share * (lanes - 1));
                 if (lane !== playerLane) car(laneX(lane), VIEW_H * h, color);
@@ -16608,6 +16756,7 @@
                 roadOffset = (roadOffset + currentSpeed) % ROAD_OFFSET_WRAP;
             }
 
+            if (player) updateCamera(false);   // Batch 568 - before anything that draws at the window's edge
             drawRoadScene(ctx, VIEW_W, VIEW_H, ROAD_BORDER_LEFT, ROAD_BORDER_RIGHT, ROAD_WIDTH, config.lanes, roadOffset);
             // Batch 446 — ramming pushes the air past what raw speed alone would give. Direct request:
             // the particles should fire "when using the RAM ability" too, because that is what sells it
@@ -16637,8 +16786,15 @@
                     } else {
                         // Flashing red danger stripe in the incoming lane
                         if (Math.floor(Date.now() / 200) % 2 === 0) {
-                            const lw = Math.floor(ROAD_WIDTH / config.lanes);
-                            const lx = ROAD_BORDER_LEFT + pa.lane * lw;
+                            let lw = Math.floor(ROAD_WIDTH / config.lanes);
+                            let lx = ROAD_BORDER_LEFT + pa.lane * lw;
+                            // Batch 568, agreed design: a lane off the window keeps its warning, as a
+                            // narrower band along that edge with arrows pointing to it.
+                            const side = offscreenSide(lx + lw / 2);
+                            if (side) {
+                                lw = 13;
+                                lx = side < 0 ? Math.round(camX) - 1 : Math.round(camX + PAN_W) - lw + 1;
+                            }
                             ctx.fillStyle = 'rgba(255, 50, 50, 0.55)';
                             ctx.fillRect(lx + 1, 0, lw - 2, VIEW_H);
                             // Danger bar at top of lane
@@ -16654,6 +16810,7 @@
                             ctx.textBaseline = 'middle';
                             ctx.fillText('AMBULANCE', 0, 0);
                             ctx.restore();
+                            if (side) [0.2, 0.8].forEach(f => drawEdgeArrow(ctx, side, VIEW_H * f, '#ffffff'));
                         }
                     }
                 }
@@ -16668,7 +16825,17 @@
                     } else if (Math.floor(Date.now() / 200) % 2 === 0) {
                         const lw = Math.floor(ROAD_WIDTH / config.lanes);
                         const lx = ROAD_BORDER_LEFT + po.lane * lw;
-                        drawWarningSign53(ctx, lx + Math.floor(lw / 2), 10);
+                        // Batch 568 - below the HUD, measured the way the letter alert is (its y was a
+                        // fixed 10, which on a phone is always under the pause button and energy bar);
+                        // and at the window's edge with an arrow when the lane is off it.
+                        if (po.top === undefined) po.top = letterWarnTopWorld();
+                        const side = offscreenSide(lx + lw / 2);
+                        if (side) {
+                            drawWarningSign53(ctx, Math.round(edgeAnchorX(side, 9)), po.top);
+                            drawEdgeArrow(ctx, side, po.top + 8, '#ffd23f');
+                        } else {
+                            drawWarningSign53(ctx, lx + Math.floor(lw / 2), po.top);
+                        }
                     }
                 }
 
@@ -16812,6 +16979,12 @@
                     const lp = letterPickups[i];
                     lp.y += currentSpeed;
                     drawGoldToken(ctx, lp.x, lp.y, lp.width, lp.letter);
+                    // Batch 568 - on its way down a lane off the window: a smaller token at that edge.
+                    const lpSide = offscreenSide(lp.x + lp.width / 2);
+                    if (lpSide && lp.y > -lp.width && lp.y < VIEW_H) {
+                        drawGoldToken(ctx, Math.round(edgeAnchorX(lpSide, 7) - 7), Math.round(lp.y), 14, lp.letter);
+                        drawEdgeArrow(ctx, lpSide, lp.y + 7, '#ffd700');
+                    }
 
                     // Batch 431 - the letter lies ON the road, so you have to actually be on the
                     // road to pick it up. Flying over one now leaves it there to collect on a later
@@ -17171,14 +17344,19 @@
                     // +11, not +7: the ribbon loops 4px ABOVE the box, so the icon's topmost pixel is
                     // 11 above its centre. Anchoring on the centre would still clip the bow.
                     const cy = (pendingLetterWarning.top || 22) + 11;
-                    drawPresentIcon(ctx, lx + lw / 2, cy + bob);
+                    // Batch 568, direct request: a letter can come down a lane off the window too - its
+                    // alert then sits at that edge with an arrow, so changing lanes for it is a choice.
+                    const side = offscreenSide(lx + lw / 2);
+                    const cx = side ? edgeAnchorX(side, 8) : lx + lw / 2;
+                    drawPresentIcon(ctx, cx, cy + bob);
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#ffffff';
                     ctx.font = "bold 10px 'Silkscreen', monospace";
-                    ctx.fillText(pendingLetterWarning.letter, lx + lw / 2, cy + 18 + bob);
+                    ctx.fillText(pendingLetterWarning.letter, cx, cy + 18 + bob);
                     ctx.restore();
+                    if (side) drawEdgeArrow(ctx, side, cy + bob, '#ffd700');
                 }
 
                 // Tank's per-hit tracer (doc section 6), a short timed effect rather than a persistent Particle, drawn/expired directly off elapsed real time.
@@ -17480,7 +17658,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.30.1';
+        const GAME_VERSION = '3.31.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -18616,6 +18794,15 @@
             const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
             refreshSp();
             selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
+            // Batch 568 - LANE STRIP, on by default, saved like every other setting.
+            try { const v = localStorage.getItem('laneStrip'); if (v === 'no' || v === 'yes') selectLaneStrip.value = v; } catch (e) {}
+            bindToggle(document.getElementById('laneStripToggle'), document.getElementById('laneStripToggleLabel'),
+                document.getElementById('laneStripToggleTrack'), selectLaneStrip, 'yes', 'no');
+            selectLaneStrip.addEventListener('change', () => {
+                try { localStorage.setItem('laneStrip', selectLaneStrip.value); } catch (e) {}
+                laneStripKey = null;   // never equal to a real key, so the next update always applies
+                updateLaneStrip();
+            });
         }
         // ---------- Batch 482: in-app updates ----------
         // One check, three platforms. The game asks GitHub which release is newest and compares it
