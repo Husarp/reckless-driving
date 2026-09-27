@@ -6,6 +6,15 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.31.1 — 2026-09-27 15:29: Batch 569 — the lane strip is gone
+
+Direct feedback on 3.31.0: "it looks really nice - we don't need this bar at the top that shows which
+lane you are in." Removed completely: the strip under the energy bar, its LANE STRIP setting, and the
+code behind both. The panning road and the edge warnings stay exactly as they were. The letter alert's
+placement goes back to measuring the HUD alone, since there is no strip to clear any more.
+
+---
+
 ## 3.31.0 — 2026-09-27 14:46: Batch 568 — on phones every lane is the same size, and a wide road pans
 
 ### Why

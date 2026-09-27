@@ -54,7 +54,6 @@ steer with.
 | Skip Crash Animation | On / Off | Straight to the summary |
 | Fullscreen | On / Off | Hides the phone's navigation bar while you play |
 | Score Popups | On / Off | Floating +points when you pass or jump over a car |
-| Lane Strip (touch) | On / Off | When the road is wider than the screen: which lane you are in, and which ones are on screen |
 | FPS Counter | On / Off | Bottom-right of the game screen |
 | Abbreviate Money | On / Off | Shows 50K / 10.8M instead of the full number |
 | Speed-Scaled Music | On / Off | Tempo rises as you speed up |

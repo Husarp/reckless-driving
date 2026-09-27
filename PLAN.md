@@ -34,7 +34,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   - zoom: the size 4 lanes have today (my pick, user said "start"); 3 lanes gains roadside, 5-10 pan;
   - ambulances AND letters spawn in any lane; an off-screen one gets an arrow at the screen edge;
   - multipliers unchanged for now - user will playtest; maybe MORE lanes = MORE multiplier later;
-  - a thin lane-position strip, with an on/off setting.
+  - a thin lane-position strip, with an on/off setting (removed again in Batch 569 - "we don't need it").
 
 ### Done in Batch 565
 

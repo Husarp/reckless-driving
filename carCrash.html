@@ -762,13 +762,6 @@
            sideways under a fixed window (see updateCamera), so every lane count shows lanes at one size. */
         .canvas-container.panning { overflow: hidden; justify-content: flex-start; }
         .canvas-container.panning > #gameCanvas { flex: none; }
-        /* Batch 568 - the lane strip: under the energy bar and exactly its width, so it reads as part of
-           the same HUD block and scales with it. */
-        #laneStrip { position: absolute; top: calc(100% + 5px); right: 0; width: calc(39px * 127 / 16); height: 9px; display: none; gap: 2px; pointer-events: none; }
-        #laneStrip.on { display: flex; }
-        #laneStrip i { flex: 1 1 0; box-sizing: border-box; background: rgba(18, 22, 31, .72); border: 1px solid #3a4459; }
-        #laneStrip i.vis { background: rgba(120, 132, 156, .5); border-color: #8d97ab; }
-        #laneStrip i.you { background: var(--c-mint); border-color: #fff; }
 
         /* Retro Buttons */
         .btn {
@@ -2604,7 +2597,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.31.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.31.1</span></div>
                 </div>
             </div>
         </div>
@@ -3022,23 +3015,6 @@
                         <div class="stg-toggle-track" id="scorePopupsToggleTrack"><div class="stg-toggle-knob"></div></div>
                     </div>
                     <select id="scorePopupsSetting" style="display:none;">
-                        <option value="yes" selected>On</option>
-                        <option value="no">Off</option>
-                    </select>
-                </div>
-
-                <!-- Batch 568, direct request: the lane strip, with an off switch "because maybe some users
-                     don't want it". Touch only - a PC always shows the whole road. -->
-                <div class="stg-row touch-only">
-                    <div class="stg-row-label">
-                        <div class="stg-row-title">LANE STRIP</div>
-                        <div class="stg-row-hint">When the road is wider than the screen: which lane you are in, and which ones you can see.</div>
-                    </div>
-                    <div class="stg-toggle" id="laneStripToggle">
-                        <span class="stg-toggle-label" id="laneStripToggleLabel">ON</span>
-                        <div class="stg-toggle-track" id="laneStripToggleTrack"><div class="stg-toggle-knob"></div></div>
-                    </div>
-                    <select id="laneStripSetting" style="display:none;">
                         <option value="yes" selected>On</option>
                         <option value="no">Off</option>
                     </select>
@@ -3809,8 +3785,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.31.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">568</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.31.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">569</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -3882,7 +3858,6 @@
                 <div id="hudLeft">
                     <button id="pauseBtn" class="pause-btn px">II</button>
                     <canvas id="abilityBar" width="127" height="16" title="Tap and hold to use your ability"></canvas>
-                    <div id="laneStrip" aria-hidden="true"></div>
                 </div>
                 <div id="gameHud">
                     <div class="hud-right">
@@ -4210,8 +4185,6 @@
         const abilityBar = document.getElementById('abilityBar');
         const abilityCtx = abilityBar.getContext('2d');
         const hudLeft = document.getElementById('hudLeft');
-        const laneStripEl = document.getElementById('laneStrip');                // Batch 568
-        const selectLaneStrip = document.getElementById('laneStripSetting');     // Batch 568
         const confirmOverlay = document.getElementById('confirmOverlay');
         const confirmCancelBtn = document.getElementById('confirmCancelBtn');
         const confirmOkBtn = document.getElementById('confirmOkBtn');
@@ -4509,8 +4482,6 @@
             canvas.style.width = on ? (VIEW_W / PAN_W * 100) + '%' : '';
             camX = on ? Math.max(0, Math.min(VIEW_W - PAN_W, camX)) : 0;
             applyCamera(true);
-            laneStripKey = null;   // never equal to a real key, so the next update always applies
-            updateLaneStrip();
         }
         // Whole DEVICE pixels, so the pixel art is not resampled between two positions as it slides.
         function applyCamera(force) {
@@ -4525,7 +4496,6 @@
             const target = Math.max(0, Math.min(VIEW_W - PAN_W, player.x + player.width / 2 - PAN_W / 2));
             camX = snap || Math.abs(target - camX) < 0.02 ? target : camX + (target - camX) * CAM_FOLLOW;
             applyCamera(false);
-            updateLaneStrip();
         }
 
         // Which side of the visible window a world x is beyond: -1 left, 1 right, 0 on screen.
@@ -4550,29 +4520,6 @@
             });
         }
 
-        // The lane strip. Rebuilt only when what it shows changes: the lane count, your lane, or which
-        // lanes are on screen.
-        let laneStripKey = null;   // never equal to a real key, so the next update always applies
-        function updateLaneStrip() {
-            const on = panActive() && selectLaneStrip.value === 'yes' && !!player;
-            let key = '', vis = '';
-            if (on) {
-                const lw = Math.floor(ROAD_WIDTH / config.lanes);
-                for (let i = 0; i < config.lanes; i++) {
-                    const c = ROAD_BORDER_LEFT + i * lw + lw / 2;
-                    vis += c >= camX && c <= camX + PAN_W ? '1' : '0';
-                }
-                key = player.currentLane + ':' + vis;
-            }
-            if (key === laneStripKey) return;
-            laneStripKey = key;
-            laneStripEl.classList.toggle('on', on);
-            if (!on) return;
-            if (laneStripEl.children.length !== vis.length) laneStripEl.innerHTML = '<i></i>'.repeat(vis.length);
-            [...laneStripEl.children].forEach((cell, i) => {
-                cell.className = i === player.currentLane ? 'you' : vis[i] === '1' ? 'vis' : '';
-            });
-        }
         /**
          * Batch 546, direct report with screenshots: switching CROSS -> SPLIT mid-run left the board
          * narrow with grey bars down both sides, and the results screen inherited them. Quitting to
@@ -11108,10 +11055,8 @@
             const cr = canvas.getBoundingClientRect();
             if (!cr.width || !VIEW_W) return 22;
             const cssPerWorld = cr.width / VIEW_W;
-            let bottom = hudLeft.getBoundingClientRect().bottom;
-            // Batch 568 - the lane strip hangs below #hudLeft without adding to its box.
-            if (laneStripEl.classList.contains('on')) bottom = Math.max(bottom, laneStripEl.getBoundingClientRect().bottom);
-            return Math.max(22, Math.round((bottom - cr.top) / cssPerWorld) + 8);
+            const hr = hudLeft.getBoundingClientRect();
+            return Math.max(22, Math.round((hr.bottom - cr.top) / cssPerWorld) + 8);
         }
 
         function drawPresentIcon(gctx, cx, cy) {
@@ -17658,7 +17603,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.31.0';
+        const GAME_VERSION = '3.31.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -18794,15 +18739,6 @@
             const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
             refreshSp();
             selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
-            // Batch 568 - LANE STRIP, on by default, saved like every other setting.
-            try { const v = localStorage.getItem('laneStrip'); if (v === 'no' || v === 'yes') selectLaneStrip.value = v; } catch (e) {}
-            bindToggle(document.getElementById('laneStripToggle'), document.getElementById('laneStripToggleLabel'),
-                document.getElementById('laneStripToggleTrack'), selectLaneStrip, 'yes', 'no');
-            selectLaneStrip.addEventListener('change', () => {
-                try { localStorage.setItem('laneStrip', selectLaneStrip.value); } catch (e) {}
-                laneStripKey = null;   // never equal to a real key, so the next update always applies
-                updateLaneStrip();
-            });
         }
         // ---------- Batch 482: in-app updates ----------
         // One check, three platforms. The game asks GitHub which release is newest and compares it
