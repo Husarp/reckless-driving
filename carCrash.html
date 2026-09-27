@@ -2750,7 +2750,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.37.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.37.1</span></div>
                 </div>
             </div>
         </div>
@@ -3730,7 +3730,7 @@
                             <div class="tut-art tut-scene"><canvas id="tutSceneRam"></canvas></div>
                             <div class="tut-copy">
                                 <p><span class="k" id="tutRamCount"></span> heavy vehicles trade Jump for the ram. Tap <span class="keys-hint">Space</span><span class="touch-hint">the ability button</span>: <span class="k">+40% speed</span> and a front guard that smashes traffic aside &mdash; but only head-on. A side-swipe still kills you.</p>
-                                <p>It runs at least 1 second, drains about a cell per second, and every kill refunds a little &mdash; trucks refund double. Chain them.</p>
+                                <p>It runs at least 1 second, drains about a cell per second, and every kill refunds two-thirds of a cell &mdash; trucks refund double. Chain them.</p>
                             </div>
                         </div>
                     </div>
@@ -3957,8 +3957,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.37.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">586</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.37.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">587</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17475,7 +17475,10 @@
                                 }
                             } else {
                                 // halved the refund alongside the SHIELD_BUMP_MS_PER_CELL cut, closing the "ramming sustains forever" exploit.
-                                const cellsGained = isTruckLike(v) ? 2 / 3 : 1 / 3;
+                                // Batch 587, direct request ("double the energy from ramming"): 2/3 of a cell per kill, a whole
+                                // 1 1/3 for a truck (was 1/3 and 2/3). The drain is a cell a second, so a ram still only pays for
+                                // itself at 1.5 car kills a second - the "ramming sustains forever" exploit stays closed.
+                                const cellsGained = isTruckLike(v) ? 4 / 3 : 2 / 3;
                                 player.energy = Math.min(100, player.energy + cellsGained * ENERGY_PER_CELL);
                                 // net this back OUT of the "use X energy bars" mission counter — the
                                 // activation itself already counted as +1 above; a kill's refund isn't
@@ -18049,7 +18052,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.37.0';
+        const GAME_VERSION = '3.37.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

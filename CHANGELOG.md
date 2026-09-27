@@ -6,6 +6,22 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.37.1 — 2026-09-28 01:03: Batch 587 — a ram kill gives back twice the energy
+
+Direct decision on "make the ramming bonus two times bigger": the ENERGY a ram kill refunds doubles, the
+points stay (a ram kill still pays 1.2x a pass).
+- A car: 2/3 of a cell (was 1/3). A truck: 1 1/3 (was 2/3).
+- Ramming drains a cell a second, so a ram still only pays for itself at 1.5 car kills a second - the
+  "ramming sustains forever" exploit the earlier halving closed stays closed.
+- Tutorial: "every kill refunds two-thirds of a cell - trucks refund double."
+Checked in a real run with the Monster Truck: a car kill +7.22 energy, a truck kill +14.63 - exactly 2/3 and
+4/3 of an 11.1-point cell, minus one frame of drain.
+
+Also looked into "the PC doesn't have every car": the save did have them (58/58, read again from the app).
+The session that showed an empty Garage had never opened the save database at all - its log has no entry
+for that start - which fits the database still being locked by the tail of the debug session used to unlock
+it, so that session ran on a blank temporary storage. A normal start afterwards opened the real save.
+
 ## 3.37.0 — 2026-09-28 00:30: Batch 586 — the coin economy rebalanced, the ambulance award made reachable, the pause dims everything, the frozen frame survives the background
 
 ### Coins (direct decisions)

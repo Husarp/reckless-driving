@@ -62,7 +62,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Level-reward cars** (asked 2026-09-28, waiting on the owner's pick). At levels 10, 20 ... 100 a
   window like the Daily Gift's reveal pops up and the player claims a car. The owner picks which cars (the PC
   test client has everything unlocked to choose from). Open: do those cars leave the shop and go into the
-  SPECIAL section?
+  SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. Still waiting on which car at
+  which level.
 - [ ] **Boosters** (idea, 2026-09-28). Bought in the shop, equipped, and used up in the next run. Examples:
   accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
   prices, and whether boxes can drop them.
@@ -74,8 +75,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [x] ~~Gift/Word coins x4, coin missions follow the level (10k/20k/40k +500 a level), Extra Box 300k +50k~~
 - [x] ~~WHO CALLS THE AMBULANCE? reachable~~ — a quarter of ambulances get a driver who cuts in; ambulances never brake.
 - [x] ~~Energy bar not dimmed while paused~~ / ~~grey screen after coming back~~ / ~~tutorial amounts~~
-- [ ] **Ramming bonus x2** (asked 2026-09-27): a ram kill pays 1.2x a pass - double the points (2.4x, above a
-  jump-over's 2x) or double the extra (1.4x)? Asked.
+- [x] ~~Ramming bonus x2~~ — the energy a kill refunds doubled (Batch 587); the points stay 1.2x a pass.
 
 ### Done in Batch 585
 
