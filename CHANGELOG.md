@@ -6,6 +6,28 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.34.2 — 2026-09-27 21:51: Batch 581 — the update check tries again when the internet comes back, and the VERSION row fits a phone
+
+Two direct reports from testing 3.33.1 -> 3.34.1 on the phones.
+
+**The game never looked again after starting offline.** Started with the internet off, then switched on
+while still in the game: no banner until CHECK NOW. The one automatic check had failed silently, and the
+5-minute limit (Batch 578) counted it as done. Now:
+- a check that could not reach GitHub does not count toward the 5-minute limit, and tries again every 30s
+  (a request that never left the phone costs nothing on GitHub's hourly allowance);
+- the connection coming back checks at once, where the system reports it.
+A check that did reach GitHub still counts, so the limit holds. Tested with a stand-in for GitHub: offline
+check -> retry scheduled -> back online -> banner shown; an online event right after that made no request.
+
+**Settings -> VERSION on a phone (photo):** GET UPDATE + CHECK NOW + GITHUB never shrank, so with the
+larger phone text they left the version text a 30px column and "available" ran under GET UPDATE. The text
+now keeps at least 140px; when the buttons don't fit beside it, they move to their own line (and wrap
+between themselves if needed). Measured, nothing overlapping or off screen: 412px phone - text on one
+line, buttons below; 360px - buttons on two lines; 2 buttons only - still one line; PC - unchanged.
+
+Also: CHECK FOR UPDATES' description said "when the game starts"; since Batch 578 it is also "when you come
+back to it".
+
 ## 3.34.1 — 2026-09-27 21:36: Batch 580 — a new Awards bar (design A1, "dither bar")
 
 Direct request: the bar at the top of Awards is now design A1 from `Awards Bar Options.dc.html` - the old

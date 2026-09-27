@@ -59,6 +59,11 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
+### Done in Batch 581
+
+- [x] ~~No banner after starting offline~~ — a failed check retries every 30s and on the connection coming back.
+- [x] ~~VERSION row squashed on a phone~~ — the buttons move below the text when they don't fit.
+
 ### Done in Batch 578
 
 - [x] ~~Update check on every return to the game~~ — checks on launch and on every return (GitHub at most

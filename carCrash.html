@@ -567,6 +567,12 @@
         .stg-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 13px 0; border-bottom: 1px dashed var(--c-panel-border); }
         .stg-row:last-of-type { border-bottom: none; }
         .stg-row-label { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        /* Batch 581, direct report (photo): on a phone, GET UPDATE + CHECK NOW + GITHUB left the VERSION text
+           a 30px column, and "available" ran under GET UPDATE. The text keeps at least 140px; when the
+           buttons don't fit beside it they move to their own line. */
+        .stg-row-wrap { flex-wrap: wrap; }
+        .stg-row-wrap .stg-row-label { flex: 1 1 140px; }
+        .stg-row-wrap .stg-row-buttons { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .stg-row-title { font-family: 'Silkscreen', monospace; font-size: 11px; letter-spacing: 1px; color: var(--c-text); }
         .stg-row-hint { font-size: 12px; color: var(--c-text-dimmer); }
         /* per-setting multiplier readouts (lanes, difficulty), same amber tone as the header's own overall MULTIPLIER so they visually read as "part of that number" rather than a separate unrelated stat. */
@@ -2710,7 +2716,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.2</span></div>
                 </div>
             </div>
         </div>
@@ -3201,7 +3207,7 @@
                 <div class="stg-row">
                     <div class="stg-row-label">
                         <div class="stg-row-title">CHECK FOR UPDATES</div>
-                        <div class="stg-row-hint">Ask GitHub for a newer version when the game starts.</div>
+                        <div class="stg-row-hint">Ask GitHub for a newer version when the game starts and when you come back to it.</div>
                     </div>
                     <div class="stg-toggle" id="updateCheckToggle">
                         <span class="stg-toggle-label" id="updateCheckToggleLabel">ON</span>
@@ -3213,7 +3219,7 @@
                     </select>
                 </div>
     
-                <div class="stg-row">
+                <div class="stg-row stg-row-wrap">
                     <div class="stg-row-label">
                         <div class="stg-row-title">VERSION</div>
                         <div class="stg-row-hint" id="updateStatusHint">&nbsp;</div>
@@ -3222,7 +3228,7 @@
                          nothing to do about it. The UPDATE action only existed on the main-menu banner,
                          which you cannot see while you are standing in Settings. Both buttons live here
                          now; GET UPDATE is hidden until a check actually finds one. -->
-                    <div style="display:flex;gap:8px;flex:none;align-items:center;">
+                    <div class="stg-row-buttons">
                         <button class="btn btn-mint" id="getUpdateBtn" style="display:none;flex:none;width:auto;padding:7px 12px;font-size:9px;">GET UPDATE</button>
                         <button class="btn" id="checkUpdateBtn" style="flex:none;width:auto;padding:7px 12px;font-size:9px;">CHECK NOW</button>
                         <!-- Batch 537, direct request: a button that reaches the releases page "no matter
@@ -3916,8 +3922,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.34.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">580</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.34.2 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">581</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17926,7 +17932,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.34.1';
+        const GAME_VERSION = '3.34.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19462,12 +19468,14 @@
                     if (hint) hint.textContent = 'v' + GAME_VERSION + ' — up to date.';
                     showGetUpdateButton(false);
                 }
+                return 'ok';
             } catch (e) {
                 // A failed check is almost always "no internet", which is not worth interrupting
                 // anyone over. It stays silent unless they asked for the check themselves.
                 if (manual && hint) hint.textContent = e && e.noConnection
                     ? 'Could not reach GitHub - no internet, or a firewall or VPN is blocking the game.'
                     : 'Could not check (' + (e.message || e) + ').';
+                return e && e.noConnection ? 'offline' : 'error';
             } finally {
                 if (btn) btn.disabled = false;
             }
@@ -19586,8 +19594,24 @@
 
             // Delayed so a boot that is already doing font loading, canvas sizing and save parsing
             // is not also waiting on the network.
-            let lastAutoCheck = 0;
-            if (selectUpdateCheck.value === 'yes') setTimeout(() => { lastAutoCheck = Date.now(); checkForUpdates(false); }, 3000);
+            // Batch 581, direct report: started with the internet off, the game never looked again once it
+            // came back - the banner only appeared after CHECK NOW. A check that could not reach GitHub now
+            // does not count toward the 5-minute limit and tries again every 30s (a failed request never
+            // reached GitHub, so it costs nothing there), and the connection coming back checks at once
+            // where the system says so.
+            let lastAutoCheck = 0, autoRetry = null;
+            const autoCheck = async () => {
+                clearTimeout(autoRetry);
+                autoRetry = null;
+                if (selectUpdateCheck.value !== 'yes' || Date.now() - lastAutoCheck < 5 * 60000) return;
+                lastAutoCheck = Date.now();
+                if (await checkForUpdates(false) === 'offline') {
+                    lastAutoCheck = 0;
+                    autoRetry = setTimeout(autoCheck, 30000);
+                }
+            };
+            setTimeout(autoCheck, 3000);
+            window.addEventListener('online', autoCheck);
             // Batch 578, direct request: check again every time the player comes back to the game. A
             // phone keeps the app alive in the background, so "opening" it is usually this, not a launch.
             // An update already found shows again at once; GitHub is asked at most every 5 minutes,
@@ -19595,9 +19619,7 @@
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden || selectUpdateCheck.value !== 'yes') return;
                 if (updateInfo) showUpdateBanner(updateInfo.version);
-                if (Date.now() - lastAutoCheck < 5 * 60000) return;
-                lastAutoCheck = Date.now();
-                checkForUpdates(false);
+                autoCheck();
             });
         }
 
