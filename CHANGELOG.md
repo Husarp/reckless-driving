@@ -6,6 +6,20 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.32.2 — 2026-09-27 17:54: Batch 572 — the full energy bar's border runs all the way round
+
+Direct report: when the bar is full its green stripes showed only on the top and bottom - the sides were
+solid lines - and they blinked rather than moved.
+
+Both were how it was drawn: stripes only on the top and bottom rows, the side columns filled solid, and the
+pattern swapped between two positions every 90ms. Now one path runs round the whole frame and the stripes
+travel along it, clockwise, one pixel every 30ms. The stripes are 3px (they were 4): the frame is 282px
+round and a 6px repeat divides that exactly, so the pattern flows through the corners without a seam -
+4px stripes would have left a 2px break at one corner. Checked pixel by pixel: every frame pixel is
+painted, all four sides striped, and each edge moves one pixel per step in the clockwise direction.
+
+---
+
 ## 3.32.1 — 2026-09-27 17:39: Batch 571 — HIGH ROLLER can be completed again
 
 Approved suggestion. HIGH ROLLER's tiers were 3 / 4.5 / 6 / **7.5x**, but the highest multiplier any

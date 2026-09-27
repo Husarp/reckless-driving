@@ -39,6 +39,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [x] ~~Lane multipliers~~ — done, Batch 570 (option B: traffic made even, re-tested, 3 x1.10 / 4 x1.00 / 10 x0.82).
 - [x] ~~HIGH ROLLER tiers~~ — done, Batch 571 (2.5 / 3.5 / 4.5 / 5.5x; best reachable 5.65x).
 
+- [ ] **Pause button easier to hit on small screens.** Asked 2026-09-27: it matches the energy bar's
+  height, so on a small phone it is ~31px - below the ~48px a thumb needs. User's idea: an invisible,
+  bigger hit area around it so the look stays. Options sent - awaiting a choice.
+
+### Done in Batch 572
+
+- [x] ~~Full energy bar: stripes only top and bottom, and blinking~~ — one path round the frame, moving clockwise.
+
 ### Done in Batch 565
 
 - [x] ~~Results list remembers its scroll position~~ — always opens at the top.
