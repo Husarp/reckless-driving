@@ -51,9 +51,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Rename "Car Crash" to "Reckless Driving" everywhere** (asked 2026-09-27) - it is the game's real
   name. Not started: needs a list of where "Car Crash" / carCrash still appears (file names, folder,
   docs, code comments, build scripts, the repo folder) and which of those are safe to rename.
-- [ ] **GIANT SNAIL's flat +0.20** (asked 2026-09-27, waiting on a decision). It is the only car paid
-  outside the size formula - added in Batch 499 because shrinking the snail halved its size pay and it
-  has no ability. Without it: x0.85. User: "maybe remove it".
+- [ ] **Android updates through Android's own download manager** (asked 2026-09-27, waiting on a
+  decision; idea from the Lexling chat). The download runs in the notification bar with a progress bar;
+  when it is done, the player taps the notification (or INSTALL in the game, which opens the phone's
+  Downloads list) and the phone's installer takes it from there - so the game itself never needs the
+  "install unknown apps" switch; if Android asks at all, it asks once about the Files / My Files app.
+- [ ] **Version numbers in the names of OLD release files** (asked 2026-09-27, "maybe"). From v3.33.3 on,
+  release files carry the version (RecklessDrivingSetup-v3.33.3.exe, RecklessDriving-v3.33.3.apk).
+- [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
 ### Done in Batch 578
 
