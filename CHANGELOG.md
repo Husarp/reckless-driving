@@ -6,6 +6,30 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.32.4 — 2026-09-27 18:47: Batch 574 — Settings ends with BACK, the GIFT link's colours, a faster answer when GitHub can't be reached
+
+Three direct reports.
+
+- **Settings has BACK only.** START RUN is gone from its footer; BACK takes the full width in the same
+  style as the other screens' BACK. The pause menu's Settings needed no special case any more - it used to
+  hide START RUN and stretch BACK itself. Checked from the menu and from a paused run.
+- **The GIFT link in the Missions footer had the wrong colours.** The gift icon is two-colour: the box
+  follows its tab's colour (mint, drawn as currentColor) and the ribbon is fixed amber. Copied into a
+  footer button, currentColor became the button's grey text, so the box went grey under an amber ribbon.
+  A two-colour icon now keeps its tab's colour when copied; single-colour icons (the crown, the chart) stay
+  in the button's text colour as before.
+- **CHECK NOW on the phone "checked for really long", then "Could not check (Failed to fetch)".** Looked at
+  on the phone itself: nothing there could resolve names - not github.com, not google.com - and other apps
+  (Messenger, a Firestore client) failed the same way. Two filters were running: AFWall+, where the game had
+  been allowed, and the Lockdown VPN, which carries all traffic and was the one refusing. So the block is on
+  the phone, not in the game (the PC, same code, updates fine) - and the fix is to let the game through
+  Lockdown as well. What the game did badly was the waiting: a dropped connection only fails when the
+  system gives up on it. The check now gives up after **10 seconds** and says what is likely wrong -
+  "Could not reach GitHub - no internet, or a firewall or VPN is blocking the game." Measured: a refused
+  connection shows it at once, a hanging one after 10.0s.
+
+---
+
 ## 3.32.3 — 2026-09-27 18:04: Batch 573 — the pause button is easier to hit on a phone
 
 Direct request, option A as agreed: on a small phone the pause button measures 31 x 31px - it matches the

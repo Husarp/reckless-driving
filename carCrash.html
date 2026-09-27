@@ -2605,7 +2605,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.3</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.32.4</span></div>
                 </div>
             </div>
         </div>
@@ -3126,9 +3126,9 @@
 
             </div>
             <div class="stg-footer">
-                    <!-- real bug: `.btn` sets width:100%, and `flex:none` (flex-basis: auto) falls back to that width as its sizing basis, so BACK was stretching to fill the ENTIRE footer row, squeezing START RUN into an unusable sliver (caught from a user screenshot). `width:auto` cancels the inherited 100%. -->
-                    <button class="btn" id="setupBackBtn" style="flex:none;width:auto;padding-left:24px;padding-right:24px;">BACK</button>
-                    <button class="btn btn-primary" id="setupStartBtn" style="flex:1;">START RUN</button>
+                    <!-- Batch 574, direct request: Settings ends with BACK only - START RUN is gone from here.
+                         Full width and the same .btn-nav style as the other screens' BACK. -->
+                    <button class="btn btn-nav" id="setupBackBtn">BACK</button>
             </div>
         </div>
     </div>
@@ -3793,8 +3793,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.32.3 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">573</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.32.4 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">574</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4116,6 +4116,15 @@
             if (!svg || btn.querySelector('svg')) return;
             btn.classList.add('btn-xlink');
             btn.insertAdjacentHTML('afterbegin', svg.outerHTML);
+            // Batch 574, direct report: the GIFT link in the Missions footer had "wrong colours". Its icon
+            // is two-colour - the box follows the tab's own colour (mint, via currentColor), the ribbon is
+            // fixed amber - and in a footer currentColor is the button's grey text, so the box went grey
+            // under an amber ribbon. A two-colour icon keeps its tab's colour; single-colour ones stay in
+            // the button's text colour, as they always were.
+            if (svg.querySelector('path:not([fill="currentColor"])')) {
+                const tabColour = menuBtn.style.getPropertyValue('--tab-c');
+                if (tabColour) btn.querySelector('svg').style.color = tabColour;
+            }
         }
         const dailyGiftMissionsBtn = document.getElementById('dailyGiftMissionsBtn');
         const achievementsBtn = document.getElementById('missionsBtn'); // Batch 302 — id kept as missionsBtn (see the Batch 122/181 comment on the button itself); this const just gives it a clearer name for the achievements code below
@@ -4243,7 +4252,6 @@
         const skipCrashToggle = document.getElementById('skipCrashToggle');
         const skipCrashToggleLabel = document.getElementById('skipCrashToggleLabel');
         const skipCrashToggleTrack = document.getElementById('skipCrashToggleTrack');
-        const setupStartBtn = document.getElementById('setupStartBtn');
         const pauseSoundSlider = document.getElementById('pauseSoundSlider');
         const pauseSirenSlider = document.getElementById('pauseSirenSlider');
         const pauseBtn = document.getElementById('pauseBtn');
@@ -17467,12 +17475,6 @@
         resumeBtn.addEventListener('click', () => setPaused(false));
         pauseSettingsBtn.addEventListener('click', () => {
             setupFromPause = true;
-            setupStartBtn.style.display = 'none';   // no starting a run from inside one
-            // Batch 545, direct report: BACK came out "super small". It is sized to sit BESIDE
-            // START RUN - `flex:none; width:auto` with just enough padding - so with START RUN gone
-            // it kept its narrow width in an otherwise empty footer. Alone, it takes the row.
-            setupBackBtn.style.flex = '1';
-            setupBackBtn.style.width = '';
             gameView.classList.remove('active');
             setupView.classList.add('active');
             sizeMenuFrame();
@@ -17506,9 +17508,6 @@
             // while the game view is not the active one - which it was not, a moment ago.
             if (setupFromPause) {
                 setupFromPause = false;
-                setupStartBtn.style.display = '';
-                setupBackBtn.style.flex = 'none';    // back to sitting beside START RUN
-                setupBackBtn.style.width = 'auto';
                 gameView.classList.add('active');
                 // Order matters: the view has to be active FIRST, or applyTouchControls() skips its own
                 // re-fit again and we are back where we started.
@@ -17641,7 +17640,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.32.3';
+        const GAME_VERSION = '3.32.4';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19095,8 +19094,25 @@
             }
         })();
 
+        // Batch 574, direct report from the phone: CHECK NOW sat on "Checking..." for a long time and then
+        // said "Could not check (Failed to fetch)". The phone's own filtering was dropping the connection
+        // (github.com did not even resolve there), and a dropped connection only fails when the system
+        // gives up on it. Now the check gives up after 10s, and a connection that never happened says so
+        // in words instead of the browser's "Failed to fetch".
+        const UPDATE_TIMEOUT_MS = 10000;
         async function fetchLatestRelease() {
-            const res = await fetch(UPDATE_API, { headers: { 'Accept': 'application/vnd.github+json' } });
+            const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+            const timer = ctrl ? setTimeout(() => ctrl.abort(), UPDATE_TIMEOUT_MS) : null;
+            let res;
+            try {
+                res = await fetch(UPDATE_API, { headers: { 'Accept': 'application/vnd.github+json' }, signal: ctrl ? ctrl.signal : undefined });
+            } catch (e) {
+                const err = new Error('no connection to GitHub');
+                err.noConnection = true;
+                throw err;
+            } finally {
+                if (timer) clearTimeout(timer);
+            }
             if (!res.ok) throw new Error('GitHub answered ' + res.status);
             const data = await res.json();
             const version = String(data.tag_name || '').replace(/^v/i, '');
@@ -19150,7 +19166,9 @@
             } catch (e) {
                 // A failed check is almost always "no internet", which is not worth interrupting
                 // anyone over. It stays silent unless they asked for the check themselves.
-                if (manual && hint) hint.textContent = 'Could not check (' + (e.message || e) + ').';
+                if (manual && hint) hint.textContent = e && e.noConnection
+                    ? 'Could not reach GitHub - no internet, or a firewall or VPN is blocking the game.'
+                    : 'Could not check (' + (e.message || e) + ').';
             } finally {
                 if (btn) btn.disabled = false;
             }
@@ -19275,8 +19293,6 @@
             const btn = e.target.closest('.btn');
             if (btn && !btn.disabled) playSound(Math.random() < 0.5 ? 'click1' : 'click2');
         });
-        // START RUN button in the Settings footer (matches the 1A design doc's own footer), same launchGame() call the main menu's own START RUN button already uses.
-        setupStartBtn.addEventListener('click', launchGame);
 
         // Car color swatch picker Garage preview — draws the current playerColor on the actual player car sprite (native 14x24 resolution, ~4x scaled) so the swatch picker shows what the color really looks like on the car, not just a flat square.
         let carSpriteUprightBuf = null;
