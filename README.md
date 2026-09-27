@@ -105,12 +105,12 @@ just no internet.
 | Where | What UPDATE does |
 |---|---|
 | Windows app | Downloads the setup exe and runs it; the app closes so the installer can replace it. Per-user, so no admin prompt. |
-| Android | Android's own download service fetches the APK (progress in the game and in the notification bar) into Downloads, as `RecklessDriving-v<version>.apk`. Then tap the finished download's notification, or **INSTALL** (it opens the phone's Downloads list) and the file - the phone's own installer does the rest. **Android always asks you to confirm** - a sideloaded app may never replace itself silently. |
+| Android | Downloads the APK (0-100% on the banner and in Settings) and hands it to Android's installer. **Android always asks you to confirm** - a sideloaded app may never replace itself silently. |
 | Browser | Opens the release page, since there is nothing to install. |
 
-The game itself never installs anything on Android, so it needs no "install unknown apps" permission.
-If Android asks at all, it asks once about the Files / Downloads app that opens the file. The
-downloaded file is deleted once the new version runs.
+On Android the game needs "allow Reckless Driving to install unknown apps", once per phone
+(`REQUEST_INSTALL_PACKAGES`). The first UPDATE opens that settings screen; coming back from it carries on
+with the install by itself. The downloaded file (in the game's cache) is deleted once the new version runs.
 
 **Updates only install over a build signed with the same key.** Since 3.25.0 the APK is signed with
 the project's own release key (see *Android release key* below). Installs from before 3.25.0 were

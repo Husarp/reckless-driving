@@ -59,6 +59,12 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   (2026-09-27): 41 files across reckless-driving, lexling and lockdown, with their notes to match.
 - [x] ~~GIANT SNAIL's flat +0.20~~ — kept, by decision: 250 km/h is hard to survive and it has no ability.
 
+### Done in Batch 582
+
+- [x] ~~Android updates: back to the game installing them itself~~ — with the percentage, and the install
+  carrying on by itself after "install unknown apps" is allowed. The default for all projects
+  (APP-STANDARDS.md); Lexling still has to switch (its own chat).
+
 ### Done in Batch 581
 
 - [x] ~~No banner after starting offline~~ — a failed check retries every 30s and on the connection coming back.

@@ -6,6 +6,42 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.35.0 — 2026-09-27 22:10: Batch 582 — Android updates: the game downloads and installs them itself, with the percentage
+
+Direct decision, after testing Batch 579's route on both phones: back to the game installing its own
+updates, keeping the percentage.
+
+**What testing showed** (the "install unknown apps" switch turned off again first, to see it fresh):
+- OnePlus 6: the download sat at 0%. Its record in Android's download service said *pending* - the
+  service never started it; it did not see a usable connection, while the game's own requests work (the
+  phone runs a firewall and a VPN filter, which treat the download service as a separate app).
+- Samsung: downloaded fine, INSTALL opened Downloads - and tapping the file asked to allow the *Downloads
+  app* to install unknown apps. So the route still needed the same permission, just for another app,
+  with more taps.
+
+**Now:**
+- UPDATE downloads the APK over the game's own connection, with **0-100% on the banner and in Settings**
+  (polled every 0.5s), into the game's cache.
+- Then the game hands it to Android's installer. The first time, it needs "allow Reckless Driving to
+  install unknown apps": Android's settings screen opens, and **coming back from it carries on with the
+  install by itself** - no second tap. Coming back without allowing it says so, and INSTALL tries again
+  (without reopening the settings screen on its own).
+- Android still asks "Update?" every time, and only an APK signed with the same key installs - the
+  permission only lets the game open the installer. That is how sideloaded apps that update themselves
+  work (Signal's and Telegram's website builds, F-Droid).
+- The file is deleted once the new version runs. A leftover from 3.34.0-3.34.2 (Android's download
+  service) is cancelled and removed then too - on the OnePlus that is the download still queued.
+- Given up: the progress bar in the notification bar - it came with the download service, and the game's
+  own notification would need yet another permission on Android 13+.
+- `REQUEST_INSTALL_PACKAGES` is back in the manifest; the plugin's methods are download / progress /
+  install / remove (+ openUrl).
+
+Tested in the browser against a stand-in for the plugin: 0 -> 40 -> 80%, no permission -> the settings
+message, back without allowing -> "not allowed yet", tap INSTALL -> allow -> back -> the installer opens
+with no further tap, a failed download (HTTP 404) -> the release page, the old queued download removed.
+The Java compiles. APP-STANDARDS.md (all projects) updated to this route - Lexling still uses the
+download service.
+
 ## 3.34.2 — 2026-09-27 21:51: Batch 581 — the update check tries again when the internet comes back, and the VERSION row fits a phone
 
 Two direct reports from testing 3.33.1 -> 3.34.1 on the phones.

@@ -39,6 +39,9 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Batch 579: no REQUEST_INSTALL_PACKAGES any more. Updates are downloaded by Android's own
-         download service and the player opens the file, so the game never installs anything. -->
+    <!-- In-app updates (Batch 582): lets the game hand the APK it downloaded to Android's own installer.
+         Android still shows its install confirmation - a sideloaded app can never replace itself
+         silently. Batch 579 had dropped this for Android's download service; that still needed the
+         same permission (for the Files app), took more taps, and never started behind a firewall. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

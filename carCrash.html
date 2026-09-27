@@ -2716,7 +2716,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.34.2</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.35.0</span></div>
                 </div>
             </div>
         </div>
@@ -3922,8 +3922,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.34.2 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">581</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.35.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">582</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -17932,7 +17932,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.34.2';
+        const GAME_VERSION = '3.35.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19481,40 +19481,62 @@
             }
         }
 
-        // Batch 579, direct request ("like Lexling"): on Android the APK is fetched by Android's own download
-        // service - the progress shows here and in the notification bar, the file lands in Downloads named
-        // with its version - and the PLAYER opens it (the finished download's notification, or INSTALL, which
-        // shows the phone's Downloads list), so the phone's own installer does it. The game needs no
-        // permission to install apps; if Android asks at all, it asks once about the Files / Downloads app.
-        // The download is remembered (updateFile) so the file goes once the new version runs.
-        let apkDownloadedVersion = null;
-        async function downloadApkUpdate(say, buttons) {
-            const P = window.Capacitor.Plugins.AppUpdate;
-            const version = updateInfo.version, name = 'RecklessDriving-v' + version + '.apk';
+        // Batch 582, direct decision (it replaces Batch 579's route through Android's download service): the
+        // game downloads the APK over its own connection - 0-100% on the banner and in Settings - and opens
+        // Android's installer itself. That needs "allow Reckless Driving to install unknown apps" once: the
+        // first time, Android's settings screen opens, and coming back from it carries on with the install by
+        // itself. The download-service route still asked for the same permission (for the Files / Downloads
+        // app instead), took more taps, and on a phone behind a firewall never started at all. updateFile
+        // remembers the download so its file goes once the new version runs.
+        let apkDownloadedVersion = null, apkAwaitingPermission = false;
+        // Batch 490: progress goes to BOTH places, because an update can be started from either the
+        // main-menu banner or the Settings row and the player is only looking at one of them.
+        function sayUpdate(t) {
+            const sub = document.getElementById('mmUpdateSub'), hint = document.getElementById('updateStatusHint');
+            if (sub) sub.textContent = t;
+            if (hint) hint.textContent = t;
+        }
+        async function installApkUpdate(openSettings) {
+            try {
+                await window.Capacitor.Plugins.AppUpdate.install({ openSettings: openSettings });
+                sayUpdate('Confirm the update when Android asks.');
+            } catch (e) {
+                if (String((e && e.message) || e).indexOf('NEEDS_PERMISSION') === -1) throw e;
+                apkAwaitingPermission = openSettings;
+                sayUpdate(openSettings
+                    ? 'Allow Reckless Driving to install apps, then come back - the update carries on by itself.'
+                    : 'Not allowed yet. Allow Reckless Driving to install apps in Android settings, then tap INSTALL.');
+            }
+        }
+        async function downloadApkUpdate(buttons) {
+            const P = window.Capacitor.Plugins.AppUpdate, version = updateInfo.version;
             let prev = null;
             try { prev = JSON.parse(localStorage.getItem('updateFile')); } catch (e) {}
             if (prev) await P.remove({ id: prev.id }).catch(() => {});   // an earlier download, not needed
-            const { id } = await P.download({ url: updateInfo.apkUrl, name: name, title: 'Reckless Driving ' + version });
-            try { localStorage.setItem('updateFile', JSON.stringify({ id: id, version: version })); } catch (e) {}
-            say('Downloading… 0%');
-            const poll = setInterval(async () => {
-                const s = await P.progress({ id: id }).catch(() => ({ status: 'failed' }));
-                if (s.status === 'running') {
-                    say('Downloading… ' + (s.total > 0 ? Math.round(s.done / s.total * 100) : 0) + '%');
-                    return;
-                }
-                clearInterval(poll);
-                buttons.forEach(b => { if (b) b.disabled = false; });
-                if (s.status === 'done') {
-                    apkDownloadedVersion = version;
-                    buttons.forEach(b => { if (b) b.textContent = 'INSTALL'; });
-                    say('Downloaded. Tap INSTALL, then ' + name + '.');
-                } else {
-                    say('The download failed. Opening the download page instead…');
-                    openUpdatePage();
-                }
-            }, 700);
+            await P.download({ url: updateInfo.apkUrl });
+            try { localStorage.setItem('updateFile', JSON.stringify({ id: 'cache', version: version })); } catch (e) {}
+            sayUpdate('Downloading… 0%');
+            await new Promise((resolve, reject) => {
+                const poll = setInterval(async () => {
+                    const s = await P.progress().catch(() => ({ status: 'failed' }));
+                    if (s.status === 'running') {
+                        sayUpdate('Downloading… ' + (s.total > 0 ? Math.round(s.done / s.total * 100) : 0) + '%');
+                        return;
+                    }
+                    clearInterval(poll);
+                    if (s.status === 'done') resolve(); else reject(new Error(s.error || 'the download failed'));
+                }, 500);
+            });
+            apkDownloadedVersion = version;
+            buttons.forEach(b => { if (b) b.textContent = 'INSTALL'; });
+            await installApkUpdate(true);
         }
+        // back from Android's "install unknown apps" screen: carry on without another tap
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden || !apkAwaitingPermission) return;
+            apkAwaitingPermission = false;
+            installApkUpdate(false).catch(e => sayUpdate('Update failed (' + ((e && e.message) || e) + ').'));
+        });
         // the new version runs: the downloaded file that brought it goes
         (function removeInstalledApkDownload() {
             if (updatePlatform() !== 'android') return;
@@ -19527,18 +19549,9 @@
 
         async function applyUpdate() {
             if (!updateInfo) return;
-            // already downloaded: INSTALL shows the phone's Downloads list, where the player taps the file
-            if (updatePlatform() === 'android' && apkDownloadedVersion === updateInfo.version) {
-                window.Capacitor.Plugins.AppUpdate.openDownloads().catch(() => {});
-                return;
-            }
             const btn = document.getElementById('mmUpdateBtn');
-            const sub = document.getElementById('mmUpdateSub');
-            const hint = document.getElementById('updateStatusHint');
             const getBtn = document.getElementById('getUpdateBtn');
-            // Batch 490: progress goes to BOTH places, because this can now be started from either
-            // the main-menu banner or the Settings row and the player is only looking at one of them.
-            const say = t => { if (sub) sub.textContent = t; if (hint) hint.textContent = t; };
+            const say = sayUpdate;
             if (btn) btn.disabled = true;
             if (getBtn) getBtn.disabled = true;
             try {
@@ -19551,7 +19564,11 @@
                     say('Starting the installer…');
                 } else if (platform === 'android') {
                     if (!updateInfo.apkUrl) throw new Error('this release has no Android build');
-                    await downloadApkUpdate(say, [btn, getBtn]);
+                    if (apkDownloadedVersion === updateInfo.version) await installApkUpdate(true);
+                    else await downloadApkUpdate([btn, getBtn]);
+                    // the player may cancel Android's dialog, or still have to allow installs - INSTALL again
+                    if (btn) btn.disabled = false;
+                    if (getBtn) getBtn.disabled = false;
                 } else {
                     window.open(UPDATE_PAGE, '_blank');
                     say('Opened the download page in your browser.');
