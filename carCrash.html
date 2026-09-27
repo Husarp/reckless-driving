@@ -2708,7 +2708,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.33.1</span></div>
                 </div>
             </div>
         </div>
@@ -3914,8 +3914,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.33.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">575</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.33.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">576</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -7010,8 +7010,15 @@
             const dir = to > from ? 1 : -1;
             const step = odometerStep(to - from);
             let at = from;
-            const tick = () => {
-                at += step * dir;
+            // Batch 576 - by elapsed time, not per frame, so it rolls at the same speed on a 120Hz screen.
+            // `pos` keeps the fraction: a step of 1 at 120Hz is half a count per frame, which a whole
+            // number per frame could only round back up to 1 - twice as fast again.
+            let pos = from, lastTs = performance.now();
+            const tick = (ts) => {
+                const frames = Math.min(4, Math.max(0, (ts - lastTs) / (1000 / 60)));
+                lastTs = ts;
+                pos += step * frames * dir;
+                at = dir > 0 ? Math.floor(pos) : Math.ceil(pos);
                 if ((dir > 0 && at >= to) || (dir < 0 && at <= to)) at = to;
                 el.dataset.rollAt = at;
                 el.textContent = fmt(at);
@@ -16795,7 +16802,39 @@
             }
         }
 
-        function loop() {
+        // Batch 576, direct report: on a Samsung Galaxy A56 "everything is faster" than on the OnePlus 6 -
+        // the road, the acceleration, driving forward, every animation. Measured: the Samsung's screen
+        // runs at 120Hz, the OnePlus at 60. The game advances everything by a fixed amount per FRAME
+        // (speed ramp, traffic, spawn chances, timers, the menu road), so at 120Hz it all ran exactly
+        // twice as fast - and any 90/144Hz phone or PC monitor would be off the same way.
+        //
+        // Now loopStep() - one tick of the game - runs 60 times per second of REAL time whatever the
+        // display does: every frame at 60Hz, every other frame at 120Hz, two in three at 90Hz. A step is
+        // allowed from 2ms early, so the normal jitter of a 60Hz display never turns one frame into zero
+        // steps and the next into two (a stutter). A long gap - the screen off, the app in the
+        // background - is not "caught up" (that would fast-forward the run): at most 4 steps a frame.
+        const STEP_MS = 1000 / 60;
+        let stepAcc = 0, stepLastTs = null;
+        function loop(ts) {
+            requestAnimationFrame(loop);   // exactly one frame pending, whatever the step does
+            const now = typeof ts === 'number' ? ts : performance.now();
+            if (stepLastTs === null) stepLastTs = now - STEP_MS;
+            stepAcc += Math.min(Math.max(0, now - stepLastTs), 100);
+            stepLastTs = now;
+            let steps = 0;
+            while (stepAcc >= STEP_MS - 2 && steps < 4) {
+                stepAcc -= STEP_MS;
+                steps++;
+                loopStep();
+            }
+            if (steps === 4) stepAcc = 0;
+            // A screen at 59.94 or 60.1Hz (common) is a hair off 60, so the leftover drifts a little every
+            // frame until it finally costs a skipped or doubled step - a hitch every second or so. A tiny
+            // leftover is let go instead, which locks such a screen (and 119.9/120.1Hz ones) to an exact
+            // step per frame; it only ever touches sub-millisecond amounts, so the pace stays 60/s.
+            else if (steps && Math.abs(stepAcc) < 1) stepAcc *= 0.8;
+        }
+        function loopStep() {
             tickTimePlayed();   // Batch 557 - first, before any branch below returns early
             // Batch 472 — all drawing below is in world units; this maps them onto the 3x backing store.
             // Smoothing off: every buffer blit (road tiles, verge strips, wrecks) lands on integer device
@@ -16821,7 +16860,6 @@
                 menuCtx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
                 menuCtx.imageSmoothingEnabled = false;
                 drawMenuScene(performance.now());
-                requestAnimationFrame(loop);
                 return;
             }
 
@@ -16832,14 +16870,12 @@
                 if (garageView.classList.contains('active') && playerColor === PRISM_COLOR_KEY) {
                     refreshPrismCarTiles();
                 }
-                requestAnimationFrame(loop);
                 return;
             }
             stopMenuMusic(); // Batch 297 — we're in gameView now (real gameplay or pause) — make sure chill music isn't still running underneath
 
             // Pause: freeze last canvas frame untouched, skip all updates.
             if (gamePaused) {
-                requestAnimationFrame(loop);
                 return;
             }
 
@@ -17584,7 +17620,6 @@
                 }
             }
 
-            requestAnimationFrame(loop);
         }
 
         // Action hooks for transitions
@@ -17761,7 +17796,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.33.0';
+        const GAME_VERSION = '3.33.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

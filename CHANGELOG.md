@@ -6,6 +6,40 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.33.1 — 2026-09-27 19:23: Batch 576 — the game runs at the same speed on every screen
+
+Direct report from testing on two phones side by side: on the Samsung Galaxy A56 "everything is
+faster" than on the OnePlus 6 - the road, the acceleration, driving forward, every animation.
+
+**Cause, measured on both phones:** the Samsung's screen refreshes at **120Hz**, the OnePlus's at 60.
+The game advanced everything by a fixed amount per screen frame - the speed ramp, traffic, spawn
+chances, warning timers, the menu's road - so on the Samsung it all ran exactly twice as fast. Any
+90/144Hz phone or PC monitor was off the same way.
+
+**Fix:** one tick of the game now runs 60 times per second of real time, whatever the screen does -
+every frame at 60Hz, every other frame at 120Hz, two in three at 90Hz. Two details that matter for
+smoothness:
+- a tick may start up to 2ms early, so the normal timing wobble of a 60Hz screen never turns one frame
+  into none and the next into two;
+- screens a hair off 60 (59.94 / 60.1Hz are common) would slowly drift into a skipped or doubled tick
+  every second or so; sub-millisecond leftovers are let go, which locks them to one tick per frame.
+A long gap (screen off, app in the background) is not fast-forwarded - at most 4 ticks per frame.
+
+The count-up animation for scores and coins was per-frame too; it now runs on elapsed time, keeping
+the fraction, so counting up by ones is not rounded back to double speed.
+
+**Verified** by feeding the loop frame times as each kind of screen delivers them, 20 seconds each:
+
+| screen | ticks per frame | ticks / s | speed after 20s |
+|---|---|---|---|
+| 60Hz, 59.94Hz, 60.1Hz, 60Hz +-0.3ms jitter | always exactly 1 | 60 (+-0.1%) | 69 km/h |
+| 119.9 / 120.1Hz | exactly every other frame | 60 | 69 km/h |
+| 90Hz / 144Hz | steady pattern | 60 | 69 km/h |
+
+The count-up takes the same 333ms (small) / 417ms (large) at 60 and 120Hz.
+
+---
+
 ## 3.33.0 — 2026-09-27 19:00: Batch 575 — readable text on phones, and a TEXT SIZE setting
 
 Direct request: text in Missions, Awards and elsewhere was too small to read on a phone "even with good

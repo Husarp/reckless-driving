@@ -43,6 +43,10 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 
 - [x] ~~Bigger text (a setting)~~ — done, Batch 575 (option C: ~11px floor on phones + TEXT SIZE 100/115/130%).
 
+### Done in Batch 576
+
+- [x] ~~Everything runs faster on the Samsung (120Hz)~~ — the game ticks 60 times per second of real time on any screen.
+
 ### Done in Batch 574
 
 - [x] ~~Settings: BACK only~~ / ~~GIFT link colours in the Missions footer~~ / ~~update check hangs~~
