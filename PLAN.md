@@ -69,6 +69,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
   prices, and whether boxes can drop them.
   Also: a booster that makes Daily Word letters appear on the road more often.
+- [ ] **"What's new" button / section** (asked 2026-09-28, for the NEXT update): a place in the game that shows
+  what changed in the latest version.
 - [ ] **Upgrading owned cars** (idea, 2026-09-28). Clicking a car in the Garage opens a panel over the lower
   half of the screen - also for cars not bought yet (not for undiscovered ones), where it says the car has to
   be bought: the new place to buy a car, and it shows the car's stats. Once bought it shows the stats and the
@@ -110,6 +112,7 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [x] ~~WHO CALLS THE AMBULANCE? reachable~~ — a quarter of ambulances get a driver who cuts in; ambulances never brake.
 - [x] ~~Energy bar not dimmed while paused~~ / ~~grey screen after coming back~~ / ~~tutorial amounts~~
 - [x] ~~Ramming bonus x2~~ — the energy a kill refunds doubled (Batch 587); the points stay 1.2x a pass.
+  REVERTED in Batch 593 (emergency patch, 3.40.3): too OP in play - back to 1/3 cell (2/3 for a truck).
 
 ### Done in Batch 585
 

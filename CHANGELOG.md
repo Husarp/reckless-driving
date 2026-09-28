@@ -6,6 +6,12 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.40.3 — 2026-09-28 17:49: Batch 593 — emergency patch: ram kills give back the energy they used to
+
+Direct decision after playing 3.40.2: doubling the energy a ram kill gives back (Batch 587) was "too OP". Back to
+1/3 of a cell for a car, 2/3 for a truck. The tutorial says "a third of a cell" again. Released in place of
+v3.40.2.
+
 ## 3.40.2 — 2026-09-28 16:50: Batch 592 — ambulance crashes happen on their own again; the award is CALL AN AMBULANCE! BUT NOT FOR ME!
 
 Direct decisions:
