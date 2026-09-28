@@ -6,6 +6,34 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.40.0 — 2026-09-28 15:54: Batch 590 — reckless drivers in any vehicle (x1.5), UNDERGLOW at level 20, moved unlocks taken back
+
+### Reckless is a way of driving now, not a car type (direct request)
+- Any car, truck, motorbike or tractor can be driven recklessly - 12% of traffic, the old reckless type's
+  share, so one in eight of everything. Measured over 5 minutes on 10 lanes: 13% (45 cars, 13 trucks,
+  3 motorbikes, 1 tractor).
+- A reckless driver pays **1.5x its vehicle** - points, and the XP and coins that follow them, on a pass, a
+  jump-over and a ram: car 10 -> 15, truck 20 -> 30, motorbike 10 -> 15. (A reckless car was a flat 20; it is
+  15 now.)
+- It drives the same in anything: changes lanes again and again, signals for 75% as long, moves over fast, and
+  may cut into your lane close to you. A reckless car keeps its old look, colours and speed range; a truck,
+  motorbike or tractor keeps its own. Ambulances and breakdowns are never reckless.
+- Tutorial: "A reckless driver pays half as much again, whatever they drive"; "in anything from a car to a
+  tractor"; the TRUCK / RECKLESS value captions are just TRUCK.
+
+### UNDERGLOW at level 20 (was 10)
+Direct request. The tutorial's WHAT LEVELS UNLOCK reads 10 +1 EXTRA BOX, 20 UNDERGLOW, 50 TANK, 100 PRISM.
+
+### Moved unlocks are taken back (direct rule)
+"If the player had it unlocked in the previous version but in this version shouldn't have, lock it." A check at
+every start (relockMovedUnlocks) takes back whatever a save no longer qualifies for - so an older save imported
+later is covered too:
+- UNDERGLOW below level 20: the saved booster goes back to CENTER THRUSTER. (Its lock was already live.)
+- The TANK below level 50 (won from a box before Batch 589): removed from your cars - the selected car goes back
+  to STOCK - and the level-50 window hands it over again.
+Checked with a planted level-15 save that had UNDERGLOW equipped and a Tank selected: both taken back, saved,
+no reward window; a level-93 save keeps everything.
+
 ## 3.39.0 — 2026-09-28 15:40: Batch 589 — the Tank is earned at level 50, TOW AWAY ZONE, MAX on the START button
 
 ### Level rewards (direct request) - first one: the TANK at level 50

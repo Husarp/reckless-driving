@@ -63,8 +63,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   window like the Daily Gift's reveal pops up and the player claims a car. The owner picks which cars (the PC
   test client has everything unlocked to choose from). Open: do those cars leave the shop and go into the
   SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. DONE for the TANK at level 50
-  (Batch 589). Still open: "the booster should unlock at level 20" - which car is "booster"? (not the Bumper
-  Car, which stays in the boxes).
+  (Batch 589). "The booster at level 20" = the UNDERGLOW boost type (was level 10) - done, Batch
+  590. The Bumper Car stays in the boxes.
 - [ ] **Boosters** (idea, 2026-09-28). Bought in the shop, equipped, and used up in the next run. Examples:
   accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
   prices, and whether boxes can drop them.
@@ -77,7 +77,13 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   coin earnings, XP multiplier, top speed. A car at max level with every module maxed gets an extra bonus,
   looks especially cool in the Garage (with a new tab for maxed cars), and gets a cool in-game effect (a
   trail? wings instead of boosters?).
-- [ ] **Lane-switching cars pay 1.5x** (asked 2026-09-28, waiting on a confirmation of which cars count).
+- [x] ~~Reckless drivers pay 1.5x~~ — reckless is a way of driving on any vehicle now, x1.5 of it (Batch 590).
+- [ ] **Paints per car** (future, 2026-09-28, part of the car-upgrades plan). Each car buys its OWN paints (not one
+  colour for every car); PRISM stays for all cars. A paint from a box goes to a random vehicle. Some paints can be
+  bought per vehicle, some can't. Paints may get rarity ranks. When this lands: players who bought paints get
+  their coins back plus some compensation, and every paint is locked again.
+- [ ] **Daily Gift gives several rewards at once** (future, 2026-09-28): some coins, some XP, maybe a paint -
+  instead of one thing.
 - [x] ~~Ram the cones and the car~~ — TOW AWAY ZONE (Batch 589).
 - [x] ~~Best reachable multiplier~~ — MAX on the START button, same button height (Batch 589).
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
