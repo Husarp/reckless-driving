@@ -6,6 +6,49 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.38.0 — 2026-09-28 15:12: Batch 588 — fairer passes, jump-overs and close calls; the drill really rams; Garage MULT sort and OWNED filter; ABILITY INDICATOR
+
+A list of direct reports and requests. Each was checked in a controlled run in the browser.
+
+### Scoring
+- **Passing a car counts once you are past half of it, any time until it is behind you.** It was judged ONCE -
+  the moment your nose drew level with its nose - and a car not in your lane or the next at that instant was
+  written off, so pulling up beside it a moment later paid nothing. Checked: a car two lanes away at its
+  halfway point pays nothing yet; moving beside it before it is behind you pays it; beside it all along, it
+  pays at 51% passed. (An ambulance passes you: its middle past yours, until its tail is past your nose.)
+- **Jumping over a car already paid as a pass now pays the jump's extra.** Beside a car, it was paid as an
+  ordinary pass; jumping across onto it afterwards added jump coins but no jump points. Checked: +10 at x1.0.
+- **A close call is paid only if you survive 250 ms more** (game time). It paid the moment the gap opened
+  again, even in the frame you then crashed. Checked: survive -> paid after 268 ms; crash inside the window ->
+  not paid. A car that leaves the screen inside the window is still paid.
+- **Daily Word XP fills the level bar.** The Word's XP is granted on the road, so its fill played unnoticed
+  with that run's end. Claiming the reward now queues the fill for exactly that XP (checked: 1,500 XP back
+  from 93:4660 is 93:3160).
+
+### Ramming
+- **The drill rams.** Only a car lined up with your front was destroyed; one you pulled into sideways met the
+  car body and killed you, drill or not. Now anything touching the drill - its tip or its sides, at the depth
+  it is drawn - is rammed, even before it reaches your body. That makes an ambulance passing you rammable.
+  The drill is the same size on every ram car, so on the widest ones (Monster Truck, Steamroller, Tow Truck)
+  it does not reach past the body's sides. Checked with the Limousine: a car and an ambulance beside your
+  nose, touching only the drill's edge, destroyed; you survive.
+- **A double tap can't flick the ram off and on.** Turning it off reset the state at once while the drill still
+  took half a second to retract, so the second tap started a new ram and a new one-cell fee. A new ram now
+  waits for the retract. Checked: the second tap does nothing and costs nothing; after the retract it starts.
+- **ABILITY INDICATOR** (Settings, off by default): ABILITY ON (mint) / ABILITY OFF under the energy bar, so
+  a ram still winding down reads as on. The letter warning is placed below it when shown.
+
+### Garage and cars
+- **Sort by MULT replaces PRICE** - flat list by the car's multiplier, highest first.
+- **OWNED is a filter**: it cycles ALL -> OWNED -> NOT OWNED and narrows whichever sort is picked (mint while
+  narrowing). A saved OWNED sort opens as TIER with the OWNED filter; a saved PRICE opens as MULT.
+- **Fire Engine top speed 170** (was 145), **Limousine 160** (was 145). Direct spec.
+- **FPS counter**: 10px (was 8) and it follows TEXT SIZE.
+
+### Tutorial
+Passing: "A car counts once you are past half of it". Ramming: "Anything the drill touches is rammed, even
+from the side".
+
 ## 3.37.1 — 2026-09-28 01:03: Batch 587 — a ram kill gives back twice the energy
 
 Direct decision on "make the ramming bonus two times bigger": the ENERGY a ram kill refunds doubles, the

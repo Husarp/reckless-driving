@@ -1375,7 +1375,8 @@
             transform: scale(var(--hud-scale, 1));
             position: absolute;
             bottom: 16px; right: 16px;
-            font-size: 8px;
+            /* Batch 588, direct request: "way too small", and it ignored TEXT SIZE. 10px (was 8), times the setting. */
+            font-size: calc(10px * var(--ui-zoom, 1));
             letter-spacing: 0.5px;
             color: rgba(210, 210, 210, 0.7);
             pointer-events: none;
@@ -1383,6 +1384,13 @@
             z-index: 40;
         }
         #fpsCounter.on { display: block; }
+        /* Batch 588, direct request: ABILITY INDICATOR (Settings, off by default) - ON / OFF right under the energy
+           bar, so a ram that is still winding down (it takes half a second) reads clearly as still ON. */
+        #abilityIndicator { position: absolute; top: calc(100% + 3px); right: 0; display: none; pointer-events: none;
+            font-family: 'Silkscreen', monospace; font-size: 9px; letter-spacing: 1px; line-height: 1;
+            color: var(--c-text-dim); text-shadow: 1px 1px 0 #000; white-space: nowrap; }
+        #abilityIndicator.on { display: block; }
+        #abilityIndicator.active { color: var(--c-mint); }
         #crashSkipHint {
             position: absolute;
             bottom: calc(10px * var(--hud-scale, 1)); left: 0; right: 0;
@@ -2750,7 +2758,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.37.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.38.0</span></div>
                 </div>
             </div>
         </div>
@@ -3172,6 +3180,22 @@
                         <option value="no">Off</option>
                     </select>
                 </div>
+
+                <!-- Batch 588, direct request - off by default -->
+                <div class="stg-row">
+                    <div class="stg-row-label">
+                        <div class="stg-row-title">ABILITY INDICATOR</div>
+                        <div class="stg-row-hint">ON or OFF under the energy bar, so you can tell when your ability is still running.</div>
+                    </div>
+                    <div class="stg-toggle" id="abilityIndicatorToggle">
+                        <span class="stg-toggle-label" id="abilityIndicatorToggleLabel">OFF</span>
+                        <div class="stg-toggle-track" id="abilityIndicatorToggleTrack"><div class="stg-toggle-knob"></div></div>
+                    </div>
+                    <select id="abilityIndicatorSetting" style="display:none;">
+                        <option value="yes">On</option>
+                        <option value="no" selected>Off</option>
+                    </select>
+                </div>
     
                 <div class="stg-row">
                     <div class="stg-row-label">
@@ -3359,9 +3383,10 @@
                     <div class="ach-tabs" id="garageSortTabs" style="margin-bottom:10px;">
                         <button type="button" class="ach-tab-btn" data-garage-sort="tier">TIER</button>
                         <button type="button" class="ach-tab-btn" data-garage-sort="ability">ABILITY</button>
-                        <button type="button" class="ach-tab-btn" data-garage-sort="price">PRICE</button>
+                        <button type="button" class="ach-tab-btn" data-garage-sort="mult">MULT</button>
                         <button type="button" class="ach-tab-btn" data-garage-sort="speed">SPEED</button>
-                        <button type="button" class="ach-tab-btn" data-garage-sort="owned">OWNED</button>
+                        <!-- Batch 588: a filter, not a sort - ALL / OWNED / NOT OWNED, on top of whichever sort is picked -->
+                        <button type="button" class="ach-tab-btn" id="garageOwnedFilterBtn">ALL</button>
                     </div>
                     <div class="car-grid" id="carGrid"></div>
                 </div>
@@ -3652,7 +3677,7 @@
                         <div class="tut-card-body">
                             <div class="tut-art tut-scene"><canvas id="tutSceneScore"></canvas></div>
                             <div class="tut-copy">
-                                <p>Nothing is scored for just surviving. Points come from passing cars &mdash; and only cars in your lane or the ones right next to it. Distant lanes pay nothing.</p>
+                                <p>Nothing is scored for just surviving. Points come from passing cars &mdash; and only cars in your lane or the ones right next to it. Distant lanes pay nothing. A car counts once you are past half of it, so pulling up beside it late still pays.</p>
                                 <p>Ordinary cars are worth <span class="k" id="tutPtNormal"></span> points, trucks and reckless drivers <span class="k" id="tutPtTruck"></span>, ambulances <span class="k" id="tutPtAmb"></span> &mdash; all times your multiplier.</p>
                             </div>
                         </div>
@@ -3730,7 +3755,7 @@
                             <div class="tut-art tut-scene"><canvas id="tutSceneRam"></canvas></div>
                             <div class="tut-copy">
                                 <p><span class="k" id="tutRamCount"></span> heavy vehicles trade Jump for the ram. Tap <span class="keys-hint">Space</span><span class="touch-hint">the ability button</span>: <span class="k">+40% speed</span> and a front guard that smashes traffic aside &mdash; but only head-on. A side-swipe still kills you.</p>
-                                <p>It runs at least 1 second, drains about a cell per second, and every kill refunds two-thirds of a cell &mdash; trucks refund double. Chain them.</p>
+                                <p>It runs at least 1 second, drains about a cell per second, and every kill refunds two-thirds of a cell &mdash; trucks refund double. Anything the drill touches is rammed, even from the side &mdash; swing into a car before it reaches your body. Chain them.</p>
                             </div>
                         </div>
                     </div>
@@ -3957,8 +3982,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.37.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">587</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.38.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">588</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4030,6 +4055,7 @@
                 <div id="hudLeft">
                     <button id="pauseBtn" class="pause-btn px">II</button>
                     <canvas id="abilityBar" width="127" height="16" title="Tap and hold to use your ability"></canvas>
+                    <div id="abilityIndicator" aria-hidden="true"></div>
                 </div>
                 <div id="gameHud">
                     <div class="hud-right">
@@ -4966,6 +4992,10 @@
             return '#ff3b3b'; // red — high speed (Batch 167: brightened from #e63946, per direct feedback it wasn't noticeable enough)
         }
         const CLOSE_CALL_BASE_SCORE = 100;
+        // Batch 588, direct report: "you still get a close call even if you crash". It paid the moment the gap
+        // opened again - even in the very frame you then hit something. Now it pays once you have survived this
+        // much longer (game time); a crash first cancels it.
+        const CLOSE_CALL_CONFIRM_MS = 250;
         // Minimum-distance-between-rectangles: 0 (or negative in spirit) when overlapping/touching, otherwise the real gap between their nearest edges — not just "is it touching," how far apart is it, which is exactly what a "how close was that" check needs that a boolean checkCollision() can't answer.
         function rectGap(r1, r2) {
             const dx = Math.max(r1.x - (r2.x + r2.width), r2.x - (r1.x + r1.width), 0);
@@ -6162,6 +6192,12 @@
         let levelBadgeAnimFrom = null;
         function markLevelAnimStart() {
             if (!levelBadgeAnimFrom) levelBadgeAnimFrom = { level: allTimeStats.playerLevel, xp: allTimeStats.playerXP };
+        }
+        // Batch 588 - where the level bar stood `amount` XP ago: gainXP() run backwards.
+        function levelStateBefore(amount) {
+            let level = allTimeStats.playerLevel, xp = allTimeStats.playerXP - amount;
+            while (xp < 0 && level > 1) { level--; xp += levelReq(level); }
+            return { level: level, xp: Math.max(0, xp) };
         }
         // Clicking the badge spins the ring. The whole spin is planned up front: a click picks a
         // LANDING ANGLE and the motion is one eased tween onto it, so deceleration is whatever it has
@@ -10081,6 +10117,11 @@
             const wordClaimBtn = document.getElementById('dgWordClaimBtn');
             if (wordClaimBtn) wordClaimBtn.addEventListener('click', () => {
                 if (!allTimeStats.pendingWordReveal) return;
+                // Batch 588, direct report: no level-bar fill after the Daily Word's XP. The XP is granted on the
+                // road when the last letter lands, so its fill played - unnoticed - with the end of that run.
+                // Claiming the reward now queues the fill for exactly that XP, for the next badge you see.
+                const wordReward = allTimeStats.pendingWordReveal.reward;
+                if (wordReward && wordReward.type === 'xp' && !levelBadgeAnimFrom) levelBadgeAnimFrom = levelStateBefore(wordReward.amount);
                 allTimeStats.pendingWordReveal.revealed = true;
                 saveAllTimeStats();
                 renderDgWordCard();
@@ -11343,8 +11384,25 @@
             const cr = canvas.getBoundingClientRect();
             if (!cr.width || !VIEW_W) return 22;
             const cssPerWorld = cr.width / VIEW_W;
-            const hr = hudLeft.getBoundingClientRect();
-            return Math.max(22, Math.round((hr.bottom - cr.top) / cssPerWorld) + 8);
+            let bottom = hudLeft.getBoundingClientRect().bottom;
+            // Batch 588 - the ABILITY INDICATOR hangs below #hudLeft without adding to its box
+            const ind = document.getElementById('abilityIndicator');
+            if (ind && ind.classList.contains('on')) bottom = Math.max(bottom, ind.getBoundingClientRect().bottom);
+            return Math.max(22, Math.round((bottom - cr.top) / cssPerWorld) + 8);
+        }
+        // Batch 588 - ABILITY INDICATOR: rewritten only when what it shows changes
+        let abilityIndicatorKey = null;
+        function updateAbilityIndicator() {
+            const el = document.getElementById('abilityIndicator');
+            const show = document.getElementById('abilityIndicatorSetting').value === 'yes' && gameActive && !!player
+                && config.ability !== 'none';
+            const on = show && player.abilityState !== 'idle';
+            const key = show ? (on ? 'on' : 'off') : '';
+            if (key === abilityIndicatorKey) return;
+            abilityIndicatorKey = key;
+            el.classList.toggle('on', show);
+            el.classList.toggle('active', on);
+            el.textContent = on ? 'ABILITY ON' : 'ABILITY OFF';
         }
 
         function drawPresentIcon(gctx, cx, cy) {
@@ -11781,6 +11839,10 @@
                         }
                     }
                 } else if (config.ability === 'ram') {
+                    // Batch 588, direct report (phone): a double tap on an active ram turned it off and straight back
+                    // on - a fresh one-cell fee each time. Turning off puts the state back to idle at once, while the
+                    // drill still takes half a second to retract; a new ram now waits until it has.
+                    if (this.sbGuardPhase === 'retract') return;
                     // Shield Bump — Batch 252: drains continuously in real time (RAM_DRAIN_PER_FRAME, Player.update()) exactly like Jump does.
                     // Batch 565 - one cell (was two). The one-cell fee then leaves 0, so the ram runs its
                     // RAM_MIN_ACTIVE_MS minimum and ends: short, but usable, as asked.
@@ -12490,6 +12552,8 @@
             armor: 170,      // ARMORED VAN — direct user spec
             kart: 150,       // GO-KART — direct user spec
             tractor2: 110,   // TRACTOR — direct user spec ("very slow")
+            fireengine: 170, // FIRE ENGINE — direct user spec, Batch 588 (the size formula gave it 145)
+            limo: 160,       // LIMOUSINE — direct user spec, Batch 588 (was 145)
             // Batch 445 — the v4 special vehicles. Four of these are direct user specs; the gag only works
             // if the absurd thing is genuinely quick, so none of them is "realistically" slow.
             snail: 250,      // GIANT SNAIL — direct user spec, and the whole gag: joint-fastest in the game
@@ -16388,6 +16452,25 @@
         }
 
         // direct correction: what should destroy a vehicle is the front push-guard ("the drill"), not just any part of the player's own car body touching it ("it's not the drill, it's the actual tank sprite that destroys them"). isFrontHit() above only checks horizontal alignment, so a vehicle the player merges sideways into — already deep inside the player's hitbox by the time checkCollision() fires — could still pass it.
+        // Batch 588, direct request: the DRILL does the ramming. It was drawn in front of the nose, but only a car
+        // lined up with your front (isFrontHit + ramGuardContact) was destroyed - a car you pulled into sideways met
+        // the car body and killed you, drill or not. Now anything touching the drill, tip or sides, is rammed, even
+        // before it reaches the body - which also makes an ambulance passing you rammable. Rows are sbGuard()'s own
+        // (fixed size on every car), at the depth the drill is currently drawn.
+        const DRILL_ROWS = [16, 14, 12, 10, 7, 4, 2, 1];
+        function drillContact(v) {
+            if (config.ability !== 'ram' || selectedCarKey === 'tank' || player.abilityState !== 'ramming'
+                || v.wrecked || v.crushed || v.launched) return false;
+            const depth = player.sbGuardPhase === 'extend'
+                ? [1, 3, 5, 8, 7][Math.min(4, Math.floor(player.sbGuardTimer / 60))] : 8;
+            const cx = player.x + player.width / 2;
+            for (let i = 0; i < depth; i++) {
+                const half = DRILL_ROWS[i] * CAR_SCALE / 2;
+                const top = player.y - (i + 1) * CAR_SCALE;
+                if (v.x < cx + half && v.x + v.width > cx - half && v.y < top + CAR_SCALE && v.y + v.height > top) return true;
+            }
+            return false;
+        }
         function ramGuardContact(player, v) {
             return (v.y + v.height) - player.y <= SB_GUARD_REACH_PX;
         }
@@ -16421,10 +16504,32 @@
         }
 
         // the score/XP/coin reward for successfully dodging a vehicle, factored out so it can fire from the "player just surpassed it" moment (the normal case) and the "it's exiting the screen" fallback (defensive only, shouldn't normally trigger) with identical logic.
+        // Batch 588 - moved out of the vehicle loop so a close call can be paid a moment later (see
+        // CLOSE_CALL_CONFIRM_MS), including by a car that leaves the screen before then.
+        function creditCloseCall(v) {
+            v.closeCallCredited = true;
+            const rawAward = CLOSE_CALL_BASE_SCORE * multiplier;
+            score += rawAward; // no per-event rounding — see endRun()
+            const awarded = Math.round(rawAward); // rounded only for the separate closeCallPointsThisRun breakdown stat below
+            gainXP(CLOSE_CALL_BASE_SCORE);
+            closeCallsThisRun++;
+            closeCallPointsThisRun += awarded;
+            // 2 secret achievements. "Too Close, Too Caring": this specific close call was with an ambulance. "Back To Back": this close call landed within 3s of the previous one — a real zero-intervening-pass rule would need coordinating with the separate creditVehiclePass() pass-crediting loop, so a short time window is the simpler, still-genuine stand-in for "close together".
+            if (v.type === 'ambulance') unlockAchievement('too_close_too_caring');
+            const nowTs = performance.now();
+            if (lastCloseCallTs && nowTs - lastCloseCallTs < 3000) unlockAchievement('back_to_back');
+            lastCloseCallTs = nowTs;
+            scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y, 'CLOSE CALL!', '+' + awarded, v.closeCallColor));
+            // a close call also refills +4 bars, per direct feedback. `abilityState !== 'jumping'` is already guaranteed by this block's own outer condition (a close call can't even be credited while airborne), but the post-landing `rechargeDelay` gate is checked anyway for consistency with every other refill site.
+            if (player.abilityState === 'idle' && player.rechargeDelay <= 0) {
+                player.energy = Math.min(100, player.energy + 4 * ENERGY_PER_CELL);
+            }
+        }
         function isNeighborLane(v) {
             return Math.abs(v.lane - currentLaneIndex()) <= 1;
         }
         function creditVehiclePass(v) {
+            v.passPaidGrounded = !v.jumpedOver;   // Batch 588 - a later jump over it tops this up to a jump's value
             if (v.type === 'ambulance') ambulancesMetThisRun++; // Batch 189 — Daily Missions "meet X ambulances"
             const pts = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10); // Batch 135
             const jumpMult = v.jumpedOver ? 2 : 1;
@@ -17441,12 +17546,25 @@
                     }
 
                     // a crushed wreck is purely decorative from here on: no more collision, no close calls, nothing to react to.
-                    if (!v.crushed && !v.launched && checkCollision(playerCollisionRect(), v)) {
+                    const drillHit = drillContact(v);   // Batch 588
+                    if (!v.crushed && !v.launched && (drillHit || checkCollision(playerCollisionRect(), v))) {
                         if (player.abilityState === 'jumping') {
                             // immune over everything, including ambulances now.
                             if (!v.jumpedOver) {
                                 v.jumpedOver = true;
                                 jumpedOverCount++; // Batch 125 — result-screen ability-usage row
+                                // Batch 588, direct report: beside a car, jump, cross over it, pass it in the air - no jump
+                                // points. Being beside it had already paid it as an ordinary pass, and a pass is only paid
+                                // once. The jump's extra half is paid now instead, with the jump's gold popup.
+                                if (v.passPaidGrounded) {
+                                    v.passPaidGrounded = false;
+                                    const jp = isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10);
+                                    score += jp * multiplier;
+                                    gainXP(jp);
+                                    if (config.scorePopupsEnabled) {
+                                        scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y - 4, '+' + Math.round(jp * multiplier), '', '#f5b32a'));
+                                    }
+                                }
                                 // Batch 438 — a breakdown is a Vehicle like any other, so the generic
                                 // counter above cannot tell one apart. Its own counter can.
                                 if (v.type === 'obstacle') obstaclesJumpedThisRun++;
@@ -17456,7 +17574,7 @@
                             }
                         } else if (devInvincible) {
                             // dev-menu toggle: touching ANY vehicle (including ambulances) is a harmless no-op while this is on — no explosion, no endRun(), no coin credit, just passes through untouched.
-                        } else if (player.abilityState === 'ramming' && !v.wrecked && isFrontHit(player, v, getSelectedCar()) && (selectedCarKey === 'tank' || ramGuardContact(player, v))) {
+                        } else if (player.abilityState === 'ramming' && !v.wrecked && (drillHit || (isFrontHit(player, v, getSelectedCar()) && (selectedCarKey === 'tank' || ramGuardContact(player, v))))) {
                             // direct bug report: hitting an already-`.wrecked` vehicle (an NPC that crashed into ANOTHER NPC, Batch 265-267 — a real, collidable obstacle by design, not a fresh target) still counted as a ram-kill and refilled energy/scored. `!v.wrecked` excludes it from this payoff branch entirely — it falls through to the normal crash branch below instead, same as hitting any other real obstacle.
                             explodeShieldBump(v, v.color, Math.floor(Math.random() * 3));
                             if (v.type === 'ambulance') unlockAchievement('bad_samaritan'); // Batch 325 — this branch already covers ambulances (see the Batch 193 comment above), so ramming one for real just needed the unlock hook
@@ -17619,35 +17737,30 @@
                             if (!v.wasEverClose) v.closeCallColor = closeCallColorForRatio(speedRatio01());
                             v.wasEverClose = true;
                         } else if (v.wasEverClose) {
-                            v.closeCallCredited = true;
-                            const rawAward = CLOSE_CALL_BASE_SCORE * multiplier;
-                            score += rawAward; // no per-event rounding — see endRun()
-                            const awarded = Math.round(rawAward); // rounded only for the separate closeCallPointsThisRun breakdown stat below
-                            gainXP(CLOSE_CALL_BASE_SCORE);
-                            closeCallsThisRun++;
-                            closeCallPointsThisRun += awarded;
-                            // 2 secret achievements. "Too Close, Too Caring": this specific close call was with an ambulance. "Back To Back": this close call landed within 3s of the previous one — a real zero-intervening-pass rule would need coordinating with the separate creditVehiclePass() pass-crediting loop, so a short time window is the simpler, still-genuine stand-in for "close together".
-                            if (v.type === 'ambulance') unlockAchievement('too_close_too_caring');
-                            const nowTs = performance.now();
-                            if (lastCloseCallTs && nowTs - lastCloseCallTs < 3000) unlockAchievement('back_to_back');
-                            lastCloseCallTs = nowTs;
-                            scorePopups.push(new ScorePopup(player.x + player.width / 2, player.y, 'CLOSE CALL!', '+' + awarded, v.closeCallColor));
-                            // a close call also refills +4 bars, per direct feedback. `abilityState !== 'jumping'` is already guaranteed by this block's own outer condition (a close call can't even be credited while airborne), but the post-landing `rechargeDelay` gate is checked anyway for consistency with every other refill site.
-                            if (player.abilityState === 'idle' && player.rechargeDelay <= 0) {
-                                player.energy = Math.min(100, player.energy + 4 * ENERGY_PER_CELL);
-                            }
+                            if (v.closeCallPendingMs === undefined) v.closeCallPendingMs = runActiveMs;
+                            if (runActiveMs - v.closeCallPendingMs >= CLOSE_CALL_CONFIRM_MS) creditCloseCall(v);
                         }
                     }
 
                     // score/XP/coins for dodging a vehicle now credit the moment the player actually SURPASSES it (draws level with, then past, its front edge), not when it finally scrolls all the way off the bottom of the screen — per direct feedback, the old timing lagged well behind the moment the player actually experienced "I got past that car." The gap was worst when the player sat near the TOP of their legal Y range (PLAYER_MIN_Y=40): a car could be a couple hundred pixels behind the player, already fully passed, and still not be scored yet.
+                    // Batch 588, direct report: moving beside a car to pass it sometimes paid nothing. The pass was judged
+                    // ONCE - the moment your nose drew level with its nose - and a car that was not in your lane or the
+                    // next one at that instant was written off for good. Now it counts once you are past its MIDDLE
+                    // (at least half of it passed), and stays countable until it is completely behind you, so
+                    // getting alongside it any time in that stretch pays. (An ambulance passes YOU: its middle
+                    // past yours, until its tail is past your nose.) Only your lane or the next one, as before.
                     if (!v.passScored) {
-                        const surpassed = v.type === 'ambulance'
-                            ? (v.y + v.height <= player.y + player.height)
-                            : (v.y >= player.y);
-                        if (surpassed) {
+                        const halfPassed = v.type === 'ambulance'
+                            ? (v.y + v.height / 2 <= player.y + player.height / 2)
+                            : (v.y + v.height / 2 >= player.y);
+                        const behind = v.type === 'ambulance'
+                            ? (v.y + v.height <= player.y)
+                            : (v.y >= player.y + player.height);
+                        if (halfPassed && !v.crushed && isNeighborLane(v)) {
                             v.passScored = true;
-                            // direct request: only credit a pass for a vehicle in the player's own lane or an immediately-neighboring one, not any lane anywhere on the road — see isNeighborLane() / creditVehiclePass().
-                            if (!v.crushed && isNeighborLane(v)) creditVehiclePass(v);
+                            creditVehiclePass(v);
+                        } else if (behind || v.crushed) {
+                            v.passScored = true;
                         }
                     }
 
@@ -17659,6 +17772,7 @@
                         : v.type === 'ambulance' ? (v.y < -v.height - 20) : (v.y > VIEW_H);
                     if (exited) {
                         if (v.siren) stopSiren(v.siren);
+                        if (gameActive && v.closeCallPendingMs !== undefined && !v.closeCallCredited) creditCloseCall(v);   // Batch 588
                         vehicles.splice(i, 1);
                         if (!v.crushed && !v.passScored && isNeighborLane(v)) creditVehiclePass(v); // Batch 274 — see the primary surpass-check above
                         // direct bug report: lingering wreck smoke sometimes seemed to drift up from BELOW the screen with no wreck actually there.
@@ -17828,6 +17942,7 @@
                 // Live speed bonus on top of the settings-derived baseMultiplier — Batch 241, direct instruction: "each 1km/h is (car_base_mult*mode_mult*lane_mult)*1%".
                 const kmhOverBase = Math.max(0, speedToKmh(currentSpeed) - 50);
                 multiplier = baseMultiplier * (1 + kmhOverBase * 0.01);
+                updateAbilityIndicator();   // Batch 588
 
                 // UI Display text (DOM overlay — crisp at any display size). The score ROLLS toward its
                 // target at a constant step - see odometerStep() for why linear beats an ease here. The step
@@ -18052,7 +18167,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.37.1';
+        const GAME_VERSION = '3.38.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -19194,6 +19309,14 @@
             const refreshSp = bindToggle(scorePopupsToggle, scorePopupsToggleLabel, scorePopupsToggleTrack, selectScorePopups, 'yes', 'no');
             refreshSp();
             selectScorePopups.addEventListener('change', () => { try { localStorage.setItem('scorePopups', selectScorePopups.value); } catch (e) {} });
+            // Batch 588 - ABILITY INDICATOR, off by default, saved like every other setting.
+            try { const v = localStorage.getItem('abilityIndicator'); if (v === 'yes' || v === 'no') document.getElementById('abilityIndicatorSetting').value = v; } catch (e) {}
+            bindToggle(document.getElementById('abilityIndicatorToggle'), document.getElementById('abilityIndicatorToggleLabel'),
+                document.getElementById('abilityIndicatorToggleTrack'), document.getElementById('abilityIndicatorSetting'), 'yes', 'no');
+            document.getElementById('abilityIndicatorSetting').addEventListener('change', () => {
+                try { localStorage.setItem('abilityIndicator', document.getElementById('abilityIndicatorSetting').value); } catch (e) {}
+                abilityIndicatorKey = null;
+            });
             // Batch 575 - TEXT SIZE, saved like every other setting and applied the moment it changes.
             const selectTextSize = document.getElementById('textSizeSetting');
             const applyTextSize = () => {
@@ -19841,7 +19964,12 @@
             if (k < 1) btns.forEach(b => { b.style.zoom = String(Math.floor(k * 0.985 * 1000) / 1000); });
         }
         if (typeof ResizeObserver === 'function') new ResizeObserver(fitGarageSortRow).observe(document.getElementById('garageSortTabs'));
-        // Garage sort picker (TIER/ABILITY/PRICE).
+        document.getElementById('garageOwnedFilterBtn').addEventListener('click', () => {
+            garageOwnedFilter = { all: 'owned', owned: 'notOwned', notOwned: 'all' }[garageOwnedFilter];
+            try { localStorage.setItem('garageOwnedFilter', garageOwnedFilter); } catch (e) {}
+            renderCarGrid();
+        });
+        // Garage sort picker (TIER/ABILITY/MULT/SPEED).
         document.querySelectorAll('#garageSortTabs [data-garage-sort]').forEach(btn => {
             btn.addEventListener('click', () => {
                 // Batch 513, direct request: tapping the tab you are ALREADY on flips the order.
@@ -20157,9 +20285,16 @@
         // direct request: 3 ways to organize the Garage grid, replacing the old single fixed layout.
         let garageSort = 'tier';
         let garageSortDir = 1;   // Batch 513 - 1 is each sort's natural order, -1 is that order flipped
+        // Batch 588, direct request: OWNED is a filter now, not a sort - it cycles ALL -> OWNED -> NOT OWNED and
+        // narrows whichever sort is picked. And PRICE became MULT (by car multiplier, highest first).
+        let garageOwnedFilter = 'all';   // 'all' | 'owned' | 'notOwned'
         try {
             const s = localStorage.getItem('garageSort');
-            if (['tier', 'ability', 'price', 'speed', 'owned'].includes(s)) garageSort = s;
+            if (['tier', 'ability', 'mult', 'speed'].includes(s)) garageSort = s;
+            else if (s === 'price') garageSort = 'mult';
+            else if (s === 'owned') { garageSort = 'tier'; garageOwnedFilter = 'owned'; }
+            const f = localStorage.getItem('garageOwnedFilter');
+            if (['all', 'owned', 'notOwned'].includes(f)) garageOwnedFilter = f;
             // Batch 513 - tapping the ACTIVE sort tab flips the order. Persisted next to the sort
             // itself so the Garage reopens exactly as it was left.
             if (localStorage.getItem('garageSortDir') === '-1') garageSortDir = -1;
@@ -20182,13 +20317,17 @@
             // Doing it at draw time instead would have needed a different rule per sort.
             const blocks = [];
             function addSection(label, color, cars, comparator) {
+                if (!cars.length) return;   // Batch 588 - with a filter on, a section can come up empty
                 blocks.push({ label: label, color: color, cars: cars, comparator: comparator });
             }
+            // Batch 588 - the OWNED filter, applied to every sort below
+            const CARS = GARAGE_CARS.filter(c => garageOwnedFilter === 'all'
+                || (garageOwnedFilter === 'owned' ? isCarOwned(c) : !isCarOwned(c)));
             // Batch 524 - STOCK is no longer a pinned block. It carries no `rarity` of its own, so it
             // is folded into COMMON for the grouped sorts and simply takes part in the flat ones, where
             // its unlock of 0 puts it first on price and its real figure places it on speed.
             const isStock = c => c.key === 'stock';
-            const withStock = (tier, cars) => tier === 'common' ? cars.concat(GARAGE_CARS.filter(isStock)) : cars;
+            const withStock = (tier, cars) => tier === 'common' ? cars.concat(CARS.filter(isStock)) : cars;
             function emitBlocks() {
                 const rev = garageSortDir < 0;
                 // Batch 524 - there is no pinned tile any more. STOCK used to sit above every header as
@@ -20217,10 +20356,11 @@
                 // is "what is the quickest thing I own", so the answer belongs at the top. Flat list
                 // like PRICE, and unlike PRICE the box-exclusives are NOT pushed to the end - they have
                 // a real top speed, where they have no price at all.
-                addSection(null, null, GARAGE_CARS, (a, b) => estimateTopSpeedKmh(b) - estimateTopSpeedKmh(a) || byName(a, b));
-            } else if (garageSort === 'price') {
-                // Flat list, no sections — every car by price ascending, box-exclusives pushed after every priced car regardless of how cheap/expensive they'd otherwise rank.
-                addSection(null, null, GARAGE_CARS, (a, b) => boxLast(a, b) || byPrice(a, b));
+                addSection(null, null, CARS, (a, b) => estimateTopSpeedKmh(b) - estimateTopSpeedKmh(a) || byName(a, b));
+            } else if (garageSort === 'mult') {
+                // Batch 588, direct request (replaces PRICE): flat list by the car's own multiplier, highest first -
+                // same reasoning as SPEED, the question is "what pays the most".
+                addSection(null, null, CARS, (a, b) => carBaseMultiplier(b) - carBaseMultiplier(a) || byName(a, b));
             } else if (garageSort === 'ability') {
                 // direct request: Stock has no ramAbility, so it belongs IN the JUMP section here (not floated separately above like the other 2 modes do).
                 // Batch 507, direct request: the box-exclusives get their own SPECIAL section here too,
@@ -20228,21 +20368,11 @@
                 // ability flag they happened to carry, which put a grand piano, a bathtub and a donut
                 // under JUMP - none of which jumps. Filtering them out first also means boxLast() has
                 // nothing left to push to the end of the two ability sections.
-                addSection('RAM ABILITY', 'var(--c-red)', GARAGE_CARS.filter(c => c.ramAbility && !c.boxOnly), byPrice);
-                addSection('JUMP', 'var(--c-mint)', GARAGE_CARS.filter(c => !c.ramAbility && !c.boxOnly), byPrice);
+                addSection('RAM ABILITY', 'var(--c-red)', CARS.filter(c => c.ramAbility && !c.boxOnly), byPrice);
+                addSection('JUMP', 'var(--c-mint)', CARS.filter(c => !c.ramAbility && !c.boxOnly), byPrice);
                 // By name, not price: a box-exclusive has no `unlock`, so byPrice would compare
                 // undefined against undefined - the same reason TIER sorts this section by name.
-                addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, GARAGE_CARS.filter(c => c.boxOnly), byName);
-            } else if (garageSort === 'owned') {
-                // Batch 437 - same rarity grouping as TIER, just limited to cars you actually have.
-                // A tier with nothing owned in it is skipped entirely rather than left as an empty
-                // header, so the list reads as a collection rather than a mostly-blank grid.
-                ['common', 'rare', 'epic', 'legendary'].forEach(tier => {
-                    const owned = withStock(tier, GARAGE_CARS.filter(c => c.rarity === tier && !c.boxOnly && isCarOwned(c)));
-                    if (owned.length) addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, owned, byPrice);
-                });
-                const ownedSpecial = GARAGE_CARS.filter(c => c.boxOnly && isCarOwned(c));
-                if (ownedSpecial.length) addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, ownedSpecial, byName);
+                addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, CARS.filter(c => c.boxOnly), byName);
             } else {
                 // TIER (default) — grouped into rarity sections (colored header per tier), per direct feedback ("there is a common... and all the common cars below it, then there is rare, etc... kind of sorted, but not that much" — Batch 104).
                 // Batch 448, direct correction: the box-exclusives are their own section AFTER legendary,
@@ -20250,14 +20380,15 @@
                 // is gone from these comparators because there is no longer a box-exclusive inside any
                 // rarity section for it to push to the end.
                 ['common', 'rare', 'epic', 'legendary'].forEach(tier => {
-                    addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, withStock(tier, GARAGE_CARS.filter(c => c.rarity === tier && !c.boxOnly)), byPrice);
+                    addSection(RARITY_INFO[tier].label, RARITY_INFO[tier].color, withStock(tier, CARS.filter(c => c.rarity === tier && !c.boxOnly)), byPrice);
                 });
                 // Sorted by name, not price: a box-exclusive has no price, so byPrice would compare
                 // undefined against undefined and leave them in whatever order the roster happens to use.
-                addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, GARAGE_CARS.filter(c => c.boxOnly), byName);
+                addSection(RARITY_INFO.special.label, RARITY_INFO.special.color, CARS.filter(c => c.boxOnly), byName);
             }
 
             emitBlocks();
+            if (!blocks.length) grid.innerHTML = '<div class="showroom-empty-note">' + (garageOwnedFilter === 'owned' ? 'No cars owned yet.' : 'Every car is owned.') + '</div>';
 
             document.querySelectorAll('#garageSortTabs [data-garage-sort]').forEach(btn => {
                 const key = btn.getAttribute('data-garage-sort');
@@ -20270,6 +20401,15 @@
                 btn.style.color = on ? 'var(--c-night)' : 'var(--c-text-dim)';
                 btn.style.border = '2px solid ' + (on ? 'var(--c-amber)' : 'var(--c-panel-border)');
             });
+            // Batch 588 - the OWNED filter: its label is its state; mint while it narrows the list
+            const ownedFilterBtn = document.getElementById('garageOwnedFilterBtn');
+            if (ownedFilterBtn) {
+                const narrowing = garageOwnedFilter !== 'all';
+                ownedFilterBtn.textContent = { all: 'ALL', owned: 'OWNED', notOwned: 'NOT OWNED' }[garageOwnedFilter];
+                ownedFilterBtn.style.background = 'var(--c-card)';
+                ownedFilterBtn.style.color = narrowing ? 'var(--c-mint)' : 'var(--c-text-dim)';
+                ownedFilterBtn.style.border = '2px solid ' + (narrowing ? 'var(--c-mint)' : 'var(--c-panel-border)');
+            }
             fitGarageSortRow();   // Batch 585 - the active label (with its arrow) sets the row's width
 
             const garageCoinTotalEl = document.getElementById('garageCoinTotal');

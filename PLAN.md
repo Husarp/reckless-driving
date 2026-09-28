@@ -62,13 +62,33 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Level-reward cars** (asked 2026-09-28, waiting on the owner's pick). At levels 10, 20 ... 100 a
   window like the Daily Gift's reveal pops up and the player claims a car. The owner picks which cars (the PC
   test client has everything unlocked to choose from). Open: do those cars leave the shop and go into the
-  SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. Still waiting on which car at
-  which level.
+  SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. Picks so far (2026-09-28,
+  speech-to-text): "booster on level 20" (which car - BUMPER CAR?) and "tank on level ..." (level missing).
 - [ ] **Boosters** (idea, 2026-09-28). Bought in the shop, equipped, and used up in the next run. Examples:
   accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
   prices, and whether boxes can drop them.
+  Also: a booster that makes Daily Word letters appear on the road more often.
+- [ ] **Upgrading owned cars** (idea, 2026-09-28). Clicking a car in the Garage opens a panel over the lower
+  half of the screen - also for cars not bought yet (not for undiscovered ones), where it says the car has to
+  be bought: the new place to buy a car, and it shows the car's stats. Once bought it shows the stats and the
+  car's LEVEL (each level raises all stats by ~5-10%?); a car levels up through tasks driven in it (drive X
+  km, jump X times, score X...). It also has MODULES to upgrade: acceleration, how fast it moves up and down,
+  coin earnings, XP multiplier, top speed. A car at max level with every module maxed gets an extra bonus,
+  looks especially cool in the Garage (with a new tab for maxed cars), and gets a cool in-game effect (a
+  trail? wings instead of boosters?).
+- [ ] **Lane-switching cars pay 1.5x** (asked 2026-09-28, waiting on a confirmation of which cars count).
+- [ ] **An award for ramming the cones and the car behind them?** (asked 2026-09-28 - or for jumping it; maybe
+  one of the two; are there too many cone awards?). Waiting on a decision.
+- [ ] **Show the best multiplier reachable** with the current car, lanes and mode (asked 2026-09-28: on the
+  START button? room on a phone?). Waiting on a decision.
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
+
+### Done in Batch 588
+
+- [x] ~~Passes at 50%, jump-over top-up, close calls only if you survive, Word XP fill~~
+- [x] ~~The drill rams, no double-tap re-ram, ABILITY INDICATOR setting~~
+- [x] ~~Garage MULT sort + OWNED filter, Fire Engine 170 / Limousine 160, FPS text size~~
 
 ### Done in Batch 586
 
