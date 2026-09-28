@@ -2353,6 +2353,14 @@
             box-sizing: border-box;
         }
         #confirmOverlay.active { display: flex; }
+        /* Batch 589 - the level-reward window: the confirm dialog's frame, in mint (good news), around the
+           Daily Gift's own reward reveal */
+        #levelRewardOverlay { display: none; position: fixed; inset: 0; background: rgba(9,12,18,.78); align-items: center;
+            justify-content: center; z-index: 1000; padding: 20px; box-sizing: border-box; }
+        #levelRewardOverlay.active { display: flex; }
+        #levelRewardBox { background: var(--c-panel); border: 2px solid var(--c-mint); box-shadow: 0 18px 40px rgba(0,0,0,.6);
+            padding: 20px; max-width: 320px; width: 100%; box-sizing: border-box; text-align: center; }
+        #levelRewardBox .confirm-title { color: var(--c-mint); }
         #confirmBox {
             background: var(--c-panel);
             border: 2px solid var(--c-red);
@@ -2551,9 +2559,14 @@
         .mm-start:hover { box-shadow: 1px 1px 0 #000; transform: translate(2px, 2px); }
         .mm-start-left { display: flex; align-items: center; gap: 10px; }
         .mm-start-label { font-size: 14px; letter-spacing: 2px; }
-        .mm-start-right { display: flex; align-items: baseline; gap: 5px; }
+        /* Batch 589, direct request: a second line, MAX - the best multiplier this setup can reach - without the
+           button getting any taller: the right side keeps the old 28px and the MULT figure shrinks to make room. */
+        .mm-start-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; height: 28px; gap: 1px; }
+        .mm-start-row { display: flex; align-items: baseline; gap: 5px; }
+        .mm-start-max { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; line-height: 1; color: rgba(255,255,255,.8); }
+        #mmStartMax { font-family: 'VT323', monospace; font-size: 12px; letter-spacing: 0; color: #fff; }
         .mm-start-multcap { font-family: 'Silkscreen', monospace; font-size: 7px; letter-spacing: 1px; color: rgba(255,255,255,.8); }
-        .mm-start-mult { font-family: 'VT323', monospace; font-size: 28px; line-height: 1; color: #fff; }
+        .mm-start-mult { font-family: 'VT323', monospace; font-size: 18px; line-height: 1; color: #fff; }   /* Batch 589 - was 28px */
 
         .mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 16px; }
         .mm-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 7px; }
@@ -2732,8 +2745,8 @@
                             <span class="mm-start-label">START RUN</span>
                         </span>
                         <span class="mm-start-right">
-                            <span class="mm-start-multcap">MULT</span>
-                            <span class="mm-start-mult" id="mmStartMult">&times;1.72</span>
+                            <span class="mm-start-row"><span class="mm-start-multcap">MULT</span><span class="mm-start-mult" id="mmStartMult">&times;1.72</span></span>
+                            <span class="mm-start-max">MAX <span id="mmStartMax">&times;4.35</span></span>
                         </span>
                     </button>
                     <div class="mm-grid">
@@ -2758,7 +2771,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.38.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.39.0</span></div>
                 </div>
             </div>
         </div>
@@ -3799,6 +3812,7 @@
                             <div class="tut-vals-title">WHAT LEVELS UNLOCK</div>
                             <div class="tut-val"><span class="tut-val-num">10</span><span class="tut-val-cap">UNDERGLOW BOOSTER</span></div>
                             <div class="tut-val"><span class="tut-val-num">10</span><span class="tut-val-cap">+1 EXTRA BOX / DAY</span></div>
+                            <div class="tut-val"><span class="tut-val-num">50</span><span class="tut-val-cap">TANK</span></div>
                             <div class="tut-val"><span class="tut-val-num">100</span><span class="tut-val-cap">PRISM PAINT</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">EVERY</span><span class="tut-val-cap">BIGGER DAILY REWARDS</span></div>
                         </div>
@@ -3838,7 +3852,7 @@
                         <div class="tut-card-body">
                             <div class="tut-copy">
                                 <p>A few machines in the Garage are not cars at all.</p>
-                                <p>They have no price, and no amount of driving will ever reveal one on the road. The only way in is the Daily Gift&rsquo;s <b>Extra Boxes</b> &mdash; each box rolls a chance at one, and the Garage keeps their shapes hidden until a box says otherwise.</p>
+                                <p>They have no price, and no amount of driving will ever reveal one on the road. The only way in is the Daily Gift&rsquo;s <b>Extra Boxes</b> &mdash; each box rolls a chance at one, and the Garage keeps their shapes hidden until a box says otherwise. The Tank is the exception: it is never in a box, you earn it at level 50.</p>
                                 <p>Most trade their ability away for a <b>coin bonus</b>. A few learned something stranger instead.</p>
                             </div>
                         </div>
@@ -3982,8 +3996,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.38.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">588</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.39.0 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">589</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4201,6 +4215,14 @@
                 <button class="btn" id="confirmCancelBtn">CANCEL</button>
                 <button class="btn btn-danger" id="confirmOkBtn">CLEAR</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Batch 589 - a level's reward car, claimed like a Daily Gift (the same reveal inside). -->
+    <div id="levelRewardOverlay">
+        <div id="levelRewardBox">
+            <div class="confirm-title" id="levelRewardTitle">LEVEL 50 REWARD</div>
+            <div id="levelRewardReveal"></div>
         </div>
     </div>
 
@@ -5324,6 +5346,7 @@
             extraBoxesOpenedToday: 0, // Batch 163 — paid Daily Gift boxes bought today; drives both the escalating price and the remaining-today count
             extraBoxesOpenedDayKey: null,
             extraBoxesOpenedLifetime: 0, // Batch 292 — lifetime total (extraBoxesOpenedToday resets daily, so it can't drive a lifetime stat on its own) — see the DAILY WORD card's BOXES OPENED tile
+            levelRewardsClaimed: [],  // Batch 589 — levels whose reward car has been claimed (see showLevelReward())
             pendingWordReveal: null,  // Batch 163 — { word, reward } stashed the instant a word completes ON THE ROAD (see collectWordLetter()), so the Daily Gift tab can show a "just solved" reveal whenever it's next opened, however much later that is. Cleared once acknowledged in the tab.
             pendingGiftReveal: null,  // Batch 224 — direct bug report: the CLAIM GIFT reward used to live only in the transient dgGiftReveal variable, which the tab's own Back button wiped unconditionally — leaving before acknowledging the reveal (dismissing its own "CLAIM" button) looked exactly like the reward had been cancelled, even though it was already granted. Same fix pattern as pendingWordReveal above: the reward itself is persisted the instant it's rolled, cleared only once actually acknowledged.
             // Daily Missions, real tracking. missionsRolled holds today's 6 picked mission ids ({xp:[...], coin:[...]}); missionsGoals/missionsExtra freeze each one's resolved goal (and any rolled param, e.g. which difficulty) for the day so they don't shift if the player levels up mid-day. missionsCarScoresToday and missionsRareSeenToday are working state for the 2 missions that need more than a flat number (drive_3_cars, rare_car) — reset alongside the rest each day.
@@ -8456,7 +8479,7 @@
             // into the Garage's SPECIAL section. It keeps its shot: `ramAbility` plus the
             // key === 'tank' checks that turn the ram into TANK SHOOT are untouched. Anyone who
             // already bought it keeps it - ownership lives in allTimeStats.ownedCars, not here.
-            { key: 'tank',    label: 'TANK',        h: 32, hitboxW: 20, draw: drawGarageTank53,    rarity: 'special',      boxOnly: true, noPaint: true, ramAbility: true },
+            { key: 'tank',    label: 'TANK',        h: 32, hitboxW: 20, draw: drawGarageTank53,    rarity: 'special',      boxOnly: true, noPaint: true, ramAbility: true, levelReward: 50 },   // Batch 589 - earned at level 50, no longer in the boxes
         ];
         // direct request: prices researched against real-world new-vehicle costs per category (average of the researched range, not the extreme), replacing the old ×50 scale-of-arbitrary-numbers approach (Batch 332/334, CAR_PRICE_SCALE) entirely — these are now the final absolute values, not a base to be multiplied further.
 
@@ -9190,7 +9213,9 @@
         // silently paying coins in its place: the DROP CHANCES panel and the roll read these same
         // weights, so advertising a car that cannot drop would be a lie to the player. Flag one car
         // boxOnly again and the tier returns on its own — nothing else needs changing.
-        function boxExclusiveCars() { return GARAGE_CARS.filter(c => c.boxOnly); }
+        // Batch 589 - a `levelReward` car keeps boxOnly (no price, not in traffic, SPECIAL in the Garage) but is
+        // earned at its level instead, so it is not in the boxes' pool.
+        function boxExclusiveCars() { return GARAGE_CARS.filter(c => c.boxOnly && !c.levelReward); }
         function rewardWeightsFor(source) {
             const weights = { ...REWARD_WEIGHTS[source] };
             if (weights.car && !boxExclusiveCars().length) delete weights.car;
@@ -10467,6 +10492,7 @@
             double_shift:           [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 3, 1, '#e63946'], [5, 3, 3, 1, '#12161f'], [8, 3, 3, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 1, 1, '#e63946'], [3, 5, 7, 1, '#12161f'], [10, 5, 1, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 1, 1, '#e63946'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 1, 1, '#e63946'], [3, 7, 7, 1, '#12161f'], [10, 7, 1, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             emergency_exit:         [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 4, 1, '#e63946'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 2, 1, '#e63946'], [4, 5, 5, 1, '#12161f'], [9, 5, 2, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 1, 1, '#e63946'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 3, 1, '#e63946'], [5, 7, 3, 1, '#12161f'], [8, 7, 3, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             cone_slalom:            [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ffd97a'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ffd97a'], [2, 2, 9, 1, '#f5b32a'], [11, 2, 1, 1, '#b87c0a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ffd97a'], [2, 3, 4, 1, '#f5b32a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#f5b32a'], [11, 3, 1, 1, '#b87c0a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ffd97a'], [2, 4, 3, 1, '#f5b32a'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#f5b32a'], [11, 4, 1, 1, '#b87c0a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ffd97a'], [2, 5, 2, 1, '#f5b32a'], [4, 5, 5, 1, '#12161f'], [9, 5, 2, 1, '#f5b32a'], [11, 5, 1, 1, '#b87c0a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ffd97a'], [2, 6, 1, 1, '#f5b32a'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#f5b32a'], [11, 6, 1, 1, '#b87c0a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ffd97a'], [2, 7, 3, 1, '#f5b32a'], [5, 7, 3, 1, '#12161f'], [8, 7, 3, 1, '#f5b32a'], [11, 7, 1, 1, '#b87c0a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ffd97a'], [2, 8, 3, 1, '#f5b32a'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#f5b32a'], [11, 8, 1, 1, '#b87c0a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ffd97a'], [2, 9, 3, 1, '#f5b32a'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#f5b32a'], [11, 9, 1, 1, '#b87c0a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ffd97a'], [2, 10, 9, 1, '#f5b32a'], [11, 10, 1, 1, '#b87c0a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ffd97a'], [2, 11, 10, 1, '#b87c0a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
+            tow_away_zone:          [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ffd97a'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ffd97a'], [2, 2, 9, 1, '#f5b32a'], [11, 2, 1, 1, '#b87c0a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ffd97a'], [2, 3, 4, 1, '#f5b32a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#f5b32a'], [11, 3, 1, 1, '#b87c0a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ffd97a'], [2, 4, 3, 1, '#f5b32a'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#f5b32a'], [11, 4, 1, 1, '#b87c0a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ffd97a'], [2, 5, 3, 1, '#f5b32a'], [5, 5, 3, 1, '#12161f'], [8, 5, 3, 1, '#f5b32a'], [11, 5, 1, 1, '#b87c0a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ffd97a'], [2, 6, 2, 1, '#f5b32a'], [4, 6, 5, 1, '#12161f'], [9, 6, 2, 1, '#f5b32a'], [11, 6, 1, 1, '#b87c0a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ffd97a'], [2, 7, 2, 1, '#f5b32a'], [4, 7, 5, 1, '#12161f'], [9, 7, 2, 1, '#f5b32a'], [11, 7, 1, 1, '#b87c0a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ffd97a'], [2, 8, 1, 1, '#f5b32a'], [3, 8, 7, 1, '#12161f'], [10, 8, 1, 1, '#f5b32a'], [11, 8, 1, 1, '#b87c0a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ffd97a'], [2, 9, 1, 1, '#f5b32a'], [3, 9, 7, 1, '#12161f'], [10, 9, 1, 1, '#f5b32a'], [11, 9, 1, 1, '#b87c0a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ffd97a'], [2, 10, 9, 1, '#f5b32a'], [11, 10, 1, 1, '#b87c0a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ffd97a'], [2, 11, 10, 1, '#b87c0a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],   // Batch 589
             exact_change:           [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#7fe8a8'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#7fe8a8'], [2, 2, 9, 1, '#27c46a'], [11, 2, 1, 1, '#16874a'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#7fe8a8'], [2, 3, 4, 1, '#27c46a'], [6, 3, 1, 1, '#12161f'], [7, 3, 4, 1, '#27c46a'], [11, 3, 1, 1, '#16874a'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#7fe8a8'], [2, 4, 2, 1, '#27c46a'], [4, 4, 5, 1, '#12161f'], [9, 4, 2, 1, '#27c46a'], [11, 4, 1, 1, '#16874a'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#7fe8a8'], [2, 5, 2, 1, '#27c46a'], [4, 5, 1, 1, '#12161f'], [5, 5, 1, 1, '#27c46a'], [6, 5, 1, 1, '#12161f'], [7, 5, 4, 1, '#27c46a'], [11, 5, 1, 1, '#16874a'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#7fe8a8'], [2, 6, 2, 1, '#27c46a'], [4, 6, 5, 1, '#12161f'], [9, 6, 2, 1, '#27c46a'], [11, 6, 1, 1, '#16874a'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#7fe8a8'], [2, 7, 4, 1, '#27c46a'], [6, 7, 1, 1, '#12161f'], [7, 7, 1, 1, '#27c46a'], [8, 7, 1, 1, '#12161f'], [9, 7, 2, 1, '#27c46a'], [11, 7, 1, 1, '#16874a'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#7fe8a8'], [2, 8, 2, 1, '#27c46a'], [4, 8, 5, 1, '#12161f'], [9, 8, 2, 1, '#27c46a'], [11, 8, 1, 1, '#16874a'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#7fe8a8'], [2, 9, 4, 1, '#27c46a'], [6, 9, 1, 1, '#12161f'], [7, 9, 4, 1, '#27c46a'], [11, 9, 1, 1, '#16874a'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#7fe8a8'], [2, 10, 9, 1, '#27c46a'], [11, 10, 1, 1, '#16874a'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#7fe8a8'], [2, 11, 10, 1, '#16874a'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],
             who_calls:              [[1, 0, 11, 1, '#12161f'], [0, 1, 1, 1, '#12161f'], [1, 1, 11, 1, '#ff8a93'], [12, 1, 1, 1, '#12161f'], [0, 2, 1, 1, '#12161f'], [1, 2, 1, 1, '#ff8a93'], [2, 2, 9, 1, '#e63946'], [11, 2, 1, 1, '#a8212c'], [12, 2, 1, 1, '#12161f'], [0, 3, 1, 1, '#12161f'], [1, 3, 1, 1, '#ff8a93'], [2, 3, 3, 1, '#e63946'], [5, 3, 3, 1, '#12161f'], [8, 3, 3, 1, '#e63946'], [11, 3, 1, 1, '#a8212c'], [12, 3, 1, 1, '#12161f'], [0, 4, 1, 1, '#12161f'], [1, 4, 1, 1, '#ff8a93'], [2, 4, 3, 1, '#e63946'], [5, 4, 3, 1, '#12161f'], [8, 4, 3, 1, '#e63946'], [11, 4, 1, 1, '#a8212c'], [12, 4, 1, 1, '#12161f'], [0, 5, 1, 1, '#12161f'], [1, 5, 1, 1, '#ff8a93'], [2, 5, 1, 1, '#e63946'], [3, 5, 7, 1, '#12161f'], [10, 5, 1, 1, '#e63946'], [11, 5, 1, 1, '#a8212c'], [12, 5, 1, 1, '#12161f'], [0, 6, 1, 1, '#12161f'], [1, 6, 1, 1, '#ff8a93'], [2, 6, 1, 1, '#e63946'], [3, 6, 7, 1, '#12161f'], [10, 6, 1, 1, '#e63946'], [11, 6, 1, 1, '#a8212c'], [12, 6, 1, 1, '#12161f'], [0, 7, 1, 1, '#12161f'], [1, 7, 1, 1, '#ff8a93'], [2, 7, 1, 1, '#e63946'], [3, 7, 7, 1, '#12161f'], [10, 7, 1, 1, '#e63946'], [11, 7, 1, 1, '#a8212c'], [12, 7, 1, 1, '#12161f'], [0, 8, 1, 1, '#12161f'], [1, 8, 1, 1, '#ff8a93'], [2, 8, 3, 1, '#e63946'], [5, 8, 3, 1, '#12161f'], [8, 8, 3, 1, '#e63946'], [11, 8, 1, 1, '#a8212c'], [12, 8, 1, 1, '#12161f'], [0, 9, 1, 1, '#12161f'], [1, 9, 1, 1, '#ff8a93'], [2, 9, 3, 1, '#e63946'], [5, 9, 3, 1, '#12161f'], [8, 9, 3, 1, '#e63946'], [11, 9, 1, 1, '#a8212c'], [12, 9, 1, 1, '#12161f'], [0, 10, 1, 1, '#12161f'], [1, 10, 1, 1, '#ff8a93'], [2, 10, 9, 1, '#e63946'], [11, 10, 1, 1, '#a8212c'], [12, 10, 1, 1, '#12161f'], [0, 11, 1, 1, '#12161f'], [1, 11, 1, 1, '#ff8a93'], [2, 11, 10, 1, '#a8212c'], [12, 11, 1, 1, '#12161f'], [1, 12, 11, 1, '#12161f']],   // Batch 585
         };
@@ -10602,6 +10628,8 @@
             // CEASE AND DESIST shoots one, this one sends it flying.
             { id: 'emergency_exit', icon: 'emergency_exit', name: 'EMERGENCY EXIT', desc: 'Launch an ambulance with the Bumper Car.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.emergency_exit },
             { id: 'cone_slalom', icon: 'cone_slalom', name: 'CONE SLALOM', desc: "Scatter an obstacle's cones and get past the car.", once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cone_slalom },
+            // Batch 589, direct request: CONE SLALOM's ramming twin - destroy both the cones and the car.
+            { id: 'tow_away_zone', icon: 'tow_away_zone', name: 'TOW AWAY ZONE', desc: "Scatter an obstacle's cones and ram the car behind them.", once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.tow_away_zone },
             { id: 'didnt_even_try', icon: 'didnt_even_try', name: "DIDN'T EVEN TRY", desc: 'End a run with exactly 0 score.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.didnt_even_try },
             { id: 'over_before_it_started', icon: 'over_before_it_started', name: 'OVER BEFORE IT STARTED', desc: 'Crash within 5 seconds of starting.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.over_before_it_started },
             { id: 'cease_and_desist', icon: 'cease_and_desist', name: 'CEASE AND DESIST', desc: 'Using the mighty power of the Tank, silence the ambulance for good.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.cease_and_desist },
@@ -12675,6 +12703,14 @@
             saveAllTimeStats();
         })();
         // ===== end TEMPORARY ======================================================================================
+        // Batch 589, direct request: the best multiplier this car, lane count and mode can reach. The multiplier grows
+        // 1% per km/h above 50, so it peaks at the car's top speed - and a ram car rams 40% faster than that.
+        function maxReachableMultiplier() {
+            const car = getSelectedCar();
+            let top = carMaxSpeedInternal(car);
+            if (car.ramAbility && !car.launchAbility && car.key !== 'tank') top *= SHIELD_BUMP_SPEED_MULT;
+            return baseMultiplier * (1 + Math.max(0, speedToKmh(top) - 50) * 0.01);
+        }
         function calculateMultiplier() {
             // was `config.lanes`, which only updates inside launchGame() and so stayed stale on this live Settings-screen preview until a run actually started.
             const lanes = parseInt(selectLanes.value, 10);
@@ -14657,6 +14693,7 @@
             set('mmLaneTraffic', (lanes / 4).toFixed(2) + '× TRAFFIC');
             set('mmLaneMult', '×' + (LANE_MULT[lanes] || 1).toFixed(2));
             set('mmStartMult', '×' + baseMultiplier.toFixed(2));
+            set('mmStartMax', '×' + maxReachableMultiplier().toFixed(2));   // Batch 589
             // Batch 543 - the track takes the selected lane count's colour. Inline, because it has to
             // beat .mm-track-bar.on's own amber; the trail keeps the same .38 alpha it always had, so
             // only the hue changes.
@@ -14676,6 +14713,47 @@
             document.querySelectorAll('#mmDiffs .mm-diff').forEach(b => b.classList.toggle('on', b.dataset.value === selectDifficulty.value));
         }
 
+        // Batch 589, direct request: some cars are EARNED at a level (car.levelReward) - no price, not in the boxes.
+        // Reaching the level - or already being past it - brings up this window on the menu, with the same reveal
+        // a Daily Gift uses, until it is claimed. Nothing is granted before CLAIM, so closing the game first just
+        // shows it again. A car already owned (from a box, before this) pays a box's duplicate coins instead.
+        function nextLevelRewardCar() {
+            const claimed = allTimeStats.levelRewardsClaimed || [];
+            return GARAGE_CARS.filter(c => c.levelReward && allTimeStats.playerLevel >= c.levelReward && !claimed.includes(c.levelReward))
+                .sort((a, b) => a.levelReward - b.levelReward)[0] || null;
+        }
+        function showLevelReward() {
+            const overlay = document.getElementById('levelRewardOverlay');
+            if (overlay.classList.contains('active') || !menuView.classList.contains('active')) return;
+            const car = nextLevelRewardCar();
+            if (!car) return;
+            const reward = isCarOwned(car)
+                ? { type: 'coins', amount: carDuplicateCompensation(car), wasDuplicateOf: { type: 'car', label: car.label, rarity: car.rarity, car: car.key } }
+                : { type: 'car', car: car.key, name: car.label };
+            document.getElementById('levelRewardTitle').textContent = 'LEVEL ' + car.levelReward + ' REWARD';
+            const box = document.getElementById('levelRewardReveal');
+            box.innerHTML = renderRewardReveal(reward, 'levelRewardClaimBtn', false);
+            // painted inside this box: the Daily Gift screen may hold a reveal with the same canvas ids
+            const carCanvas = box.querySelector('#dgRevealCarCanvas');
+            if (carCanvas && reward.type === 'car') drawCarSpriteUpright(carCanvas, car, 84, 91);
+            box.querySelectorAll('.dg-reveal-coin, #dgDupeCoinIcon').forEach(renderCoinIcon);
+            const dupeCar = box.querySelector('#dgDupeCarIcon');
+            if (dupeCar) drawCarSpriteUpright(dupeCar, car, 40, 48);
+            overlay.classList.add('active');
+            box.querySelector('#levelRewardClaimBtn').addEventListener('click', () => {
+                if (reward.type === 'car') {
+                    if (!allTimeStats.ownedCars.includes(car.key)) allTimeStats.ownedCars.push(car.key);
+                } else {
+                    allTimeStats.totalCoins += reward.amount;
+                    allTimeStats.totalCoinsEarnedLifetime += reward.amount;
+                    checkMillionaire();
+                }
+                allTimeStats.levelRewardsClaimed = (allTimeStats.levelRewardsClaimed || []).concat(car.levelReward);
+                saveAllTimeStats();
+                overlay.classList.remove('active');
+                refreshMenuSummary();   // the coin total / Garage badge - and the next level's reward, if one is waiting
+            }, { once: true });
+        }
         function refreshMenuSummary() {
             syncTutorialNudge();
             calculateMultiplier();
@@ -14684,6 +14762,7 @@
             if (menuView.classList.contains('active')) {
                 paintLevelBadge(menuLevelRing, menuLevelNum, menuLevelXpText, menuLevelRankText);
                 syncLevelBadgeWidth();
+                showLevelReward();   // Batch 589
             }
             updateGarageNewBadge();
             updateDailyGiftClaimBadge();
@@ -17577,7 +17656,8 @@
                         } else if (player.abilityState === 'ramming' && !v.wrecked && (drillHit || (isFrontHit(player, v, getSelectedCar()) && (selectedCarKey === 'tank' || ramGuardContact(player, v))))) {
                             // direct bug report: hitting an already-`.wrecked` vehicle (an NPC that crashed into ANOTHER NPC, Batch 265-267 — a real, collidable obstacle by design, not a fresh target) still counted as a ram-kill and refilled energy/scored. `!v.wrecked` excludes it from this payoff branch entirely — it falls through to the normal crash branch below instead, same as hitting any other real obstacle.
                             explodeShieldBump(v, v.color, Math.floor(Math.random() * 3));
-                            if (v.type === 'ambulance') unlockAchievement('bad_samaritan'); // Batch 325 — this branch already covers ambulances (see the Batch 193 comment above), so ramming one for real just needed the unlock hook
+                            if (v.type === 'ambulance') unlockAchievement('bad_samaritan');
+                            if (v.type === 'obstacle' && v.conesKnocked > 0) unlockAchievement('tow_away_zone');   // Batch 589 // Batch 325 — this branch already covers ambulances (see the Batch 193 comment above), so ramming one for real just needed the unlock hook
                             // Direct design decision: instead of vanishing instantly (looked wrong on big cars — a fixed-size explosion never matched their scale) or launching off-road (looked "ridiculous"), the rammed vehicle is flattened in place and left as a harmless, non- collidable wreck the player drives over — see the `crushed` branch in Vehicle.update()/draw() and the collision guard below.
                             v.crushed = true;
                             // direct bug report: a crushed wreck kept its old TRAFFIC relative speed (`speedOffset`, tuned to be near-zero for realism as approaching traffic), while the road/scenery itself always scrolls at the full `currentSpeed` (see `roadOffset += currentSpeed`) — so the wreck lingered near the player at traffic pace instead of being left behind like ground debris ("the corpse is just driving underneath me").
@@ -18167,7 +18247,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.38.0';
+        const GAME_VERSION = '3.39.0';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM
@@ -20076,6 +20156,7 @@
             // regardless of balance, so that number is never actually payable.
             const bottomLabel = equipped ? '<span class="car-tile-tag">EQUIPPED</span>'
                 : owned ? ''
+                : car.levelReward ? '<span class="car-tile-lock">LV ' + car.levelReward + '</span>'   // Batch 589
                 : car.boxOnly ? '<span class="car-tile-lock">LOCKED</span>'
                 : `<span class="car-tile-lock"><canvas class="coin-icon-sm"></canvas>${coinDisplay(car.unlock)}</span>`; // Batch 335 — direct request: prices abbreviate too
             // Stock gets a "DEFAULT" label in the same slot every other card's rarity badge occupies, per direct feedback ("above the default car add default text like common/rare etc for other cars... center its icon and name").

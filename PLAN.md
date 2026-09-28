@@ -62,8 +62,9 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Level-reward cars** (asked 2026-09-28, waiting on the owner's pick). At levels 10, 20 ... 100 a
   window like the Daily Gift's reveal pops up and the player claims a car. The owner picks which cars (the PC
   test client has everything unlocked to choose from). Open: do those cars leave the shop and go into the
-  SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. Picks so far (2026-09-28,
-  speech-to-text): "booster on level 20" (which car - BUMPER CAR?) and "tank on level ..." (level missing).
+  SPECIAL section? -> YES (2026-09-28): they leave the shop and join SPECIAL. DONE for the TANK at level 50
+  (Batch 589). Still open: "the booster should unlock at level 20" - which car is "booster"? (not the Bumper
+  Car, which stays in the boxes).
 - [ ] **Boosters** (idea, 2026-09-28). Bought in the shop, equipped, and used up in the next run. Examples:
   accelerate twice as fast (reach top speed sooner); +X% coins and XP for that run. Open: fixed or rising
   prices, and whether boxes can drop them.
@@ -77,10 +78,8 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   looks especially cool in the Garage (with a new tab for maxed cars), and gets a cool in-game effect (a
   trail? wings instead of boosters?).
 - [ ] **Lane-switching cars pay 1.5x** (asked 2026-09-28, waiting on a confirmation of which cars count).
-- [ ] **An award for ramming the cones and the car behind them?** (asked 2026-09-28 - or for jumping it; maybe
-  one of the two; are there too many cone awards?). Waiting on a decision.
-- [ ] **Show the best multiplier reachable** with the current car, lanes and mode (asked 2026-09-28: on the
-  START button? room on a phone?). Waiting on a decision.
+- [x] ~~Ram the cones and the car~~ — TOW AWAY ZONE (Batch 589).
+- [x] ~~Best reachable multiplier~~ — MAX on the START button, same button height (Batch 589).
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
 

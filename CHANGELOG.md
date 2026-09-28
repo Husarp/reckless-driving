@@ -6,6 +6,31 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.39.0 — 2026-09-28 15:40: Batch 589 — the Tank is earned at level 50, TOW AWAY ZONE, MAX on the START button
+
+### Level rewards (direct request) - first one: the TANK at level 50
+- The Tank is no longer in the boxes. Reaching level 50 - or already being past it - brings up a window on the
+  menu, LEVEL 50 REWARD, with the same reveal a Daily Gift uses ("NEW CAR UNLOCKED", the car, CLAIM). Nothing
+  is granted before CLAIM, so closing the game first just shows it again.
+- Already owned (won from a box before this): the same window says ALREADY OWNED and pays a box's duplicate
+  coins (750,000 for a special).
+- In the Garage it stays in SPECIAL; a locked Tank shows LV 50 where a price would be. The tutorial lists it
+  under WHAT LEVELS UNLOCK, and the special-cars page says it is earned, not boxed.
+- Built for more: any car with a `levelReward` level works the same way (the level-20 pick is still open).
+Checked at level 93: the window shows at once, the Tank is drawn, CLAIM adds it and the window does not come
+back; with the Tank already owned it pays +750,000; the boxes' car pool no longer contains it.
+
+### TOW AWAY ZONE (new secret award)
+CONE SLALOM's ramming twin: scatter an obstacle's cones and ram the car behind them. Its own icon (a cone on
+CONE SLALOM's amber frame). Checked: rammed with the Limousine after scattering the cones - unlocked.
+
+### MAX multiplier on the START button (direct request)
+A second line, MAX x..., the best multiplier this car, lane count and mode can reach: at the car's top speed,
+and for a ram car at the 40% extra speed of a ram (the multiplier grows 1% per km/h above 50). The button is
+not a pixel taller - the MULT figure shrank from 28px to 18px to make room (checked: 47.4px on a PC and 50.4px
+on a phone, before and after). Values: Stock / 4 lanes / RECKLESS x2.20 (matches the drives), F1 x3.22, and
+the best setup in the game - Ship / 3 lanes / SUICIDAL - x5.64.
+
 ## 3.38.0 — 2026-09-28 15:12: Batch 588 — fairer passes, jump-overs and close calls; the drill really rams; Garage MULT sort and OWNED filter; ABILITY INDICATOR
 
 A list of direct reports and requests. Each was checked in a controlled run in the browser.
