@@ -2771,7 +2771,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.40.1</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.40.2</span></div>
                 </div>
             </div>
         </div>
@@ -3996,8 +3996,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.40.1 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">591</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.40.2 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">592</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -5275,12 +5275,6 @@
         // Batch 431 - minimum spacing between ambulances, so they cannot bunch up however the
         // per-frame roll lands. 20s at 60fps.
         const AMBULANCE_MIN_GAP_FRAMES = 1200;
-        // Batch 586 - the share of ambulances one driver ahead cuts in front of (see the cut-in check in the
-        // game loop), for WHO CALLS THE AMBULANCE?: rare, but reachable. Measured with EVERY ambulance given a
-        // cut-in, 30 simulated minutes each: 4 lanes - 16 ambulances, 4 found a driver, 2 crashed (~4 an hour);
-        // 10 lanes - 19 ambulances, 4 crashes (~8 an hour). 25% makes it about once an hour of driving on
-        // 4 lanes, twice on 10.
-        const AMBULANCE_CUT_IN_CHANCE = 0.25;
         // Share of NPC drivers who will NOT brake for the car in front. Every crash traces to one.
         const NPC_INATTENTIVE_CHANCE = 0.10;
         // How close an attentive driver gets before matching the speed of the car ahead.
@@ -10691,7 +10685,7 @@
             { id: 'exact_change', icon: 'exact_change', name: 'EXACT CHANGE', desc: 'Level up landing on exactly 0 XP into the new level.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.exact_change },
             // Batch 585, direct request: ambulances can crash now (see the NPC crash loop), rarely - "a secret
             // achievement to spot on the road".
-            { id: 'who_calls', icon: 'who_calls', name: 'WHO CALLS THE AMBULANCE?', desc: 'See an ambulance crash into another car.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.who_calls }
+            { id: 'who_calls', icon: 'who_calls', name: 'CALL AN AMBULANCE! BUT NOT FOR ME!', desc: 'See an ambulance crash into another car.', once: true, tier: 'secret', done: !!allTimeStats.achievementsUnlocked.who_calls }
             ];
         }
         const ACH_TABS = [{ k: 'all', label: 'ALL' }, { k: 'wip', label: 'IN PROGRESS' }, { k: 'done', label: 'COMPLETED' }];
@@ -17367,9 +17361,7 @@
                     const warnDist = AMBULANCE_SIREN_RANGE * 0.65 * Math.max(0, pa.timer / pa.totalWarnFrames);
                     updateSirenVolume(pa.siren, warnDist);
                     if (pa.timer <= 0) {
-                        const amb = new Vehicle(pa.lane, 'ambulance', pa.siren);
-                        amb.cutIn = Math.random() < AMBULANCE_CUT_IN_CHANCE;   // Batch 586
-                        vehicles.push(amb);
+                        vehicles.push(new Vehicle(pa.lane, 'ambulance', pa.siren));
                         pendingAmbulances.splice(i, 1);
                     } else {
                         // Flashing red danger stripe in the incoming lane
@@ -17496,13 +17488,11 @@
                 }
                 if (ambulanceWaitingForLane) {
                     const laneOrder = Array.from({ length: config.lanes }, (_, i) => i).sort(() => Math.random() - 0.5);
-                    // Batch 585, direct report (10 lanes: an ambulance drove straight through a truck): a car
-                    // that is SIGNALLING still counts as its old lane (`lane` only changes when it starts to
-                    // move), and a signalling car always completes its move. So a lane one was signalling
-                    // into looked empty, the ambulance took it, and the car moved in. Such a lane is not free.
-                    const aLane = laneOrder.find(l => canSpawnAt(l) && !vehicles.some(v => v.lane === l)
-                        && !vehicles.some(v => v.changingState === 'indicator' && v.targetLane === l)
-                        && !pendingAmbulances.some(pa => pa.lane === l));
+                    // Batch 592, direct decision: a car SIGNALLING into a lane still counts as its old lane here, so an
+                    // ambulance can take a lane a car is about to move into - and since ambulances crash and never brake,
+                    // that is how CALL AN AMBULANCE! BUT NOT FOR ME! happens: on its own. (Batch 585 kept such lanes free; Batch 586
+                    // then had to stage cut-ins to make the award possible at all. Both are gone.)
+                    const aLane = laneOrder.find(l => canSpawnAt(l) && !vehicles.some(v => v.lane === l) && !pendingAmbulances.some(pa => pa.lane === l));
                     if (aLane !== undefined) {
                         // Clear the lane so the ambulance has a straight run when it arrives.
                         vehicles = vehicles.filter(v => v.lane !== aLane || v.y + v.height >= 0);
@@ -17513,30 +17503,6 @@
                         ambulanceWaitingForLane = false;
                         ambulanceCooldown = AMBULANCE_MIN_GAP_FRAMES;
                     }
-                }
-
-                // Batch 586, direct request: WHO CALLS THE AMBULANCE? must be possible, just rare. Since Batch
-                // 585 no car can be in an ambulance's lane (30 simulated minutes on 10 lanes: 20 ambulances,
-                // 0 crashes), so a few ambulances (AMBULANCE_CUT_IN_CHANCE) get one driver ahead of them who
-                // pulls into their lane anyway: a short signal, then straight in front of it. 50-150px ahead
-                // is where the ambulance - climbing ~2.4-3px a frame - reaches the car while it moves over.
-                // Never into your lane close to you, and never onto another car in that lane.
-                for (const amb of vehicles) {
-                    if (amb.type !== 'ambulance' || !amb.cutIn || amb.wrecked) continue;
-                    const cutter = vehicles.find(v => v !== amb && !v.wrecked && !v.crushed && !v.launched
-                        && (v.type === 'normal' || v.type === 'motorbike' || v.reckless)
-                        && v.changingState === 'none' && Math.abs(v.lane - amb.lane) === 1
-                        && v.y > 0 && amb.y - (v.y + v.height) > 50 && amb.y - (v.y + v.height) < 150
-                        && vehicles.every(o => o === v || o === amb || o.lane !== amb.lane
-                            || Math.abs(o.y - v.y) >= v.height / 2 + o.height / 2 + 35)
-                        && (amb.lane !== currentLaneIndex()
-                            || Math.abs(player.y - v.y) >= v.height / 2 + player.height / 2 + 60 * CAR_SCALE));
-                    if (!cutter) continue;
-                    cutter.isLaneChanger = true;
-                    cutter.targetLane = amb.lane;
-                    cutter.changingState = 'indicator';
-                    cutter.indicatorTimer = 12;
-                    amb.cutIn = false;
                 }
 
                 // breakdown obstacle, same independent-roll/pre-warning pattern as the ambulance above.
@@ -17906,8 +17872,8 @@
 
                 // direct request: two NPCs that end up converging in the same lane (different relative speeds, no lane-change even necessarily involved — confirmed via a live stress test, see PLAN.md) now crash into each other instead of silently overlapping.
                 // Batch 585, direct request: ambulances take part too. They were left out, so one that met a car
-                // drove straight through it; the lane rules keep that very rare, and if it happens anyway, they
-                // crash like anyone else. An ambulance never brakes for the car ahead.
+                // drove straight through it. Now they crash like anyone else - an ambulance never brakes for the car
+                // ahead - which is the whole of CALL AN AMBULANCE! BUT NOT FOR ME! (Batch 592).
                 for (let i = 0; i < vehicles.length; i++) {
                     const a = vehicles[i];
                     if (a.crushed) continue;
@@ -17960,7 +17926,7 @@
                                 }
                             }
                             // Batch 585 - an ambulance crash on screen (not above it, not off the side of a
-                            // panning road) is the secret WHO CALLS THE AMBULANCE?
+                            // panning road) is the secret CALL AN AMBULANCE! BUT NOT FOR ME!
                             if ((a.type === 'ambulance' || b.type === 'ambulance')
                                 && [a, b].some(v => v.y + v.height > 0 && v.y < VIEW_H && !offscreenSide(v.x + v.width / 2))) {
                                 unlockAchievement('who_calls');
@@ -18291,7 +18257,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.40.1';
+        const GAME_VERSION = '3.40.2';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

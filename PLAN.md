@@ -89,6 +89,11 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
 
+### Done in Batch 592
+
+- [x] ~~Ambulance crashes on their own~~ — the signalling-lane rule and the staged cut-ins are removed; the award is
+  CALL AN AMBULANCE! BUT NOT FOR ME! (very rare now: 0 in 78 simulated ambulances).
+
 ### Done in Batch 591
 
 - [x] ~~Runs pay too many coins next to missions~~ — halved (COIN_EARN_SCALE 50 -> 25).

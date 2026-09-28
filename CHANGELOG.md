@@ -6,6 +6,19 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.40.2 — 2026-09-28 16:50: Batch 592 — ambulance crashes happen on their own again; the award is CALL AN AMBULANCE! BUT NOT FOR ME!
+
+Direct decisions:
+- **Removed: "an ambulance never takes a lane a car is signalling into"** (Batch 585). A car signalling into a lane
+  counts as its old lane again, so an ambulance can take a lane a car is about to move into - and ambulances crash
+  and never brake, so that is how an ambulance crash happens: on its own.
+- **Removed: the staged cut-ins** (Batch 586 - a quarter of ambulances got one driver who pulled in front of them).
+- Kept: ambulances crash like other traffic and never brake; everything else from Batches 585-586.
+- **The award is renamed CALL AN AMBULANCE! BUT NOT FOR ME!** (the meme; same id, so an unlocked one stays unlocked).
+
+How rare it is now, measured: 2 hours of simulated driving (1.5 h on 10 lanes, 0.5 h on 4 lanes), 78 ambulances,
+no crash on its own. It is possible - it is how the original report happened - but it takes many hours.
+
 ## 3.40.1 — 2026-09-28 16:40: Batch 591 — runs pay half the coins
 
 Direct decision, after the numbers: a 3-minute run paid more than the first coin mission at level 1 (Stock, 4
