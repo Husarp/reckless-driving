@@ -89,6 +89,10 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
 
+### Done in Batch 591
+
+- [x] ~~Runs pay too many coins next to missions~~ — halved (COIN_EARN_SCALE 50 -> 25).
+
 ### Done in Batch 588
 
 - [x] ~~Passes at 50%, jump-over top-up, close calls only if you survive, Word XP fill~~

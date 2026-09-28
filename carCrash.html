@@ -2771,7 +2771,7 @@
                         <button class="mm-update-x" id="mmUpdateDismiss" title="Dismiss">X</button>
                     </div>
                     <div class="mm-endgap"></div>
-                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.40.0</span></div>
+                    <div class="mm-footer"><span id="devMenuTrigger" class="dev-menu-trigger">DEV</span><span id="menuVersion">v3.40.1</span></div>
                 </div>
             </div>
         </div>
@@ -3996,8 +3996,8 @@
                              batch ships one version, so the pair only ever restated itself. Dropped to
                              the single honest figure, with two stats that genuinely differ from it. -->
                         <div class="tut-vals">
-                            <div class="tut-vals-title">AS OF v3.40.0 &mdash; AUG 21 TO SEP 26, 2026</div>
-                            <div class="tut-val"><span class="tut-val-num">590</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
+                            <div class="tut-vals-title">AS OF v3.40.1 &mdash; AUG 21 TO SEP 26, 2026</div>
+                            <div class="tut-val"><span class="tut-val-num">591</span><span class="tut-val-cap">BATCHES OF WORK</span></div>
                             <div class="tut-val"><span class="tut-val-num">8,500+</span><span class="tut-val-cap">LINES OF CHANGELOG</span></div>
                             <div class="tut-val tut-val-total"><span class="tut-val-num">27 / 34</span><span class="tut-val-cap">DAYS WORKED / DAYS ELAPSED</span></div>
                         </div>
@@ -4967,7 +4967,10 @@
             return (isTruckLike(v) ? VEHICLE_POINTS.truck : (VEHICLE_POINTS[v.type] || 10)) * (v.reckless ? RECKLESS_POINTS_MULT : 1);
         }
         // economy rescale: coin earn-rate needs to scale ~50x alongside car prices (CAR_PRICE_SCALE above), but VEHICLE_POINTS above is shared with SCORE and XP too (see creditVehiclePass()) — scaling it directly would silently 50x every run's score and XP as well, which was never asked for.
-        const COIN_EARN_SCALE = 50;
+        // Batch 591, direct decision: halved (was 50). A 3-minute run paid more than the first coin mission at level 1
+        // (11.2k against 10k) - missions should be the thing worth doing. Passes, jump-overs, rams and launches all pay
+        // from this one number, so they halve together; points, XP, Missions and the Gift/Word do not change.
+        const COIN_EARN_SCALE = 25;
         // "long cars should count as trucks" for scoring/ability-bar energy, per direct request, independent of a vehicle's spawn TYPE.
         const TRUCK_LIKE_HEIGHT = Math.round(34 * CAR_SCALE);
         function isTruckLike(v) {
@@ -18288,7 +18291,7 @@
         // to v2.209.3 while CHANGELOG.md was on 2.211.3: four releases of tutorial work shipped
         // without the number in the game ever moving, because updating it was a separate manual step
         // nothing enforced. Same drift shape as the hardcoded-number bugs fixed in Batches 404/405.
-        const GAME_VERSION = '3.40.0';
+        const GAME_VERSION = '3.40.1';
 
         // ---- TUTORIAL / HOW TO PLAY (Batch 397) ----
         // One continuous document: every section always rendered, in TUT_ORDER, which is also the DOM

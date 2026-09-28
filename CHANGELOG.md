@@ -6,6 +6,18 @@ Format: `X.Y.Z — YYYY-MM-DD HH:MM: <description>`
 
 ---
 
+## 3.40.1 — 2026-09-28 16:40: Batch 591 — runs pay half the coins
+
+Direct decision, after the numbers: a 3-minute run paid more than the first coin mission at level 1 (Stock, 4
+lanes: 11.2k against 10k), and missions should be the thing worth doing. COIN_EARN_SCALE 50 -> 25, so every coin
+a run pays - passes, jump-overs, rams, Bumper Car launches - halves together: a car pass 50 -> 25 coins before the
+multiplier, a truck 100 -> 50, an ambulance 250 -> 125. Points, XP, Missions and the Gift/Word are unchanged; the
+tutorial's coin values follow on their own.
+
+What that means (from the earlier measured drives): Stock 3 min 11.2k -> 5.6k, F1 3 min 16.8k -> 8.4k. For a
+player at level 50 playing ~30 min a day and clearing the coin missions, the Gift and the Word, daily coins go
+~450k -> ~390k (-13%) and the whole car collection (47.7M) ~106 -> ~122 days; at level 1 it is -27%.
+
 ## 3.40.0 — 2026-09-28 15:54: Batch 590 — reckless drivers in any vehicle (x1.5), UNDERGLOW at level 20, moved unlocks taken back
 
 ### Reckless is a way of driving now, not a car type (direct request)
