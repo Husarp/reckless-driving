@@ -71,6 +71,73 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   Also: a booster that makes Daily Word letters appear on the road more often.
 - [ ] **"What's new" button / section** (asked 2026-09-28, for the NEXT update): a place in the game that shows
   what changed in the latest version.
+- [ ] **Quitting a run still gives its XP** (reported 2026-09-28, for the NEXT update). Not reproduced yet:
+  every quit route (pause -> QUIT, with and without the confirm dialog; Escape / Android back only pause)
+  goes through `exitToMenu()` -> `abandonRun()`, which puts the start-of-run snapshot back, and every save is
+  held while a run is live. Browser test on 3.40.3: a 3,100-point run reached level 94 mid-run, QUIT put it
+  back to 93 (4785/5600) in memory, in storage and on the menu badge. Needs the exact route/device from the
+  user before fixing.
+- [ ] **Redesign the High Scores tab** (asked 2026-09-28, for the NEXT update) - for PC and for mobile.
+  Designer prompt written 2026-10-02 (notes/high-scores-designer-prompt.md); waiting on the designer's
+  .dc.html. When building: check the 560px compact switch (LB_FULL_MIN_PX) and the list-only zoom.
+
+### Next update (asked 2026-10-02)
+
+Release notes for it: short, and never a hint of what a secret award is (AGENTS.md house rules).
+
+- [ ] **Daily Word / Gift reward paid before the final CLAIM.** `rollReward()` picks AND grants in one call.
+  The Word is granted on the road the moment the last letter lands (`collectWordLetter`), the Gift on the first
+  CLAIM GIFT; both final CLAIM buttons only close the reveal. So the coins (~100k for a Word at level 30) never
+  visibly arrive, and the count-up never plays on CLAIM. Fix: split into `rollReward()` (decide only) and
+  `applyReward()` (grant; re-check ownership and pay duplicate coins if it became owned meanwhile); store the
+  pending reward with `granted:false` and apply it on the final CLAIM, then `renderDailyGiftHeader()` so the
+  coins count up there. Old pendings without the flag count as paid. Extra Boxes stay instant (their reveal
+  is not saved). Drop the Batch 588 `levelStateBefore` workaround. Clear the header's roll data on opening the
+  view (a re-visit rolls up from a stale value today). Secret awards a reward can trigger then unlock on the
+  GIFT screen, not the run's results. Add a results-screen line when the Word was finished in the run:
+  DAILY WORD COMPLETE - CLAIM IT IN GIFT.
+- [ ] **Grey square behind the reward coin** (Gift / Word / level reward). The global `canvas` rule paints
+  #5a5f66 and every sprite canvas opts out - `.dg-reveal-coin` (Batch 585) does not. Fix: `background:
+  transparent` on that rule. CSS only.
+- [ ] **Tutorial: jumping over an ambulance.** The AMBULANCE TRADE card hard-codes "+1 cell"; the code means to
+  give it but never does (the refill needs the ability idle and past the 500 ms landing delay, and a jump-over
+  is credited mid-air). The coins are right: 625 = jumpCoins(50) = 50/2 x COIN_EARN_SCALE 25, instead of the 125
+  for a pass, times the run's multiplier and coin bonus at the end. Decided: text fix - say it gives no energy,
+  generate the 50/100 pts and 125/625 coin numbers from the constants, add "times your multiplier", and mention
+  the grounded ambulance pass's +5 cells on the JUMP card.
+- [ ] **Trucks pay 1.5x a car, not 2x** (pass, jump-over and ram). One constant: `VEHICLE_POINTS.truck` 20 -> 15;
+  coins, XP and the tutorial numbers follow. "Truck" is `type==='truck'` plus anything at least TRUCK_LIKE_HEIGHT
+  (Limousine, Hearse, Camper, Tow Truck, School Bus, Fire Engine, Garbage Truck, Road Train) - all of those drop
+  too. A reckless truck becomes 22.5: keep the score unrounded (rounded once at run end) but round the gainXP
+  arguments so a secret award's exact-XP check still works. Energy (+2 cells a truck pass) unchanged. Fix the comments that say
+  "everything a multiple of 10" and "a reckless truck 30".
+- [ ] **USE X ENERGY BARS mission counts cells.** `barsUsedThisRun` counts ability starts (a 9-cell flight = a
+  1-cell hop = 1). Change: every ability energy spend goes through one helper adding cells spent (jump and ram
+  drains, floor snaps, Tank shot, Shield Bump fee, the Bumper Car launch); ram-kill refunds still subtract.
+  Rename USE X ENERGY CELLS, keep the goal 100 + 2/level (same as PASS X CARS), round the run total. No save
+  migration (missions reset daily).
+- [ ] **Hazard lights on crashed cars.** Move the breakdown's 4-corner lamp code into a helper and draw it on
+  `wrecked` NPCs (NPC pile-ups - also fixes a broken-down car losing its hazards and cones when hit) and on the
+  player's crash scene (the player's wreck and the car hit, inside the rotated CS.wrecks drawFn). Not on burnt
+  `crushed` cars. Slower than turn signals (~350 ms on/off), per-car phase so wrecks don't blink in sync.
+- [ ] **Results screen: show which completed awards are secret.** Today a secret row only has a tiny pink 8px
+  SECRET at the end. Add a SECRET FOUND section (reuse `.go-ach-section-head`) with the Awards tab's #1a1030
+  row tint and a bigger label (+ touch size). Secrets unlocked in the menu never reach a results screen - known.
+- [ ] **Sounds** (all game audio is Web Audio synthesis, no files):
+  - Buses first: a master bus with a soft limiter, child buses per slider. New AMBIENCE VOLUME slider for the
+    engine, traffic and biome sounds. Also fix the ram wind ignoring SFX volume.
+  - Player engine: pitch follows speed, faint tyre/road roar, under the music. Runs only in a run; fades on
+    pause (`setPaused` has no audio handling today) and on the crash.
+  - Traffic: a quiet whoosh on each credited pass (not ambulances - they have the siren) plus a pool of 2-3
+    voices for the nearest cars (panned, trucks lower). Never one voice per car (phones).
+  - Biomes: one looped bed per biome (wind in mountain/canyon/desert, water on coast/river, birds in forest/
+    meadow/orchard, city rumble...), crossfaded on biome change, from one shared noise buffer.
+  - Crash remake: attack, metal impact, glass/debris grains, longer boom, short room echo - all in one
+    CRASH_PARAMS object.
+  - **Testing (new way of working):** a dev-only `tools/soundlab.html` with every sound, played in a browser
+    and rendered headless (Chrome + OfflineAudioContext works in this workspace) to WAV. The owner can send a
+    reference sound; it is analysed (spectrum/envelope, numpy in a /tmp venv) and matched. The owner listens to
+    the WAVs on a private page before anything is built.
 - [ ] **Upgrading owned cars** (idea, 2026-09-28). Clicking a car in the Garage opens a panel over the lower
   half of the screen - also for cars not bought yet (not for undiscovered ones), where it says the car has to
   be bought: the new place to buy a car, and it shows the car's stats. Once bought it shows the stats and the
@@ -86,15 +153,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
   their coins back plus some compensation, and every paint is locked again.
 - [ ] **Daily Gift gives several rewards at once** (future, 2026-09-28): some coins, some XP, maybe a paint -
   instead of one thing.
-- [x] ~~Ram the cones and the car~~ — TOW AWAY ZONE (Batch 589).
+- [x] ~~A new secret award~~ — done (Batch 589).
 - [x] ~~Best reachable multiplier~~ — MAX on the START button, same button height (Batch 589).
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
 
 ### Done in Batch 592
 
-- [x] ~~Ambulance crashes on their own~~ — the signalling-lane rule and the staged cut-ins are removed; the award is
-  CALL AN AMBULANCE! BUT NOT FOR ME! (very rare now: 0 in 78 simulated ambulances).
+- [x] ~~A secret award reworked~~ — done (Batch 592).
 
 ### Done in Batch 591
 
@@ -109,15 +175,14 @@ CHANGELOG.md under its own version heading; the full old plan is in git history 
 ### Done in Batch 586
 
 - [x] ~~Gift/Word coins x4, coin missions follow the level (10k/20k/40k +500 a level), Extra Box 300k +50k~~
-- [x] ~~WHO CALLS THE AMBULANCE? reachable~~ — a quarter of ambulances get a driver who cuts in; ambulances never brake.
+- [x] ~~A secret award made reachable; ambulances never brake~~
 - [x] ~~Energy bar not dimmed while paused~~ / ~~grey screen after coming back~~ / ~~tutorial amounts~~
 - [x] ~~Ramming bonus x2~~ — the energy a kill refunds doubled (Batch 587); the points stay 1.2x a pass.
   REVERTED in Batch 593 (emergency patch, 3.40.3): too OP in play - back to 1/3 cell (2/3 for a truck).
 
 ### Done in Batch 585
 
-- [x] ~~Ambulance drove through a truck (10 lanes)~~ — never takes a lane a car is signalling into; ambulances
-  crash like other traffic; secret award WHO CALLS THE AMBULANCE?.
+- [x] ~~Ambulance drove through a truck (10 lanes)~~ — fixed; a new secret award.
 - [x] ~~Old square coin in Gift/Word rewards~~ — the real coin sprite.
 - [x] ~~Garage: sort buttons wrap / boost cards uneven / coins off-centre~~ — fixed.
 

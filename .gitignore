@@ -61,6 +61,8 @@ cone ico files/
 # Kept on disk, not published (direct decision, Batch 556): the design brief and the agent rules.
 docs/
 AGENTS.md
+# Not published either (owner, 2026-10-03): the changelog names the secret awards and how to get them.
+CHANGELOG.md
 
 # Editors and operating systems leaving things behind
 .vscode/
