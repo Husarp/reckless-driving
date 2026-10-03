@@ -63,6 +63,8 @@ docs/
 AGENTS.md
 # Not published either (owner, 2026-10-03): the changelog names the secret awards and how to get them.
 CHANGELOG.md
+# The game's source isn't published either (owner, 2026-10-03): it names the secret awards. Releases ship the builds.
+carCrash.html
 
 # Editors and operating systems leaving things behind
 .vscode/

@@ -23,7 +23,7 @@ button says **Update**. Your scores, coins, cars and achievements live in `%LOCA
 outside the program folder, so an update never touches them. Uninstall from Settings → Apps (saves are
 kept unless you tick the box).
 
-**Or just open `carCrash.html`** in any browser. No server, no install, no dependencies.
+Android: install the APK from the latest release (see [Updating](#updating)).
 
 From the main menu: **START RUN** to play, **SETUP** for settings, **SCORES** for the local leaderboard,
 **TUTORIAL** for the in-game HOW TO PLAY screen (shown automatically on a first launch).
@@ -220,7 +220,7 @@ can be rolled back.
 
 | File | Description |
 |---|---|
-| `carCrash.html` | The game (all HTML, CSS, JS in one file) |
+| `carCrash.html` | The game (all HTML, CSS, JS in one file) - kept locally, not published in this repository |
 | `app/` | The Windows app host — `main.py` (WebView2 window), `version.py`, and the generated `splash.html` launch screen |
 | `installer/` | `game.spec` (PyInstaller) and `setup.py` (the install/update/uninstall window) |
 | `scripts/build.ps1` | Builds `build\RecklessDrivingSetup.exe` |
