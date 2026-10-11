@@ -32,13 +32,6 @@ notes/audio-bug/FINDINGS.md (local only).
 
 - [ ] **Level-up rewards vs the slower levels** (2026-10-11): levels now need +100 XP each (3.41); check the level-up
   rewards still feel right at the slower pace.
-### At release time
-
-- [ ] **TEMPORARY: remove `convertOldLaneRateScores`** (Batch 577, the one-time conversion of old
-  Scores to the new lane multipliers). User: leave it "for a couple of updates" - at EVERY release,
-  remind the user and ask whether to remove it now. Remove the whole block between the TEMPORARY
-  markers after `const LANE_MULT` (the `laneRatesConverted` flag in saves can stay, it is harmless).
-
 ## Later
 
 ### Waiting on the owner
@@ -101,17 +94,11 @@ notes/audio-bug/FINDINGS.md (local only).
   colour for every car); PRISM stays for all cars. A paint from a box goes to a random vehicle. Some paints can be
   bought per vehicle, some can't. Paints may get rarity ranks. When this lands: players who bought paints get
   their coins back plus some compensation, and every paint is locked again.
-- [ ] **Phone notifications** (owner, 2026-10-05): Android notifications that bring the player back - the daily
-  streak (about to break), the Daily Gift being ready, and unclaimed missions/rewards. Needs a local-notifications
-  plugin in the Capacitor app, the notification permission, an on/off setting, and a limit on how often they fire.
 - [ ] **Discounts on vehicles** (owner, 2026-10-05): some cars in the shop are on sale for a while (e.g. a rotating
   daily/weekly deal), shown with the old price crossed out. Open: how many cars at once, how big the discount, how
   long it lasts.
 - [ ] **Daily Word box rework** (idea, "maybe", depends on boosters): no XP or coins - a chance of a booster,
   a smaller chance of a paint, a very small chance of a car.
-- [ ] **Rename "Car Crash" to "Reckless Driving" everywhere** (asked 2026-09-27) - it is the game's real
-  name. Not started: needs a list of where "Car Crash" / carCrash still appears (file names, folder,
-  docs, code comments, build scripts, the repo folder) and which of those are safe to rename.
 
 ### Parked
 
